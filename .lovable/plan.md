@@ -1,96 +1,89 @@
 
+Fix: GRN verify consistency, requisition status sync, and duplicate batch stock
 
-# IPD Admission Workflow Overhaul — Procedure-Based Admission, Child Gender, Guardian, Split Payment
+Problem found
 
-## Summary
+1. GRN can add medicine stock but still stay unverified  
+In `src/hooks/useGRN.ts`, medicine rows are inserted into `medicine_inventory` first. Later in the same flow, the code writes to `stock_adjustments`, but that table is inventory-item based and requires `item_id`. Medicine rows only have `medicine_id`, so the verify flow can fail after stock is inserted but before GRN status is updated.
 
-Three major changes to the admission workflow:
-1. Add "Child" gender option with auto-appearing Guardian fields
-2. Make admission procedure-based (mandatory procedure + doctor) instead of just ward/bed
-3. Add split payment support in the payment dialog
+2. Requisition status is not moving from “Approved”  
+The PO → GRN path drops the requisition link:
+- `POFormPage` reads `from_requisition`
+- `purchase_orders` does not persist `requisition_id`
+- `PODetailPage` opens GRN with only `poId`
+- `GRNFormPage` only sets `requisition_id` if `requisitionId` exists in the URL
 
-## Current State
+Result: GRN posts, but the linked requisition is still unknown, so it remains `approved`.
 
-- **Gender enum** in DB: `male`, `female`, `other` — no `child` value
-- **Patient table**: no `guardian_name`, `guardian_phone`, `guardian_relation` columns
-- **Admissions table**: no `primary_procedure_id` or `procedure_charge` columns
-- **Service types table** has `category = 'procedure'` with existing procedure records (Surgeon Fee, Anesthesia, etc.)
-- **AdmissionPaymentDialog** uses single `PaymentMethodSelector` — no split payment
-- **Admission form** requires ward but doctor is optional, no procedure field
+3. Same medicine batch gets duplicated  
+`useVerifyGRN()` always inserts a new `medicine_inventory` row. If verify fails late and the user retries, the same medicine/batch gets inserted again. There is no merge or idempotency protection.
 
-## Plan
+Implementation plan
 
-### 1. Database Migration
+1. Make GRN verification atomic
+- Move the full verify workflow into one Supabase SQL function / RPC.
+- Inside one transaction:
+  - validate GRN is still `draft`
+  - process stock updates
+  - update PO received quantities and PO status
+  - update linked requisition to `issued` if present
+  - mark GRN `verified`
+- If anything fails, nothing is committed.
 
-**Alter gender enum**: Add `'child'` to the `gender` enum type.
+2. Split inventory logic by item type
+- Inventory items:
+  - update `inventory_stock`
+  - create `stock_adjustments`
+- Medicine items:
+  - update/merge `medicine_inventory`
+  - create `pharmacy_stock_movements` with movement type `grn`
+- Do not insert medicine rows into `stock_adjustments`.
 
-**Add patient guardian columns**:
+3. Preserve requisition linkage end-to-end
+- Add `purchase_orders.requisition_id` as a nullable FK.
+- Save it when creating a PO from a requisition.
+- Pass it from PO detail to GRN creation.
+- In GRN creation, auto-populate `goods_received_notes.requisition_id` from the PO if it is not explicitly passed.
+
+4. Prevent duplicate medicine batch rows
+- For medicine receipts, first look for an existing row with the same:
+  - `branch_id`
+  - `store_id`
+  - `medicine_id`
+  - `batch_number`
+  - `expiry_date`
+- If found, increment quantity instead of inserting a new row.
+- Add a DB-level unique guard/index (NULL-safe where needed) so repeated clicks or race conditions cannot create duplicates.
+
+5. Repair current bad data
+- Backfill `purchase_orders.requisition_id` for POs created from requisitions where recoverable.
+- Backfill `goods_received_notes.requisition_id` from the PO link.
+- Audit draft GRNs that already inserted medicine stock.
+- Clean duplicate batch rows carefully by comparing accepted GRN quantities vs inserted stock, not by blindly summing duplicates.
+
+Technical details
+
 ```text
-patients:
-  + guardian_name TEXT
-  + guardian_phone TEXT  
-  + guardian_relation TEXT
+Current failure chain
+
+Verify GRN
+  -> insert medicine_inventory
+  -> update PO / requisition
+  -> insert stock_adjustments
+       fails for medicine rows (no item_id)
+  -> GRN status update never runs
+  -> user retries
+  -> same batch inserted again
 ```
 
-**Add admission procedure columns**:
-```text
-admissions:
-  + primary_procedure_id UUID REFERENCES service_types(id)
-  + procedure_charges NUMERIC DEFAULT 0
-```
+Scope notes
+- The recent journal trigger fix (`unit_cost` in `post_grn_to_journal`) is separate and should stay as-is.
+- The main issue is in client-side GRN verification flow and missing PO/requisition linkage.
 
-### 2. Patient Registration — Child Gender + Guardian
-
-**Files**: `PatientFormPage.tsx`, `QuickPatientModal.tsx`, `OPDWalkInPage.tsx`, `ClinicTokenPage.tsx`
-
-- Add `"child"` to gender enum options in all patient forms
-- When gender = `"child"`, show 3 guardian fields: Guardian Name, Guardian Phone, Guardian Relation (dropdown: Father, Mother, Grandparent, Other)
-- Update zod schemas to include `guardian_name`, `guardian_phone`, `guardian_relation`
-- Save guardian fields to the patients table
-
-### 3. Admission Form — Procedure-Based + Mandatory Doctor
-
-**File**: `AdmissionFormPage.tsx`
-
-- Add **Primary Procedure** dropdown (mandatory) — populated from `service_types` where `category = 'procedure'`
-- When procedure selected, show its charge and auto-add to estimated cost
-- Make **Attending Doctor** mandatory (change schema from optional to required)
-- Keep Ward & Bed section (room assignment is still needed) but rename card to "Procedure & Room Assignment"
-- Add procedure charge to `ipd_charges` on admission creation
-- Update zod schema: `primary_procedure_id: z.string().min(1)`, `attending_doctor_id: z.string().min(1)`
-
-### 4. Split Payment in Payment Dialog
-
-**File**: `AdmissionPaymentDialog.tsx`
-
-- Add "Split Payment" toggle above the payment method selector
-- When enabled, show multiple payment rows: each row has Amount + Payment Method + Reference
-- Add "Add Another Method" button
-- Total of all splits must equal the payment amount
-- Pass array of payment splits to `onPaymentComplete`
-
-**File**: `PaymentModeSelector.tsx` — no changes needed (this is cash/insurance/corporate mode, not payment method)
-
-### 5. Translations (en.ts, ar.ts, ur.ts)
-
-New keys:
-- `gender.child` — Child / طفل / بچہ
-- `patient.guardianName` — Guardian Name / اسم الوصي / سرپرست کا نام
-- `patient.guardianPhone` — Guardian Phone / هاتف الوصي / سرپرست کا فون
-- `patient.guardianRelation` — Guardian Relation / علاقة الوصي / سرپرست کا رشتہ
-- `admission.primaryProcedure` — Primary Procedure / الإجراء الرئيسي / بنیادی طریقہ کار
-- `admission.procedureCharges` — Procedure Charges / رسوم الإجراء / طریقہ کار کے چارجز
-- `billing.splitPayment` — Split Payment / دفع مقسم / تقسیم ادائیگی
-- `billing.addPaymentMethod` — Add Another Method / إضافة طريقة أخرى / مزید ادائیگی کا طریقہ
-
-## Files Changed
-
-- `supabase/migrations/new.sql` — enum alter, patient columns, admission columns
-- `src/pages/app/patients/PatientFormPage.tsx` — child gender + guardian fields
-- `src/components/appointments/QuickPatientModal.tsx` — child gender + guardian
-- `src/pages/app/opd/OPDWalkInPage.tsx` — child gender + guardian
-- `src/pages/app/clinic/ClinicTokenPage.tsx` — child gender + guardian
-- `src/pages/app/ipd/AdmissionFormPage.tsx` — procedure selector, mandatory doctor, procedure charge on admission
-- `src/components/ipd/AdmissionPaymentDialog.tsx` — split payment UI
-- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new labels
-
+Files to change
+- `src/hooks/useGRN.ts`
+- `src/hooks/usePurchaseOrders.ts`
+- `src/pages/app/inventory/POFormPage.tsx`
+- `src/pages/app/inventory/PODetailPage.tsx`
+- `src/pages/app/inventory/GRNFormPage.tsx`
+- `supabase/migrations/new.sql`
