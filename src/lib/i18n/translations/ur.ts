@@ -439,6 +439,10 @@ export const ur: Record<TranslationKey, string> = {
   "invoices.cancelled": "منسوخ",
   "invoices.depositInvoice": "ڈپازٹ",
   "invoices.depositCollection": "ڈپازٹ وصولی",
+  "invoices.recordDeposit": "ڈپازٹ ریکارڈ کریں",
+  "invoices.recordDepositDesc": "مریض کے لیے ایڈوانس ڈپازٹ ریکارڈ کریں",
+  "invoices.depositAmount": "ڈپازٹ رقم",
+  "invoices.depositRecorded": "ڈپازٹ کامیابی سے ریکارڈ ہو گیا",
 
   // Admissions module
   "admissions.title": "داخلگی",

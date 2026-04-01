@@ -15,7 +15,8 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { InvoiceStatusBadge } from "@/components/billing/InvoiceStatusBadge";
-import { Plus, FileText, FlaskConical, Radio, Stethoscope, Landmark } from "lucide-react";
+import { Plus, FileText, FlaskConical, Radio, Stethoscope, Landmark, Wallet } from "lucide-react";
+import { RecordDepositDialog } from "@/components/billing/RecordDepositDialog";
 import { format } from "date-fns";
 import { ColumnDef } from "@tanstack/react-table";
 import { Database } from "@/integrations/supabase/types";

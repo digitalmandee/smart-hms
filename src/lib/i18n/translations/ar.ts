@@ -514,6 +514,10 @@ export const ar: Record<TranslationKey, string> = {
   "invoices.cancelled": "ملغي",
   "invoices.depositInvoice": "إيداع",
   "invoices.depositCollection": "تحصيل الإيداع",
+  "invoices.recordDeposit": "تسجيل إيداع",
+  "invoices.recordDepositDesc": "تسجيل دفعة مقدمة للمريض",
+  "invoices.depositAmount": "مبلغ الإيداع",
+  "invoices.depositRecorded": "تم تسجيل الإيداع بنجاح",
 
   // Admissions module
   "admissions.title": "القبول",
