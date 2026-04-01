@@ -44,6 +44,7 @@ export function useCreateIPDDeposit() {
           reference_number: params.referenceNumber || null,
           notes: depositNotes,
           created_by: profile!.id,
+          billing_session_id: params.billingSessionId || null,
         })
         .select()
         .single();
