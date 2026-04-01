@@ -6,7 +6,9 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePatientBillingHistory } from "@/hooks/useBilling";
 import { usePatientPharmacyCredits, usePatientCreditBalance } from "@/hooks/usePharmacyCredits";
+import { usePatientDeposits, useDepositBalance } from "@/hooks/usePatientDeposits";
 import { PharmacyCreditPaymentModal } from "./PharmacyCreditPaymentModal";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { format } from "date-fns";
 import { 
   Receipt, 
@@ -18,7 +20,8 @@ import {
   Clock,
   XCircle,
   Pill,
-  Banknote
+  Banknote,
+  Wallet
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
@@ -35,13 +38,22 @@ const statusConfig: Record<string, { label: string; variant: "default" | "second
   refunded: { label: "Refunded", variant: "secondary", icon: XCircle },
 };
 
+const depositTypeConfig: Record<string, { label: string; color: string; icon: React.ElementType }> = {
+  deposit: { label: "Deposit", color: "text-emerald-600", icon: Wallet },
+  applied: { label: "Applied", color: "text-blue-600", icon: CheckCircle2 },
+  refund: { label: "Refund", color: "text-orange-600", icon: XCircle },
+};
+
 export function PatientBillingHistory({ patientId }: PatientBillingHistoryProps) {
   const { data, isLoading } = usePatientBillingHistory(patientId);
   const { data: pharmacyCredits = [], isLoading: creditsLoading } = usePatientPharmacyCredits(patientId);
   const { data: creditBalance } = usePatientCreditBalance(patientId);
+  const { data: deposits = [], isLoading: depositsLoading } = usePatientDeposits(patientId);
+  const { data: depositBalance } = useDepositBalance(patientId);
+  const { formatCurrency } = useCurrencyFormatter();
   const [selectedCredit, setSelectedCredit] = useState<typeof pharmacyCredits[0] | null>(null);
 
-  if (isLoading || creditsLoading) {
+  if (isLoading || creditsLoading || depositsLoading) {
     return (
       <div className="space-y-4">
         {Array.from({ length: 3 }).map((_, i) => (
@@ -57,7 +69,7 @@ export function PatientBillingHistory({ patientId }: PatientBillingHistoryProps)
   return (
     <div className="space-y-6">
       {/* Summary Cards */}
-      <div className="grid gap-4 md:grid-cols-5">
+      <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-3">
@@ -79,7 +91,7 @@ export function PatientBillingHistory({ patientId }: PatientBillingHistoryProps)
                 <CheckCircle2 className="h-5 w-5 text-success" />
               </div>
               <div>
-                <p className="text-2xl font-bold">Rs. {(summary?.totalPaid || 0).toLocaleString()}</p>
+                <p className="text-2xl font-bold">{formatCurrency(summary?.totalPaid || 0)}</p>
                 <p className="text-sm text-muted-foreground">Total Paid</p>
               </div>
             </div>
@@ -93,8 +105,23 @@ export function PatientBillingHistory({ patientId }: PatientBillingHistoryProps)
                 <AlertTriangle className="h-5 w-5 text-warning" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-destructive">Rs. {(summary?.totalOutstanding || 0).toLocaleString()}</p>
+                <p className="text-2xl font-bold text-destructive">{formatCurrency(summary?.totalOutstanding || 0)}</p>
                 <p className="text-sm text-muted-foreground">Outstanding</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Deposit Balance Card */}
+        <Card className={depositBalance?.balance ? "border-emerald-200 bg-emerald-50/50 dark:bg-emerald-950/20" : ""}>
+          <CardContent className="p-4">
+            <div className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-emerald-100 dark:bg-emerald-900/30">
+                <Wallet className="h-5 w-5 text-emerald-600" />
+              </div>
+              <div>
+                <p className="text-2xl font-bold text-emerald-600">{formatCurrency(depositBalance?.balance || 0)}</p>
+                <p className="text-sm text-muted-foreground">Deposit Balance</p>
               </div>
             </div>
           </CardContent>
@@ -108,7 +135,7 @@ export function PatientBillingHistory({ patientId }: PatientBillingHistoryProps)
                 <Pill className="h-5 w-5 text-amber-600" />
               </div>
               <div>
-                <p className="text-2xl font-bold text-amber-600">Rs. {(creditBalance?.total || 0).toLocaleString()}</p>
+                <p className="text-2xl font-bold text-amber-600">{formatCurrency(creditBalance?.total || 0)}</p>
                 <p className="text-sm text-muted-foreground">Pharmacy Credits</p>
               </div>
             </div>
@@ -126,6 +153,71 @@ export function PatientBillingHistory({ patientId }: PatientBillingHistoryProps)
           </CardContent>
         </Card>
       </div>
+
+      {/* Deposits Section */}
+      {deposits.length > 0 && (
+        <Card className="border-emerald-200">
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Wallet className="h-5 w-5 text-emerald-600" />
+              Deposits & Advances
+            </CardTitle>
+            <CardDescription>All deposits and advances for this patient</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {deposits.map((deposit: any) => {
+                const typeConf = depositTypeConfig[deposit.type] || depositTypeConfig.deposit;
+                const TypeIcon = typeConf.icon;
+                const isCompleted = deposit.status === "completed";
+
+                return (
+                  <div
+                    key={deposit.id}
+                    className="flex items-center justify-between p-4 rounded-lg border"
+                  >
+                    <div className="flex items-center gap-4">
+                      <div className={cn(
+                        "p-2 rounded-lg",
+                        deposit.type === "deposit" ? "bg-emerald-100 dark:bg-emerald-900/30" :
+                        deposit.type === "applied" ? "bg-blue-100 dark:bg-blue-900/30" :
+                        "bg-orange-100 dark:bg-orange-900/30"
+                      )}>
+                        <TypeIcon className={cn("h-5 w-5", typeConf.color)} />
+                      </div>
+                      <div>
+                        <p className="font-medium">
+                          {deposit.type === "deposit" ? "Deposit Received" :
+                           deposit.type === "applied" ? "Deposit Applied" :
+                           "Deposit Refund"}
+                        </p>
+                        <p className="text-sm text-muted-foreground">
+                          {deposit.created_at ? format(new Date(deposit.created_at), "MMM dd, yyyy 'at' h:mm a") : "-"}
+                          {deposit.notes && <span className="ml-2">• {deposit.notes}</span>}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className={cn("font-medium", typeConf.color)}>
+                          {deposit.type === "deposit" ? "+" : "-"}{formatCurrency(Number(deposit.amount))}
+                        </p>
+                        {deposit.reference_number && (
+                          <p className="text-xs text-muted-foreground">Ref: {deposit.reference_number}</p>
+                        )}
+                      </div>
+                      <Badge variant={isCompleted ? "default" : "secondary"}>
+                        {isCompleted ? "Completed" : "Pending"}
+                      </Badge>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Invoices List */}
       <Card>
@@ -180,9 +272,9 @@ export function PatientBillingHistory({ patientId }: PatientBillingHistoryProps)
 
                       <div className="flex items-center gap-4">
                         <div className="text-right">
-                          <p className="font-medium">Rs. {Number(invoice.total_amount || 0).toLocaleString()}</p>
+                          <p className="font-medium">{formatCurrency(Number(invoice.total_amount || 0))}</p>
                           {balance > 0 && invoice.status !== "cancelled" && (
-                            <p className="text-sm text-destructive">Due: Rs. {balance.toLocaleString()}</p>
+                            <p className="text-sm text-destructive">Due: {formatCurrency(balance)}</p>
                           )}
                         </div>
                         <Badge variant={status.variant}>{status.label}</Badge>
@@ -248,10 +340,10 @@ export function PatientBillingHistory({ patientId }: PatientBillingHistoryProps)
 
                     <div className="flex items-center gap-4">
                       <div className="text-right">
-                        <p className="font-medium text-amber-600">Rs. {outstanding.toLocaleString()}</p>
+                        <p className="font-medium text-amber-600">{formatCurrency(outstanding)}</p>
                         {credit.paid_amount > 0 && (
                           <p className="text-xs text-muted-foreground">
-                            Paid: Rs. {credit.paid_amount.toLocaleString()}
+                            Paid: {formatCurrency(credit.paid_amount)}
                           </p>
                         )}
                       </div>
@@ -313,7 +405,7 @@ export function PatientBillingHistory({ patientId }: PatientBillingHistoryProps)
 
                   <div className="flex items-center gap-4">
                     <div className="text-right">
-                      <p className="font-medium text-success">+Rs. {Number(payment.amount).toLocaleString()}</p>
+                      <p className="font-medium text-success">+{formatCurrency(Number(payment.amount))}</p>
                       {payment.reference_number && (
                         <p className="text-xs text-muted-foreground">Ref: {payment.reference_number}</p>
                       )}

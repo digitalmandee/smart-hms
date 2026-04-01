@@ -3052,6 +3052,11 @@ export const ur: Record<TranslationKey, string> = {
   "billing.depositApplied": "لاگو شدہ",
   "billing.availableBalance": "دستیاب بیلنس",
   "billing.patientDeposit": "مریض کی جمع",
+  "billing.deposits": "جمع",
+  "billing.depositReceived": "جمع موصول",
+  "billing.depositRefunded": "جمع واپس",
+  "billing.depositsHistory": "جمع اور ایڈوانسز",
+  "billing.depositsHistoryDesc": "اس مریض کی تمام جمع اور ایڈوانسز",
   "billing.totalExpenses": "کل اخراجات",
   "billing.cashExpenses": "نقد اخراجات",
 

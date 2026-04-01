@@ -3052,6 +3052,11 @@ export const ar: Record<TranslationKey, string> = {
   "billing.depositApplied": "مطبق",
   "billing.availableBalance": "الرصيد المتاح",
   "billing.patientDeposit": "وديعة المريض",
+  "billing.deposits": "الودائع",
+  "billing.depositReceived": "وديعة مستلمة",
+  "billing.depositRefunded": "وديعة مستردة",
+  "billing.depositsHistory": "الودائع والسلف",
+  "billing.depositsHistoryDesc": "جميع الودائع والسلف لهذا المريض",
   "billing.totalExpenses": "إجمالي المصروفات",
   "billing.cashExpenses": "المصروفات النقدية",
 
