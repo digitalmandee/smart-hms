@@ -1,34 +1,44 @@
 
 
-# Add/Update Medicines with Pricing from Vendor Price List
+# Fix: General Ledger Page — Missing Data & Running Balance
 
-## What We're Doing
-Adding 8 medicines from the uploaded vendor price list into the pharmacy catalog. If any already exist (matched by name), their cost and sale prices will be updated. All medicines get ~15% profit margin as shown in the image.
+## Problem
+The General Ledger page shows "-" for Date, Entry #, and Description, and shows 0 for Balance. This is because:
 
-## Medicines to Add/Update
+1. **Wrong field paths**: The hook returns `journal_entry_lines` with a nested `journal_entry` object, so data is at `entry.journal_entry.entry_date`, but the GL page reads `entry.entry_date` (flat). The AccountDetailPage already does this correctly.
+2. **No running balance calculation**: The GL page reads `entry.running_balance` which doesn't exist on the raw data. AccountDetailPage correctly computes it using opening balance + cumulative debit/credit.
+3. **Each line showing only debit OR credit is correct** — this IS proper double-entry bookkeeping. Each journal entry line records one side. The counterpart line appears on a different account's ledger.
 
-| Medicine | Strength | Unit | Cost Price (Net Rate) | Sale Price | Margin |
-|----------|----------|------|-----------------------|------------|--------|
-| AIRTAL 100MG TAB | 100mg | tablet | 308.55 | 363.00 | 15% |
-| COMBIVAIR 400MG CAP | 400mg | capsule | 408.00 | 480.00 | 15% |
-| HERBESSER TAB 30MG | 30mg | tablet | 334.90 | 394.00 | 15% |
-| KESTINE 10MG | 10mg | tablet | 252.71 | 297.30 | 15% |
-| LOPRIN 75MG TAB | 75mg | tablet | 60.61 | 71.31 | 15% |
-| NEBIX 2.5MG | 2.5mg | tablet | 274.55 | 323.00 | 15% |
-| SKILAX DROPS 30ML | 30ml | drops | 110.50 | 130.00 | 15% |
-| PULMONOL LOZENGES | - | tablet | 88.15 | 118.00 | 25% |
+## Fix
 
-## Technical Approach
+### File: `src/pages/app/accounts/GeneralLedgerPage.tsx`
 
-**Migration SQL** — single migration file that:
-1. Looks up the user's `organization_id` from `profiles` (first org found)
-2. Uses `INSERT ... ON CONFLICT` pattern — but since `medicines` has no unique constraint on `name+org`, we'll use a two-step approach:
-   - For each medicine, check if it exists by name (case-insensitive) + organization
-   - If exists → UPDATE `cost_price`, `sale_price`
-   - If not → INSERT with name, strength, unit, cost_price, sale_price
+**Fix 1 — Field paths**: Change all references from flat to nested:
+- `entry.entry_date` → `entry.journal_entry?.entry_date`
+- `entry.entry_number` → `entry.journal_entry?.entry_number`
+- `entry.description` → `entry.description || entry.journal_entry?.description`
 
-The migration will use a PL/pgSQL `DO` block with `INSERT INTO medicines ... ON CONFLICT` or an upsert-style loop.
+**Fix 2 — Running balance**: Add running balance calculation (same pattern as AccountDetailPage):
+- Start from `selectedAccount.opening_balance`
+- For each entry, accumulate based on `is_debit_normal` from account type
+- Need to fetch account type info — use `useAccount(selectedAccountId)` instead of finding in the list
+
+**Fix 3 — Add Reference column**: Show `entry.journal_entry?.reference_type` as a badge so users can see the source (invoice, payment, payroll, etc.)
+
+**Fix 4 — Add Opening Balance row**: Same as AccountDetailPage, show opening balance as first row
+
+**Fix 5 — Add totals row**: Show total debits and credits at the bottom
+
+### Additional: Fetch account with type info
+Replace the `accounts.find()` lookup with `useAccount(selectedAccountId)` to get full account data including `account_type.is_debit_normal` for correct balance calculation.
+
+## Result
+- Date, Entry #, Description all display correctly
+- Running balance calculated properly based on account's normal balance direction
+- Reference type badge shows transaction source
+- Opening balance and totals rows for completeness
+- Double-entry system is confirmed correct — each line is one side of a balanced journal entry
 
 ## Files Changed
-- **1 migration file** — SQL to insert/update 8 medicines with correct pricing
+- `src/pages/app/accounts/GeneralLedgerPage.tsx` — fix field paths, add running balance calc, add reference column, opening balance row, totals row
 
