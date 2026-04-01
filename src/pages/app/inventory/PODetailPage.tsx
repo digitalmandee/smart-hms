@@ -353,7 +353,7 @@ export default function PODetailPage() {
 
       {/* Hidden Printable */}
       <div className="hidden">
-        <PrintablePO ref={printRef} po={po} organizationName={organization?.name || "Organization"} />
+        <PrintablePO ref={printRef} po={po} branding={branding} />
       </div>
     </div>
   );

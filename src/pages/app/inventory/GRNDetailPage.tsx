@@ -148,7 +148,7 @@ export default function GRNDetailPage() {
     <div className="space-y-6">
       {/* Hidden printable component */}
       <div className="hidden">
-        <PrintableGRN ref={printRef} grn={grn} organizationName={organization?.name || "Organization"} />
+        <PrintableGRN ref={printRef} grn={grn} branding={branding} />
       </div>
 
       <PageHeader
