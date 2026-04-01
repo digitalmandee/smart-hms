@@ -51,7 +51,7 @@ export function useCreateIPDDeposit() {
       if (depositError) throw depositError;
 
       // 2. If paid now, post GL entry: DR Cash, CR Patient Deposits Liability
-      if (depositStatus === "completed" && params.paymentMethodId) {
+      if (depositStatus === "completed") {
         try {
           // Use get_or_create_default_account to ensure accounts exist
           const { data: cashAccountId } = await supabase.rpc("get_or_create_default_account", {
