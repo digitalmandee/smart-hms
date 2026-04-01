@@ -82,6 +82,26 @@ export default function InvoiceDetailPage() {
     enabled: !!id,
   });
 
+  // Query deposit applications linked to this invoice
+  const { data: depositApplications } = useQuery({
+    queryKey: ["deposit-applications-for-invoice", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("patient_deposits")
+        .select("amount")
+        .eq("invoice_id", id!)
+        .eq("type", "applied")
+        .eq("status", "completed");
+      if (error) throw error;
+      return data || [];
+    },
+    enabled: !!id,
+  });
+
+  const depositAppliedAmount = (depositApplications || []).reduce(
+    (sum, d) => sum + Number(d.amount), 0
+  );
+
   // Query for linked lab order
   const { data: linkedLabOrder } = useQuery({
     queryKey: ["lab-order-for-invoice", id],
