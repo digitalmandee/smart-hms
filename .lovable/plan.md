@@ -1,50 +1,59 @@
 
 
-# Fix: Link IPD Deposits to Billing Session + Cash Payment Method Ledger Account
+# Fix: IPD Deposits Must Show as Invoices + Count in Session Collections
 
-## Two Issues
+## Problem
+When an IPD admission deposit is collected (e.g., Alii Raza's Rs. 100,000), only a `patient_deposits` record is created. This means:
+1. **Not visible in Invoices list** — the invoices page queries the `invoices` table only
+2. **Not counted in session `total_collections`** — line 335 of `useBillingSessions.ts` only sums `payments`, excluding deposits
+3. **Alii Raza's existing deposit** has no corresponding invoice record
 
-1. **IPD deposits missing from reception session reports** — `useCreateIPDDeposit` never sets `billing_session_id`, so deposits don't appear in session transaction lists.
-2. **Cash payment method missing `ledger_account_id`** — causes trigger to fall back to CASH-001 implicitly instead of explicitly.
+## Solution
 
-## Changes
+### 1. Create a Deposit Invoice alongside the Deposit Record
+Update `useCreateIPDDeposit` to also create an `invoices` record (status: `paid`) and a `payments` record when the deposit status is `completed`. This ensures:
+- The deposit appears in the Invoices list page
+- The payment links to the billing session, so it counts in session collections
+- GL is still handled by the DB trigger on `patient_deposits` (no double-posting since the invoice trigger posts DR AR / CR Revenue, but we will set the invoice status to `paid` with a special note marking it as a deposit — we need to be careful here)
 
-### 1. `src/hooks/useIPDDeposit.ts` — Accept and pass `billingSessionId`
+**Important accounting note**: A deposit is NOT revenue. Creating a standard invoice would incorrectly post DR AR / CR Revenue via the `post_invoice_to_journal` trigger. Instead, we should:
+- Create the invoice with a `deposit` flag or use the existing `notes` field to mark it
+- Record the payment against the invoice (which triggers DR Cash / CR AR) 
+- The deposit trigger already posts DR Cash / CR LIA-DEP-001
 
-- Add `billingSessionId?: string` to `CreateIPDDepositParams`
-- Include `billing_session_id: params.billingSessionId || null` in the INSERT payload
-- Also invalidate `["billing-sessions"]` query key on success
+This would cause **double DR Cash** — one from the payment trigger and one from the deposit trigger. So the correct approach is:
 
-### 2. `src/pages/app/ipd/AdmissionFormPage.tsx` — Pass active session ID
+**Option A (Recommended)**: Don't create a separate invoice. Instead, include `patient_deposits` in the Invoices list page query and in session collection totals. This avoids GL conflicts entirely.
 
-- Import `useRequireSession` from `@/hooks/useRequireSession`
-- Call `useRequireSession("reception")` to get the active session
-- Pass `billingSessionId: session?.id` in both `handlePaymentComplete` and `handlePayLater` calls to `createIPDDeposit.mutateAsync`
+### Revised Approach: Show Deposits in Invoices List + Fix Session Collections
 
-### 3. `supabase/migrations/new.sql` — Link Cash payment method to CASH-001
+#### File 1: `src/pages/app/billing/InvoicesListPage.tsx`
+- Add a second query to fetch `patient_deposits` with type `deposit` and status `completed`
+- Merge deposit records into the invoice list, formatted as invoice-like rows:
+  - `invoice_number` → deposit reference or `DEP-YYMMDD-XXXX`
+  - `status` → show as `paid`
+  - `total_amount` / `paid_amount` → deposit amount
+  - Patient info from the join
+- Add a visual indicator (badge/icon) to distinguish deposit entries from regular invoices
 
-```sql
-UPDATE public.payment_methods pm
-SET ledger_account_id = a.id
-FROM public.accounts a
-WHERE a.account_number = 'CASH-001'
-  AND a.organization_id = pm.organization_id
-  AND pm.name ILIKE '%cash%'
-  AND pm.ledger_account_id IS NULL;
+#### File 2: `src/hooks/useBillingSessions.ts` (line 335)
+- Include deposit amounts in `totalCollections`:
+```typescript
+const depositTotal = (sessionDeposits || [])
+  .filter(d => d.type === 'deposit')
+  .reduce((sum, d) => sum + Number(d.amount), 0);
+const totalCollections = paymentTotal + depositTotal;
+const transactionCount = (payments?.length || 0) + (sessionDeposits?.filter(d => d.type === 'deposit')?.length || 0);
 ```
 
-Also backfill Ali Raza's existing deposit with the current open session (if one exists):
-```sql
-UPDATE public.patient_deposits pd
-SET billing_session_id = bs.id
-FROM public.billing_sessions bs
-WHERE pd.billing_session_id IS NULL
-  AND bs.user_id = pd.created_by
-  AND bs.status = 'open';
-```
+#### File 3: `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts`
+- Add keys: `invoices.deposit`, `invoices.depositInvoice`, `billing.depositCollection`
+
+## No Migration Needed
+Alii Raza's deposit already exists in `patient_deposits`. Once the Invoices list page includes deposits, it will appear automatically.
 
 ## Files Changed
-- `src/hooks/useIPDDeposit.ts` — add `billingSessionId` param + pass to INSERT
-- `src/pages/app/ipd/AdmissionFormPage.tsx` — get active session, pass ID to deposit creation
-- `supabase/migrations/new.sql` — link Cash payment method to CASH-001 account + backfill existing deposits
+- `src/pages/app/billing/InvoicesListPage.tsx` — merge `patient_deposits` into invoice list
+- `src/hooks/useBillingSessions.ts` — include deposits in `totalCollections` calculation
+- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new labels
 
