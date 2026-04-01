@@ -220,34 +220,28 @@ export default function AdmissionFormPage() {
     
     setIsProcessingPayment(true);
     try {
-      const selectedPatient = patients?.find((p) => p.id === pendingAdmissionData.patient_id);
       const wardInfo = wards?.find((w) => w.id === pendingAdmissionData.ward_id);
       const bedInfo = beds?.find((b) => b.id === pendingAdmissionData.bed_id);
 
-      // Create deposit invoice
-      const invoice = await createDepositInvoice.mutateAsync({
+      // Create patient deposit with GL posting (DR Cash, CR Patient Deposits Liability)
+      await createIPDDeposit.mutateAsync({
         patientId: pendingAdmissionData.patient_id,
-        depositAmount: pendingAdmissionData.deposit_amount,
-        wardName: wardInfo?.name,
-        bedNumber: bedInfo?.bed_number,
-      });
-
-      // Record payment
-      await recordPayment.mutateAsync({
-        invoiceId: invoice.id,
         amount: paymentData.amount,
         paymentMethodId: paymentData.paymentMethodId,
         referenceNumber: paymentData.referenceNumber,
         notes: paymentData.notes,
+        wardName: wardInfo?.name,
+        bedNumber: bedInfo?.bed_number,
+        status: "completed",
       });
 
-      // Create admission with paid status
+      // Create admission with paid status (no invoice link needed)
       const paymentStatus = paymentData.amount >= pendingAdmissionData.deposit_amount ? "paid" : "partial";
-      await createAdmissionWithPaymentStatus(pendingAdmissionData, paymentStatus, invoice.id);
+      await createAdmissionWithPaymentStatus(pendingAdmissionData, paymentStatus);
       
       setShowPaymentDialog(false);
       setPendingAdmissionData(null);
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to process payment");
     } finally {
       setIsProcessingPayment(false);
