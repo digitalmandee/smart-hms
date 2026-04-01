@@ -1,88 +1,55 @@
 
 
-# GRN Verification → Requisition Acceptance → Pharmacy Inventory Flow
+# Redesign GRN & PO Printable Templates — Professional Invoice Style with Hospital Branding
 
-## Current State
+## Problems (from screenshot)
+1. **No hospital branding** — no logo, no address, no contact info in header
+2. **Item name is blank** — shows nothing for medicine items (only `item.item?.name`, no medicine fallback)
+3. **Poor layout** — plain text dump, no borders on table, no visual hierarchy, looks like raw data not an invoice
+4. **No currency formatting** — shows "Rs. 0" with no proper formatting
+5. **Tailwind classes don't work in print window** — the `usePrint` hook opens a new window with raw HTML, Tailwind utility classes like `grid-cols-2`, `text-right`, `border-b` are NOT available in print, so everything collapses to plain unstyled text
 
-### What exists:
-1. **GRN creation** works from PO (GRNFormPage selects PO → populates items → creates GRN)
-2. **GRN verification** (`useVerifyGRN`) updates stock directly into `inventory_stock` or `medicine_inventory` immediately
-3. **Requisition flow** has: draft → pending → approved → issued → received/disputed
-4. **Requisition "Issue Stock"** deducts from `inventory_stock` (FIFO) and marks items issued
-5. **Requisition "Accept Stock"** button exists for pharmacist role when status is `issued`
+## Root Cause
+`PrintableGRN` uses Tailwind classes but the print window opened by `usePrint` has NO Tailwind CSS loaded. The component renders correctly in-page but when its `innerHTML` is extracted into a new window, all styling is lost.
 
-### What's missing:
-- GRN has **no link to the originating requisition** — there's no `requisition_id` column on `goods_received_notes`
-- When GRN is verified, stock goes directly to inventory — **the requesting department (pharmacy) is never notified**
-- No workflow to notify the requisitioner that goods have arrived and need acceptance
-- GRN detail page line 313 shows `item.item?.name` but **not `item.medicine?.name`** — medicine names show blank
+## Solution
+Rewrite `PrintableGRN` and `PrintablePO` to use **inline styles** instead of Tailwind classes, include full hospital branding (logo, name, address, phone, email, registration number), and display medicine names properly. Design them like professional hospital invoices with:
+- Branded header with logo + org details
+- Bordered table with alternating row shading
+- Proper totals section aligned right
+- Signature blocks at bottom
+- Footer with org contact info
 
-### Bug found:
-- GRN detail page (line 313): `{item.item?.name}` — does not fallback to `{item.medicine?.name}` for medicine-type items
+## Changes
 
-## Plan
+### 1. `src/components/inventory/PrintableGRN.tsx` — Full rewrite
+- Accept `branding: OrganizationBranding` prop instead of just `organizationName`
+- Use inline styles throughout (no Tailwind)
+- Professional invoice layout:
+  - Header: Logo (if available) + Organization name, address, phone, email, reg number
+  - Document title: "GOODS RECEIVED NOTE" with colored accent bar
+  - Two-column info section: GRN details (left) + Vendor details (right)
+  - Bordered table with header background color, proper column widths
+  - Item name: `item.item?.name || item.medicine?.name || 'Unknown Item'`
+  - Totals section right-aligned in a box
+  - Notes section
+  - 3 signature blocks
+  - Footer: "This is a computer-generated document"
 
-### Step 1: Fix GRN Detail — medicine name display
-**File: `src/pages/app/inventory/GRNDetailPage.tsx`**
-- Line 313: Change `{item.item?.name}` to `{item.item?.name || item.medicine?.name || 'Unknown'}`
+### 2. `src/components/inventory/PrintablePO.tsx` — Same treatment
+- Accept `branding` prop
+- Inline styles, professional invoice look
+- Medicine name fallback already exists, keep it
 
-### Step 2: Add `requisition_id` to `goods_received_notes` table
-**Migration**: Add nullable `requisition_id` column with FK to `stock_requisitions`:
-```sql
-ALTER TABLE goods_received_notes 
-ADD COLUMN requisition_id UUID REFERENCES stock_requisitions(id);
-```
+### 3. `src/pages/app/inventory/GRNDetailPage.tsx` — Pass branding
+- Import `useOrganizationBranding`
+- Pass `branding` to `PrintableGRN` instead of just `organizationName`
 
-### Step 3: Link GRN to requisition in GRNFormPage
-**File: `src/pages/app/inventory/GRNFormPage.tsx`**
-- Accept `?requisitionId=` search param
-- When PO is linked to a requisition, auto-populate `requisition_id`
-- Pass `requisition_id` through to `useCreateGRN`
+### 4. Update any PO detail page that uses `PrintablePO` — Pass branding similarly
 
-**File: `src/hooks/useGRN.ts`**
-- Add `requisition_id` to `useCreateGRN` mutation payload and insert
-
-### Step 4: Add GRN verification → requisition notification flow
-**File: `src/hooks/useGRN.ts` — `useVerifyGRN`**
-Currently: Verification immediately adds to `medicine_inventory` / `inventory_stock`.
-Change: 
-- When GRN has a `requisition_id`, after stock is added, auto-update the linked requisition status to `issued` (goods arrived, pending department acceptance)
-- This triggers the existing "Accept Stock / Dispute" buttons on the requisition detail page for the pharmacist
-
-### Step 5: On requisition acceptance → update pharmacy inventory
-**File: `src/hooks/useRequisitions.ts`** or **`src/pages/app/inventory/RequisitionDetailPage.tsx`**
-- When pharmacist clicks "Accept Stock" on a requisition linked to a GRN with medicine items, the `medicine_inventory` records are already created by GRN verification
-- Update requisition status to `received`
-- This completes the flow
-
-### Step 6: Add "Notify Requester" button on GRN detail
-**File: `src/pages/app/inventory/GRNDetailPage.tsx`**
-- When GRN is verified and has a `requisition_id`, show a banner: "Goods received for Requisition REQ-XXXX — Requester has been notified"
-- Link to the requisition detail page
-
-### Step 7: Translations (EN/AR/UR)
-Add translation keys for:
-- "Linked Requisition", "Requester Notified", "Goods received for requisition", "Accept Delivery", "Dispute Delivery"
-
-## Flow Summary
-
-```text
-CURRENT FLOW:
-  Requisition (Pharmacy) → Approved → Create PO → Vendor ships → GRN created → Verified → Stock added immediately
-
-NEW FLOW:
-  Requisition (Pharmacy) → Approved → Create PO → Vendor ships
-  → GRN created (linked to requisition)
-  → GRN Verified (stock added + requisition marked "issued")
-  → Pharmacist sees "Accept Stock" on requisition
-  → Pharmacist accepts → Requisition status = "received" ✓
-  → If dispute → Requisition status = "disputed"
-```
-
-## Files Changed
-- `src/pages/app/inventory/GRNDetailPage.tsx` — medicine name fix + requisition link display
-- `src/hooks/useGRN.ts` — add `requisition_id` to create/verify mutations
-- `src/pages/app/inventory/GRNFormPage.tsx` — pass `requisition_id` from PO/search params
-- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new keys
-- **Migration**: add `requisition_id` column to `goods_received_notes`
+## Technical Details
+- All styles will be inline (`style={{ ... }}`) so they survive the `usePrint` innerHTML extraction
+- Logo rendered as `<img>` tag with the `branding.logo_url` if available
+- Primary color from `branding.primary_color` used for accent bars and table headers
+- Currency formatted via the `fc` helper already in the component, using `useCurrencyFormatter` pattern
 
