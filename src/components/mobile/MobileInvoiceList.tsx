@@ -197,6 +197,10 @@ export function MobileInvoiceList() {
               {filteredInvoices.length} invoices
             </p>
           </div>
+          <Button variant="outline" size="sm" onClick={() => setDepositDialogOpen(true)}>
+            <Wallet className="mr-1 h-4 w-4" />
+            Deposit
+          </Button>
         </div>
 
         {/* Category Tabs - Scrollable */}
