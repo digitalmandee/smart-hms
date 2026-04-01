@@ -351,5 +351,12 @@ export function MobileInvoiceList() {
         <Plus className="h-6 w-6" />
       </Button>
     </PullToRefresh>
+
+    <DepositDetailDialog
+      open={!!selectedDepositId}
+      onOpenChange={(open) => !open && setSelectedDepositId(null)}
+      depositId={selectedDepositId || ""}
+    />
+    </>
   );
 }
