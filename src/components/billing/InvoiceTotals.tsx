@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useCountryConfig } from "@/contexts/CountryConfigContext";
 
