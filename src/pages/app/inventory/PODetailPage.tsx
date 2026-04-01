@@ -50,6 +50,7 @@ export default function PODetailPage() {
   const { formatCurrency } = useCurrencyFormatter();
   const { profile } = useAuth();
   const { data: organization } = useOrganization(profile?.organization_id);
+  const { data: branding } = useOrganizationBranding();
 
   const { data: po, isLoading } = usePurchaseOrder(id || "");
   const approveMutation = useApprovePurchaseOrder();

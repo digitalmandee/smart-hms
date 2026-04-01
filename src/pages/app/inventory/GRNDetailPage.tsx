@@ -34,6 +34,7 @@ export default function GRNDetailPage() {
   const { formatCurrency } = useCurrencyFormatter();
   const { profile } = useAuth();
   const { data: organization } = useOrganization(profile?.organization_id);
+  const { data: branding } = useOrganizationBranding();
   const [highlightedItem, setHighlightedItem] = useState<string | null>(null);
 
   const { data: grn, isLoading } = useGRN(id || "");
