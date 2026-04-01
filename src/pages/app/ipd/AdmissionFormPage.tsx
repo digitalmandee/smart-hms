@@ -233,6 +233,7 @@ export default function AdmissionFormPage() {
         wardName: wardInfo?.name,
         bedNumber: bedInfo?.bed_number,
         status: "completed",
+        billingSessionId: session?.id,
       });
 
       // Create admission with paid status (no invoice link needed)
