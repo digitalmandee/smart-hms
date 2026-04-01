@@ -22,6 +22,10 @@ interface PrintableInvoiceProps {
   currencySymbol?: string;
   currencyLocale?: string;
   taxLabel?: string;
+  depositApplied?: number;
+  depositAvailable?: number;
+  remainingDeposit?: number;
+  previousCashPayments?: number;
 }
 
 // Inline styles for print compatibility
