@@ -195,6 +195,7 @@ import BillingDashboard from "./pages/app/billing/BillingDashboard";
 import InvoicesListPage from "./pages/app/billing/InvoicesListPage";
 import InvoiceFormPage from "./pages/app/billing/InvoiceFormPage";
 import InvoiceDetailPage from "./pages/app/billing/InvoiceDetailPage";
+import DepositDetailPage from "./pages/app/billing/DepositDetailPage";
 import PaymentCollectionPage from "./pages/app/billing/PaymentCollectionPage";
 import PaymentHistoryPage from "./pages/app/billing/PaymentHistoryPage";
 import BillingReportsPage from "./pages/app/billing/BillingReportsPage";
