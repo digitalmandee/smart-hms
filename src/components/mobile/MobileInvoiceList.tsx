@@ -174,7 +174,7 @@ export function MobileInvoiceList() {
   }, [invoices, depositRows, categoryFilter]);
 
   const handleRefresh = async () => {
-    await refetch();
+    await Promise.all([refetch(), refetchDeposits()]);
   };
 
   const handleInvoiceClick = (invoice: InvoiceWithPatient) => {
