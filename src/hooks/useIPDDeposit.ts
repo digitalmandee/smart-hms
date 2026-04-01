@@ -127,6 +127,8 @@ export function useCreateIPDDeposit() {
       queryClient.invalidateQueries({ queryKey: ["patient-deposits"] });
       queryClient.invalidateQueries({ queryKey: ["patient-balance"] });
       queryClient.invalidateQueries({ queryKey: ["journal-entries"] });
+      queryClient.invalidateQueries({ queryKey: ["ipd-billing-stats"] });
+      queryClient.invalidateQueries({ queryKey: ["ipd-dashboard-enhanced"] });
     },
     onError: (error) => {
       console.error("Failed to create IPD deposit:", error);

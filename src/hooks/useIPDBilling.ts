@@ -87,6 +87,8 @@ export function useIPDBillingStats(branchId?: string) {
 
       // Fetch all IPD charges for active admissions
       const admissionIds = admissions?.map((a) => a.id) || [];
+      const patientIds = [...new Set((admissions || []).map((a: any) => a.patient?.id).filter(Boolean))];
+      
       let charges: { admission_id: string; total_amount: number; is_billed: boolean }[] = [];
       
       if (admissionIds.length > 0) {
@@ -95,6 +97,25 @@ export function useIPDBillingStats(branchId?: string) {
           .select("admission_id, total_amount, is_billed")
           .in("admission_id", admissionIds);
         charges = chargesData || [];
+      }
+
+      // Fetch actual collected deposits from patient_deposits table
+      let patientDepositsMap = new Map<string, number>();
+      if (patientIds.length > 0) {
+        const { data: depositsData } = await supabase
+          .from("patient_deposits")
+          .select("patient_id, amount, type")
+          .in("patient_id", patientIds)
+          .eq("status", "completed");
+        
+        (depositsData || []).forEach((d: any) => {
+          const current = patientDepositsMap.get(d.patient_id) || 0;
+          if (d.type === "deposit") {
+            patientDepositsMap.set(d.patient_id, current + (Number(d.amount) || 0));
+          } else if (d.type === "refund" || d.type === "applied") {
+            patientDepositsMap.set(d.patient_id, current - (Number(d.amount) || 0));
+          }
+        });
       }
 
       // Fetch pending IPD invoices (those that reference ipd_charges or have IPD- prefix)
