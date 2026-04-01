@@ -1,0 +1,1 @@
+UPDATE public.accounts SET name = 'Cash in Hand' WHERE account_number = 'CASH-001' AND name = 'Petty Cash';
