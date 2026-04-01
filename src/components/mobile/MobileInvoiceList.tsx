@@ -185,6 +185,7 @@ export function MobileInvoiceList() {
   };
 
   return (
+    <>
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="px-4 py-4 space-y-4 pb-28">
         {/* Header */}
