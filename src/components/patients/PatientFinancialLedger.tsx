@@ -81,20 +81,22 @@ export function PatientFinancialLedger({ patientId }: PatientFinancialLedgerProp
     enabled: !!orgId,
   });
 
-  // Fetch payments
+  // Fetch payments via invoices
+  const invoiceIds = useMemo(() => invoices?.map((i) => i.id) || [], [invoices]);
+
   const { data: payments, isLoading: loadingPay } = useQuery({
-    queryKey: ["patient-ledger-payments", orgId, patientId],
+    queryKey: ["patient-ledger-payments", orgId, patientId, invoiceIds],
     queryFn: async () => {
+      if (!invoiceIds.length) return [];
       const { data, error } = await supabase
         .from("payments")
-        .select("id, receipt_number, payment_date, amount, payment_method:payment_methods(name), notes")
-        .eq("organization_id", orgId!)
-        .eq("patient_id", patientId)
+        .select("id, reference_number, payment_date, amount, payment_method_id, notes, invoice_id")
+        .in("invoice_id", invoiceIds)
         .order("payment_date", { ascending: true });
       if (error) throw error;
       return data || [];
     },
-    enabled: !!orgId,
+    enabled: !!orgId && invoiceIds.length > 0,
   });
 
   // Fetch deposits
