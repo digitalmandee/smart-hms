@@ -570,6 +570,7 @@ const PublicCampaignPage = React.lazy(() => import("./pages/public/PublicCampaig
 
 // Accounts pages
 import AccountsDashboard from "./pages/app/accounts/AccountsDashboard";
+const FinanceDemoFlowPage = React.lazy(() => import("./pages/app/accounts/FinanceDemoFlowPage"));
 import ChartOfAccountsPage from "./pages/app/accounts/ChartOfAccountsPage";
 import AccountFormPage from "./pages/app/accounts/AccountFormPage";
 import AccountDetailPage from "./pages/app/accounts/AccountDetailPage";
