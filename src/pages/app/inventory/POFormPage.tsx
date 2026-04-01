@@ -78,11 +78,12 @@ export default function POFormPage() {
 
   // Auto-select branch from profile or single-branch org
   useEffect(() => {
-    if (autoSelectedBranchId && !form.getValues("branch_id")) {
-      form.setValue("branch_id", autoSelectedBranchId);
-      setSelectedBranch(autoSelectedBranchId);
+    const branchId = profile?.branch_id || branches?.[0]?.id || "";
+    if (branchId && !form.getValues("branch_id")) {
+      form.setValue("branch_id", branchId);
+      setSelectedBranch(branchId);
     }
-  }, [autoSelectedBranchId, form]);
+  }, [profile?.branch_id, branches, form]);
 
   // Pre-fill from PR
   useEffect(() => {
@@ -261,7 +262,6 @@ export default function POFormPage() {
                   )}
                 />
 
-                {!isSingleBranch && (
                 <FormField
                   control={form.control}
                   name="branch_id"
@@ -290,7 +290,6 @@ export default function POFormPage() {
                     </FormItem>
                   )}
                 />
-                )}
 
                 <FormField
                   control={form.control}
