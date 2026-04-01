@@ -25,6 +25,7 @@ import { useIsMobile } from "@/hooks/use-mobile";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { MobileInvoiceList } from "@/components/mobile/MobileInvoiceList";
 import { Badge } from "@/components/ui/badge";
+import { DepositDetailDialog } from "@/components/billing/DepositDetailDialog";
 
 type InvoiceStatus = Database["public"]["Enums"]["invoice_status"];
 
