@@ -171,7 +171,7 @@ export function PatientFormPage() {
         last_name: patient.last_name || "",
         father_husband_name: (patient as any).father_husband_name || "",
         date_of_birth: patient.date_of_birth || "",
-        gender: patient.gender || undefined,
+        gender: (patient.gender as any) || undefined,
         marital_status: (patient as any).marital_status || undefined,
         number_of_children: String((patient as any).number_of_children || ""),
         blood_group: patient.blood_group || "",
