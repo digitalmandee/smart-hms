@@ -449,7 +449,7 @@ export const PrintableInvoice = forwardRef<HTMLDivElement, PrintableInvoiceProps
       return { ...styles.statusBadge, ...styles.statusPending };
     };
 
-    const getBalanceStyle = () => {
+    const _getBalanceStyle = () => {
       return balance > 0
         ? { ...styles.totalsBalanceRow, ...styles.totalsBalanceDue }
         : { ...styles.totalsBalanceRow, ...styles.totalsBalancePaid };
