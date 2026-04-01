@@ -1,44 +1,30 @@
 
 
-# Fix: General Ledger Page — Missing Data & Running Balance
+# Fix: Chart of Accounts & Journal Entry Posting Issues
 
-## Problem
-The General Ledger page shows "-" for Date, Entry #, and Description, and shows 0 for Balance. This is because:
+## Issues Found
 
-1. **Wrong field paths**: The hook returns `journal_entry_lines` with a nested `journal_entry` object, so data is at `entry.journal_entry.entry_date`, but the GL page reads `entry.entry_date` (flat). The AccountDetailPage already does this correctly.
-2. **No running balance calculation**: The GL page reads `entry.running_balance` which doesn't exist on the raw data. AccountDetailPage correctly computes it using opening balance + cumulative debit/credit.
-3. **Each line showing only debit OR credit is correct** — this IS proper double-entry bookkeeping. Each journal entry line records one side. The counterpart line appears on a different account's ledger.
+### 1. AccountPicker Shows Non-Posting (Header) Accounts
+The `AccountPicker` component (used in the journal entry form) fetches **all** active accounts via `useAccounts({ isActive: true })` — including Level 1-3 header accounts. The database trigger `check_posting_account` blocks posting to these, causing a cryptic error when the user selects one.
 
-## Fix
+The form page (`JournalEntryFormPage.tsx` line 72) filters `postingAccounts = allAccounts.filter(a => !a.is_header)` but **never passes this to the AccountPicker**. The AccountPicker fetches its own unfiltered data independently.
 
-### File: `src/pages/app/accounts/GeneralLedgerPage.tsx`
+### 2. Limited Reference Type Options
+The journal form dropdown (line 221-226) only offers 4 reference types: `manual`, `invoice`, `shipment`, `stock_adjustment`. But the DB constraint `journal_entries_reference_type_check` allows many more: `patient_deposit`, `credit_note`, `grn`, `donation`, `vendor_payment`, `expense`, `payroll`, `pos_sale`, etc. For manual entries, users should have access to all valid types.
 
-**Fix 1 — Field paths**: Change all references from flat to nested:
-- `entry.entry_date` → `entry.journal_entry?.entry_date`
-- `entry.entry_number` → `entry.journal_entry?.entry_number`
-- `entry.description` → `entry.description || entry.journal_entry?.description`
+## Fix Plan
 
-**Fix 2 — Running balance**: Add running balance calculation (same pattern as AccountDetailPage):
-- Start from `selectedAccount.opening_balance`
-- For each entry, accumulate based on `is_debit_normal` from account type
-- Need to fetch account type info — use `useAccount(selectedAccountId)` instead of finding in the list
+### File: `src/components/accounts/AccountPicker.tsx`
+- Add an optional `postingOnly` boolean prop (default `false`)
+- When `postingOnly` is true, filter out accounts where `is_header === true` so only Level 4 posting accounts appear
+- This keeps the component reusable elsewhere without breaking other uses
 
-**Fix 3 — Add Reference column**: Show `entry.journal_entry?.reference_type` as a badge so users can see the source (invoice, payment, payroll, etc.)
-
-**Fix 4 — Add Opening Balance row**: Same as AccountDetailPage, show opening balance as first row
-
-**Fix 5 — Add totals row**: Show total debits and credits at the bottom
-
-### Additional: Fetch account with type info
-Replace the `accounts.find()` lookup with `useAccount(selectedAccountId)` to get full account data including `account_type.is_debit_normal` for correct balance calculation.
-
-## Result
-- Date, Entry #, Description all display correctly
-- Running balance calculated properly based on account's normal balance direction
-- Reference type badge shows transaction source
-- Opening balance and totals rows for completeness
-- Double-entry system is confirmed correct — each line is one side of a balanced journal entry
+### File: `src/pages/app/accounts/JournalEntryFormPage.tsx`
+- Pass `postingOnly` prop to each `<AccountPicker>` in the line items — removes the need for the separate `postingAccounts` filter
+- Expand the reference type `<Select>` to include all valid DB constraint values: `manual`, `invoice`, `payment`, `expense`, `payroll`, `pos_sale`, `shipment`, `stock_adjustment`, `grn`, `vendor_payment`, `patient_deposit`, `credit_note`, `donation`
+- Add trilingual labels for each reference type in the `labels` object
 
 ## Files Changed
-- `src/pages/app/accounts/GeneralLedgerPage.tsx` — fix field paths, add running balance calc, add reference column, opening balance row, totals row
+- `src/components/accounts/AccountPicker.tsx` — add `postingOnly` prop filter
+- `src/pages/app/accounts/JournalEntryFormPage.tsx` — use `postingOnly` on pickers, expand reference types with 3-language labels
 
