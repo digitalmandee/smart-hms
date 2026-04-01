@@ -163,7 +163,6 @@ export default function AdmissionFormPage() {
   const createAdmissionWithPaymentStatus = async (
     values: AdmissionFormValues,
     paymentStatus: "pending" | "paid" | "partial" | "pay_later" | "waived",
-    invoiceId?: string
   ) => {
     try {
       const admission = await createAdmission({
