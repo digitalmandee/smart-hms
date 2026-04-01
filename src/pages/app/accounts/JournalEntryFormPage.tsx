@@ -168,6 +168,19 @@ const JournalEntryFormPage = () => {
     total: { en: "Total", ur: "کل", ar: "المجموع" },
     balanced: { en: "Balanced", ur: "متوازن", ar: "متوازن" },
     unbalanced: { en: "Unbalanced", ur: "غیر متوازن", ar: "غير متوازن" },
+    refManual: { en: "Manual", ur: "دستی", ar: "يدوي" },
+    refInvoice: { en: "Invoice", ur: "انوائس", ar: "فاتورة" },
+    refPayment: { en: "Payment", ur: "ادائیگی", ar: "دفعة" },
+    refExpense: { en: "Expense", ur: "خرچ", ar: "مصروف" },
+    refPayroll: { en: "Payroll", ur: "پے رول", ar: "رواتب" },
+    refPosSale: { en: "POS Sale", ur: "پی او ایس سیل", ar: "بيع نقطة البيع" },
+    refShipment: { en: "Shipment", ur: "شپمنٹ", ar: "شحنة" },
+    refStockAdj: { en: "Stock Adjustment", ur: "اسٹاک ایڈجسٹمنٹ", ar: "تعديل مخزون" },
+    refGrn: { en: "GRN", ur: "جی آر این", ar: "إذن استلام" },
+    refVendorPay: { en: "Vendor Payment", ur: "وینڈر ادائیگی", ar: "دفعة مورد" },
+    refPatientDep: { en: "Patient Deposit", ur: "مریض ڈپازٹ", ar: "إيداع مريض" },
+    refCreditNote: { en: "Credit Note", ur: "کریڈٹ نوٹ", ar: "إشعار دائن" },
+    refDonation: { en: "Donation", ur: "عطیہ", ar: "تبرع" },
   };
 
   const l = (key: keyof typeof labels) => {
@@ -219,10 +232,19 @@ const JournalEntryFormPage = () => {
               <Select value={referenceType} onValueChange={setReferenceType}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="manual">Manual</SelectItem>
-                  <SelectItem value="invoice">Invoice</SelectItem>
-                  <SelectItem value="shipment">Shipment</SelectItem>
-                  <SelectItem value="stock_adjustment">Stock Adjustment</SelectItem>
+                  <SelectItem value="manual">{l("refManual")}</SelectItem>
+                  <SelectItem value="invoice">{l("refInvoice")}</SelectItem>
+                  <SelectItem value="payment">{l("refPayment")}</SelectItem>
+                  <SelectItem value="expense">{l("refExpense")}</SelectItem>
+                  <SelectItem value="payroll">{l("refPayroll")}</SelectItem>
+                  <SelectItem value="pos_sale">{l("refPosSale")}</SelectItem>
+                  <SelectItem value="shipment">{l("refShipment")}</SelectItem>
+                  <SelectItem value="stock_adjustment">{l("refStockAdj")}</SelectItem>
+                  <SelectItem value="grn">{l("refGrn")}</SelectItem>
+                  <SelectItem value="vendor_payment">{l("refVendorPay")}</SelectItem>
+                  <SelectItem value="patient_deposit">{l("refPatientDep")}</SelectItem>
+                  <SelectItem value="credit_note">{l("refCreditNote")}</SelectItem>
+                  <SelectItem value="donation">{l("refDonation")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
@@ -277,6 +299,7 @@ const JournalEntryFormPage = () => {
                       onChange={(id) => updateLine(line.id, "account_id", id || "")}
                       placeholder={l("account")}
                       excludeIds={usedAccountIds.filter((i) => i !== line.account_id)}
+                      postingOnly
                     />
                   </TableCell>
                   <TableCell>
