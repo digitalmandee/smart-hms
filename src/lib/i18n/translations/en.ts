@@ -3118,6 +3118,11 @@ export const en = {
   "billing.depositApplied": "Applied",
   "billing.availableBalance": "Available Balance",
   "billing.patientDeposit": "Patient Deposit",
+  "billing.deposits": "Deposits",
+  "billing.depositReceived": "Deposit Received",
+  "billing.depositRefunded": "Deposit Refunded",
+  "billing.depositsHistory": "Deposits & Advances",
+  "billing.depositsHistoryDesc": "All deposits and advances for this patient",
   "billing.totalExpenses": "Total Expenses",
   "billing.cashExpenses": "Cash Expenses",
 
