@@ -102,6 +102,7 @@ export default function AdmissionFormPage() {
   }>({});
 
   const createIPDDeposit = useCreateIPDDeposit();
+  const { session } = useRequireSession("reception");
 
   const form = useForm<AdmissionFormValues>({
     resolver: zodResolver(admissionFormSchema),
