@@ -1,65 +1,34 @@
 
 
-# Vendor Management Overhaul + GRN Flow Fixes
+# Add/Update Medicines with Pricing from Vendor Price List
 
-## Problems Identified
+## What We're Doing
+Adding 8 medicines from the uploaded vendor price list into the pharmacy catalog. If any already exist (matched by name), their cost and sale prices will be updated. All medicines get ~15% profit margin as shown in the image.
 
-1. **Vendor Detail Page is incomplete** — only shows contact info, bank details, and PO history. Missing:
-   - Outstanding balance / credits summary
-   - Vendor payment history
-   - Current active POs (only shows last 20, no status filter)
-   - No ledger account link
-   - No aging breakdown (0-30, 31-60, 61-90, 90+ days)
+## Medicines to Add/Update
 
-2. **GRN Detail Page** — medicine names may still show blank in some edge cases; the `item.item?.name` fallback chain needs verification across all render points
+| Medicine | Strength | Unit | Cost Price (Net Rate) | Sale Price | Margin |
+|----------|----------|------|-----------------------|------------|--------|
+| AIRTAL 100MG TAB | 100mg | tablet | 308.55 | 363.00 | 15% |
+| COMBIVAIR 400MG CAP | 400mg | capsule | 408.00 | 480.00 | 15% |
+| HERBESSER TAB 30MG | 30mg | tablet | 334.90 | 394.00 | 15% |
+| KESTINE 10MG | 10mg | tablet | 252.71 | 297.30 | 15% |
+| LOPRIN 75MG TAB | 75mg | tablet | 60.61 | 71.31 | 15% |
+| NEBIX 2.5MG | 2.5mg | tablet | 274.55 | 323.00 | 15% |
+| SKILAX DROPS 30ML | 30ml | drops | 110.50 | 130.00 | 15% |
+| PULMONOL LOZENGES | - | tablet | 88.15 | 118.00 | 25% |
 
-3. **Arabic (AR) translations** — vendor-related keys exist for nav but NOT for the new vendor profile sections (outstanding, credits, payment history, aging, etc.)
+## Technical Approach
 
-## Plan
+**Migration SQL** — single migration file that:
+1. Looks up the user's `organization_id` from `profiles` (first org found)
+2. Uses `INSERT ... ON CONFLICT` pattern — but since `medicines` has no unique constraint on `name+org`, we'll use a two-step approach:
+   - For each medicine, check if it exists by name (case-insensitive) + organization
+   - If exists → UPDATE `cost_price`, `sale_price`
+   - If not → INSERT with name, strength, unit, cost_price, sale_price
 
-### Step 1: Enhance Vendor Detail Page with full financial profile
-**File: `src/pages/app/inventory/VendorDetailPage.tsx`**
-
-Add 3 new sections below the existing cards:
-
-- **Outstanding Balance Card** — use existing `useVendorOutstandingBalance(id)` hook from `useVendorPayments.ts` to show:
-  - Total Payable (from posted GRNs)
-  - Total Paid
-  - Outstanding Balance
-  - Credit balance (if overpaid)
-
-- **Aging Summary Card** — break outstanding into 0-30, 31-60, 61-90, 90+ day buckets based on GRN `received_date`
-
-- **Payment History Tab/Section** — fetch vendor payments using `useVendorPayments` filtered by vendor ID, show table with: Payment #, Date, Amount, Method, Status, GRN reference
-
-- **Active POs Section** — filter `purchaseHistory` to show pending/approved POs separately from completed ones, with clear status badges
-
-### Step 2: Add `useVendorPaymentHistory` hook
-**File: `src/hooks/useVendorPayments.ts`**
-
-Add a new query function:
-```ts
-export function useVendorPaymentsByVendor(vendorId: string)
-```
-Fetches all payments for a specific vendor with joined vendor/GRN data.
-
-### Step 3: Fix GRN Detail medicine name display
-**File: `src/pages/app/inventory/GRNDetailPage.tsx`**
-
-Audit all item name render points (not just line 313) to ensure the fallback `item.item?.name || item.medicine?.name || 'Unknown Item'` is applied everywhere.
-
-### Step 4: Translations (EN/AR/UR)
-**Files: `en.ts`, `ar.ts`, `ur.ts`**
-
-Add keys for:
-- `vendor.outstandingBalance`, `vendor.totalPayable`, `vendor.totalPaid`, `vendor.creditBalance`
-- `vendor.aging`, `vendor.aging0_30`, `vendor.aging31_60`, `vendor.aging61_90`, `vendor.aging90Plus`
-- `vendor.paymentHistory`, `vendor.activeOrders`, `vendor.completedOrders`
-- `vendor.noPayments`, `vendor.noOutstanding`
+The migration will use a PL/pgSQL `DO` block with `INSERT INTO medicines ... ON CONFLICT` or an upsert-style loop.
 
 ## Files Changed
-- `src/pages/app/inventory/VendorDetailPage.tsx` — add outstanding, aging, payment history, active PO sections
-- `src/hooks/useVendorPayments.ts` — add `useVendorPaymentsByVendor` query
-- `src/pages/app/inventory/GRNDetailPage.tsx` — medicine name fallback audit
-- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new vendor profile keys
+- **1 migration file** — SQL to insert/update 8 medicines with correct pricing
 
