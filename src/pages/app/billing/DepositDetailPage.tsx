@@ -72,7 +72,7 @@ export default function DepositDetailPage() {
   if (isLoading) {
     return (
       <div className="space-y-6">
-        <PageHeader title={t("billing.depositDetail")} />
+        <PageHeader title={t("billing.depositDetails")} />
         <div className="space-y-4">
           <Skeleton className="h-32" />
           <Skeleton className="h-48" />
