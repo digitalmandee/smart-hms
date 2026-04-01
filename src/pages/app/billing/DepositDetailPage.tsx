@@ -104,7 +104,7 @@ export default function DepositDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={t("billing.depositDetail")}
+        title={t("billing.depositDetails")}
         actions={
           <Button variant="outline" onClick={() => navigate(-1)}>
             <ArrowLeft className="mr-2 h-4 w-4" />
