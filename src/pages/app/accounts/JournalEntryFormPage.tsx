@@ -105,6 +105,7 @@ const JournalEntryFormPage = () => {
       // 1. Insert journal entry
       const entryPayload: any = {
         organization_id: profile.organization_id,
+        entry_number: 'TEMP', // overwritten by generate_journal_entry_number trigger
         entry_date: format(entryDate, "yyyy-MM-dd"),
         description: description.trim(),
         notes: notes.trim() || null,
