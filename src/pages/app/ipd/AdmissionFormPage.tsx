@@ -117,6 +117,7 @@ export default function AdmissionFormPage() {
       admission_time: format(new Date(), "HH:mm"),
       admission_type: "elective",
       payment_mode: "cash",
+      primary_procedure_id: "",
       ward_id: "",
       bed_id: "",
       attending_doctor_id: "",
