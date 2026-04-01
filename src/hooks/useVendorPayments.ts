@@ -537,3 +537,27 @@ export function usePayablesWithBalance() {
     enabled: !!profile?.organization_id,
   });
 }
+
+// Fetch all payments for a specific vendor
+export function useVendorPaymentsByVendor(vendorId: string) {
+  return useQuery({
+    queryKey: ["vendor-payments-by-vendor", vendorId],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("vendor_payments")
+        .select(`
+          *,
+          grn:goods_received_notes(id, grn_number, invoice_number),
+          purchase_order:purchase_orders(id, po_number),
+          payment_method:payment_methods(id, name),
+          bank_account:bank_accounts(id, bank_name, account_number)
+        `)
+        .eq("vendor_id", vendorId)
+        .order("payment_date", { ascending: false });
+
+      if (error) throw error;
+      return data as unknown as VendorPayment[];
+    },
+    enabled: !!vendorId,
+  });
+}
