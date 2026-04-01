@@ -34,7 +34,11 @@ import {
   ExternalLink,
   FlaskConical,
   Loader2,
+  Wallet,
 } from "lucide-react";
+import { useDepositBalance, useCreatePatientDeposit } from "@/hooks/usePatientDeposits";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useRecordPayment } from "@/hooks/useBilling";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePrint } from "@/hooks/usePrint";
 import { useQuery } from "@tanstack/react-query";
