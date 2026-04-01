@@ -169,6 +169,8 @@ export const useCreateAdmission = () => {
       consultation_id?: string;
       payment_status?: "pending" | "paid" | "partial" | "pay_later" | "waived";
       admission_invoice_id?: string;
+      primary_procedure_id?: string;
+      procedure_charges?: number;
     }) => {
       if (!profile?.organization_id) throw new Error("No organization");
 
@@ -221,7 +223,7 @@ export const useCreateAdmission = () => {
           admission_number,
           status: "pending", // Changed: starts as pending until nurse confirms
           created_by: profile.id,
-        })
+        } as any)
         .select()
         .single();
 

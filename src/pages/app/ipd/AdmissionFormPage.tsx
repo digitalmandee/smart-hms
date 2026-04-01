@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import { useCreateAdmission } from "@/hooks/useAdmissions";
 import { useWards, useBeds } from "@/hooks/useIPD";
+import { useServiceTypes } from "@/hooks/useBilling";
 import { usePatients } from "@/hooks/usePatients";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
@@ -41,7 +42,8 @@ import { PaymentModeSelector, PaymentMode } from "@/components/ipd/PaymentModeSe
 import { IPDBedPickerDialog, IPDBedSelection } from "@/components/ipd/IPDBedPickerDialog";
 import { AppointmentInsuranceCheck } from "@/components/appointments/AppointmentInsuranceCheck";
 import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Save, CalendarIcon, Search, Bed, Scissors, ShieldAlert } from "lucide-react";
+import { Save, CalendarIcon, Search, Bed, Scissors, ShieldAlert, Stethoscope } from "lucide-react";
+import { formatCurrency } from "@/lib/currency";
 import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 
@@ -51,9 +53,10 @@ const admissionFormSchema = z.object({
   admission_time: z.string().min(1, "Admission time is required"),
   admission_type: z.enum(["emergency", "elective", "transfer", "referral"]),
   payment_mode: z.enum(["cash", "insurance", "corporate", "government"]).default("cash"),
+  primary_procedure_id: z.string().min(1, "Primary procedure is required"),
   ward_id: z.string().min(1, "Ward is required"),
   bed_id: z.string().optional(),
-  attending_doctor_id: z.string().optional(),
+  attending_doctor_id: z.string().min(1, "Attending doctor is required"),
   admitting_doctor_id: z.string().optional(),
   chief_complaint: z.string().optional(),
   diagnosis_on_admission: z.string().optional(),
@@ -84,6 +87,8 @@ export default function AdmissionFormPage() {
   const { data: bedTypeRates } = useIPDBedTypeRates();
   const { data: surgeryRequest } = useSurgeryRequest(surgeryRequestId || undefined);
   const updateSurgeryRequest = useUpdateSurgeryRequest();
+  const { data: serviceTypes } = useServiceTypes();
+  const procedures = serviceTypes?.filter(s => s.category === "procedure") || [];
   const [selectedWard, setSelectedWard] = useState<string>("");
   const [patientSearch, setPatientSearch] = useState("");
   const [showPaymentDialog, setShowPaymentDialog] = useState(false);
@@ -112,6 +117,7 @@ export default function AdmissionFormPage() {
       admission_time: format(new Date(), "HH:mm"),
       admission_type: "elective",
       payment_mode: "cash",
+      primary_procedure_id: "",
       ward_id: "",
       bed_id: "",
       attending_doctor_id: "",
@@ -167,12 +173,17 @@ export default function AdmissionFormPage() {
     paymentStatus: "pending" | "paid" | "partial" | "pay_later" | "waived",
   ) => {
     try {
+      const selectedProcedure = procedures.find(p => p.id === values.primary_procedure_id);
+      const procedureCharge = selectedProcedure?.default_price || 0;
+
       const admission = await createAdmission({
         patient_id: values.patient_id,
         branch_id: profile!.branch_id!,
         admission_date: format(values.admission_date, "yyyy-MM-dd"),
         admission_time: values.admission_time,
         admission_type: values.admission_type,
+        primary_procedure_id: values.primary_procedure_id || undefined,
+        procedure_charges: procedureCharge,
         ward_id: values.ward_id || undefined,
         bed_id: values.bed_id || undefined,
         attending_doctor_id: values.attending_doctor_id || undefined,
@@ -186,6 +197,7 @@ export default function AdmissionFormPage() {
           ? format(values.expected_discharge_date, "yyyy-MM-dd")
           : undefined,
         payment_status: paymentStatus,
+        estimated_cost: procedureCharge || undefined,
         // deposit is now tracked via patient_deposits table, not invoice
       });
 
@@ -500,12 +512,48 @@ export default function AdmissionFormPage() {
             </CardContent>
           </Card>
 
-          {/* Ward & Bed */}
+          {/* Procedure & Room Assignment */}
           <Card>
             <CardHeader>
-              <CardTitle>Ward & Bed Allocation</CardTitle>
+              <CardTitle>Procedure & Room Assignment</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-2">
+              {/* Primary Procedure - Mandatory */}
+              <FormField
+                control={form.control}
+                name="primary_procedure_id"
+                render={({ field }) => {
+                  const selectedProc = procedures.find(p => p.id === field.value);
+                  return (
+                    <FormItem>
+                      <FormLabel>Primary Procedure <span className="text-destructive">*</span></FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select procedure" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {procedures.map((proc) => (
+                            <SelectItem key={proc.id} value={proc.id}>
+                              <div className="flex items-center justify-between gap-4">
+                                <span>{proc.name}</span>
+                                {proc.default_price > 0 && (
+                                  <span className="text-muted-foreground text-xs">Rs. {proc.default_price?.toLocaleString()}</span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedProc && selectedProc.default_price > 0 && (
+                        <p className="text-sm text-primary font-medium">Procedure Charges: Rs. {selectedProc.default_price.toLocaleString()}</p>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
               <FormField
                 control={form.control}
                 name="ward_id"
@@ -584,7 +632,7 @@ export default function AdmissionFormPage() {
                 name="attending_doctor_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Attending Doctor</FormLabel>
+                    <FormLabel>Attending Doctor <span className="text-destructive">*</span></FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>

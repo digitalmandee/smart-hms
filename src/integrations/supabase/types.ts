@@ -213,6 +213,8 @@ export type Database = {
           patient_id: string
           payment_mode: string | null
           payment_status: string | null
+          primary_procedure_id: string | null
+          procedure_charges: number | null
           referring_doctor_id: string | null
           status: Database["public"]["Enums"]["admission_status"] | null
           updated_at: string | null
@@ -263,6 +265,8 @@ export type Database = {
           patient_id: string
           payment_mode?: string | null
           payment_status?: string | null
+          primary_procedure_id?: string | null
+          procedure_charges?: number | null
           referring_doctor_id?: string | null
           status?: Database["public"]["Enums"]["admission_status"] | null
           updated_at?: string | null
@@ -313,6 +317,8 @@ export type Database = {
           patient_id?: string
           payment_mode?: string | null
           payment_status?: string | null
+          primary_procedure_id?: string | null
+          procedure_charges?: number | null
           referring_doctor_id?: string | null
           status?: Database["public"]["Enums"]["admission_status"] | null
           updated_at?: string | null
@@ -401,6 +407,13 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admissions_primary_procedure_id_fkey"
+            columns: ["primary_procedure_id"]
+            isOneToOne: false
+            referencedRelation: "service_types"
             referencedColumns: ["id"]
           },
           {
@@ -17485,6 +17498,9 @@ export type Database = {
           father_husband_name: string | null
           first_name: string
           gender: Database["public"]["Enums"]["gender"] | null
+          guardian_name: string | null
+          guardian_phone: string | null
+          guardian_relation: string | null
           id: string
           insurance_id: string | null
           insurance_provider: string | null
@@ -17528,6 +17544,9 @@ export type Database = {
           father_husband_name?: string | null
           first_name: string
           gender?: Database["public"]["Enums"]["gender"] | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          guardian_relation?: string | null
           id?: string
           insurance_id?: string | null
           insurance_provider?: string | null
@@ -17571,6 +17590,9 @@ export type Database = {
           father_husband_name?: string | null
           first_name?: string
           gender?: Database["public"]["Enums"]["gender"] | null
+          guardian_name?: string | null
+          guardian_phone?: string | null
+          guardian_relation?: string | null
           id?: string
           insurance_id?: string | null
           insurance_provider?: string | null
@@ -25039,7 +25061,7 @@ export type Database = {
         | "textarea"
         | "email"
         | "phone"
-      gender: "male" | "female" | "other"
+      gender: "male" | "female" | "other" | "child"
       grn_status: "draft" | "pending_verification" | "verified" | "posted"
       imaging_finding_status: "normal" | "abnormal" | "critical"
       imaging_modality:
@@ -25589,7 +25611,7 @@ export const Constants = {
         "email",
         "phone",
       ],
-      gender: ["male", "female", "other"],
+      gender: ["male", "female", "other", "child"],
       grn_status: ["draft", "pending_verification", "verified", "posted"],
       imaging_finding_status: ["normal", "abnormal", "critical"],
       imaging_modality: [

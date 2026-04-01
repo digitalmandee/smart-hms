@@ -3574,5 +3574,17 @@ export const ar: Record<TranslationKey, string> = {
   "ledger.depositRefund": "استرداد وديعة",
   "ledger.depositApplied": "وديعة مطبقة",
 
+  "gender.child": "طفل",
+  "patient.guardianName": "اسم الوصي",
+  "patient.guardianPhone": "هاتف الوصي",
+  "patient.guardianRelation": "علاقة الوصي",
+  "admission.primaryProcedure": "الإجراء الرئيسي",
+  "admission.procedureCharges": "رسوم الإجراء",
+  "admission.selectProcedure": "اختر الإجراء",
+  "admission.doctorRequired": "الطبيب المعالج *",
+  "admission.procedureAndRoom": "الإجراء وتخصيص الغرفة",
+  "billing.splitPayment": "دفع مقسم",
+  "billing.addPaymentMethod": "إضافة طريقة أخرى",
+
 };
 

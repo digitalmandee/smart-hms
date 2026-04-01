@@ -84,7 +84,7 @@ export default function OPDWalkInPage() {
     first_name: "",
     last_name: "",
     phone: "",
-    gender: "male" as "male" | "female" | "other",
+    gender: "male" as "male" | "female" | "other" | "child",
     age: "",
   });
   
@@ -558,7 +558,7 @@ export default function OPDWalkInPage() {
                     <Select
                       value={newPatient.gender}
                       onValueChange={(v) =>
-                        setNewPatient({ ...newPatient, gender: v as "male" | "female" | "other" })
+                        setNewPatient({ ...newPatient, gender: v as "male" | "female" | "other" | "child" })
                       }
                     >
                       <SelectTrigger id="gender" className="h-12">
@@ -567,6 +567,7 @@ export default function OPDWalkInPage() {
                       <SelectContent>
                         <SelectItem value="male">Male</SelectItem>
                         <SelectItem value="female">Female</SelectItem>
+                        <SelectItem value="child">Child</SelectItem>
                         <SelectItem value="other">Other</SelectItem>
                       </SelectContent>
                     </Select>

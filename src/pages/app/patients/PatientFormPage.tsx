@@ -55,7 +55,7 @@ const patientSchema = z.object({
   last_name: z.string().optional(),
   father_husband_name: z.string().optional(),
   date_of_birth: z.string().optional(),
-  gender: z.enum(["male", "female", "other"]).optional(),
+  gender: z.enum(["male", "female", "other", "child"]).optional(),
   marital_status: z.enum(["single", "married", "divorced", "widowed", "other"]).optional(),
   number_of_children: z.string().optional(),
   blood_group: z.string().optional(),
@@ -82,6 +82,11 @@ const patientSchema = z.object({
   emergency_contact_name: z.string().optional(),
   emergency_contact_relation: z.string().optional(),
   emergency_contact_phone: z.string().optional(),
+  
+  // Guardian (for child patients)
+  guardian_name: z.string().optional(),
+  guardian_phone: z.string().optional(),
+  guardian_relation: z.string().optional(),
   
   // Insurance
   insurance_provider: z.string().optional(),
@@ -166,7 +171,7 @@ export function PatientFormPage() {
         last_name: patient.last_name || "",
         father_husband_name: (patient as any).father_husband_name || "",
         date_of_birth: patient.date_of_birth || "",
-        gender: patient.gender || undefined,
+        gender: (patient.gender as any) || undefined,
         marital_status: (patient as any).marital_status || undefined,
         number_of_children: String((patient as any).number_of_children || ""),
         blood_group: patient.blood_group || "",
@@ -226,6 +231,9 @@ export function PatientFormPage() {
         referred_by: data.referred_by || null,
         referral_details: data.referral_details || null,
         notes: data.notes || null,
+        guardian_name: data.guardian_name || null,
+        guardian_phone: data.guardian_phone || null,
+        guardian_relation: data.guardian_relation || null,
         branch_id: data.branch_id || null,
       };
 
@@ -413,6 +421,7 @@ export function PatientFormPage() {
                         <SelectContent>
                           <SelectItem value="male">{t('patient.male')}</SelectItem>
                           <SelectItem value="female">{t('patient.female')}</SelectItem>
+                          <SelectItem value="child">{t('gender.child')}</SelectItem>
                           <SelectItem value="other">{t('patient.other')}</SelectItem>
                         </SelectContent>
                       </Select>
@@ -481,6 +490,64 @@ export function PatientFormPage() {
                   )}
                 />
               </div>
+
+              {/* Guardian Fields - shown when gender is child */}
+              {form.watch("gender") === "child" && (
+                <div className="p-4 border border-primary/20 rounded-lg bg-primary/5 space-y-4">
+                  <p className="text-sm font-semibold text-primary">{t('gender.child')} — Guardian Details</p>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <FormField
+                      control={form.control}
+                      name="guardian_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('patient.guardianName')} <span className="text-destructive">*</span></FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder={t('patient.guardianName')} className="h-11" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="guardian_phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('patient.guardianPhone')}</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="03XX-XXXXXXX" className="h-11" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="guardian_relation"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('patient.guardianRelation')}</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="h-11">
+                                <SelectValue placeholder={t('patient.guardianRelation')} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="father">Father</SelectItem>
+                              <SelectItem value="mother">Mother</SelectItem>
+                              <SelectItem value="grandparent">Grandparent</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 

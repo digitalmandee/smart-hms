@@ -3642,6 +3642,23 @@ export const en = {
   "ledger.depositRefund": "Deposit refund",
   "ledger.depositApplied": "Deposit applied",
 
+  // Gender & Guardian
+  "gender.child": "Child",
+  "patient.guardianName": "Guardian Name",
+  "patient.guardianPhone": "Guardian Phone",
+  "patient.guardianRelation": "Guardian Relation",
+
+  // Admission - Procedure
+  "admission.primaryProcedure": "Primary Procedure",
+  "admission.procedureCharges": "Procedure Charges",
+  "admission.selectProcedure": "Select procedure",
+  "admission.doctorRequired": "Attending Doctor *",
+  "admission.procedureAndRoom": "Procedure & Room Assignment",
+
+  // Split Payment
+  "billing.splitPayment": "Split Payment",
+  "billing.addPaymentMethod": "Add Another Method",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

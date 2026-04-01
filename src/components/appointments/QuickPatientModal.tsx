@@ -41,11 +41,14 @@ const quickPatientSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),
   last_name: z.string().optional(),
   phone: z.string().min(1, 'Phone number is required'),
-  gender: z.enum(['male', 'female', 'other']).optional(),
+  gender: z.enum(['male', 'female', 'other', 'child']).optional(),
   age: z.string().optional(),
   national_id: z.string().optional(),
   emergency_contact_name: z.string().optional(),
   emergency_contact_phone: z.string().optional(),
+  guardian_name: z.string().optional(),
+  guardian_phone: z.string().optional(),
+  guardian_relation: z.string().optional(),
 });
 
 type QuickPatientData = z.infer<typeof quickPatientSchema>;
@@ -108,6 +111,9 @@ export function QuickPatientModal({ onPatientCreated, trigger }: QuickPatientMod
         national_id: data.national_id || null,
         emergency_contact_name: data.emergency_contact_name || null,
         emergency_contact_phone: data.emergency_contact_phone || null,
+        guardian_name: data.guardian_name || null,
+        guardian_phone: data.guardian_phone || null,
+        guardian_relation: data.guardian_relation || null,
         // branch_id is handled by the hook using profile.branch_id
       });
 
@@ -290,6 +296,7 @@ export function QuickPatientModal({ onPatientCreated, trigger }: QuickPatientMod
                         <SelectContent>
                           <SelectItem value="male">Male</SelectItem>
                           <SelectItem value="female">Female</SelectItem>
+                          <SelectItem value="child">Child</SelectItem>
                           <SelectItem value="other">Other</SelectItem>
                         </SelectContent>
                       </Select>
@@ -312,6 +319,64 @@ export function QuickPatientModal({ onPatientCreated, trigger }: QuickPatientMod
                   )}
                 />
               </div>
+
+              {/* Guardian Fields - shown when gender is child */}
+              {form.watch("gender") === "child" && (
+                <div className="border rounded-lg p-3 space-y-3 bg-primary/5 border-primary/20">
+                  <div className="text-sm font-medium text-primary">Guardian Details</div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <FormField
+                      control={form.control}
+                      name="guardian_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Guardian Name</FormLabel>
+                          <FormControl>
+                            <Input placeholder="Guardian name" {...field} className="h-10" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="guardian_phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>Guardian Phone</FormLabel>
+                          <FormControl>
+                            <Input placeholder="03XX-XXXXXXX" {...field} className="h-10" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                  <FormField
+                    control={form.control}
+                    name="guardian_relation"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Relation</FormLabel>
+                        <Select onValueChange={field.onChange} value={field.value}>
+                          <FormControl>
+                            <SelectTrigger className="h-10">
+                              <SelectValue placeholder="Select relation" />
+                            </SelectTrigger>
+                          </FormControl>
+                          <SelectContent>
+                            <SelectItem value="father">Father</SelectItem>
+                            <SelectItem value="mother">Mother</SelectItem>
+                            <SelectItem value="grandparent">Grandparent</SelectItem>
+                            <SelectItem value="other">Other</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </div>
+              )}
 
               {/* Emergency Contact - Collapsible */}
               <div className="border rounded-lg p-3 space-y-3 bg-muted/30">
