@@ -1,26 +1,41 @@
 
 
-# Fix: Journal Entry Creation Error
+# Fix: Journal Entry Number Not Generated (Stuck at "TEMP")
 
 ## Problem
-The `journal_entries` table has a `BEFORE INSERT` trigger (`generate_journal_entry_number`) that auto-generates `entry_number`. However, the column has a `NOT NULL` constraint without a default value, so:
+The `generate_journal_entry_number` trigger only fires when `entry_number IS NULL OR entry_number = ''`. The previous fix set `entry_number: 'TEMP'` to satisfy the NOT NULL constraint, but this causes the trigger to **skip** — leaving every new manual journal entry with "TEMP" as its entry number.
 
-1. The Supabase TypeScript types mark `entry_number` as **required** in the Insert type
-2. The form code (`JournalEntryFormPage.tsx` line 106-114) does **not** include `entry_number` in the insert payload
-3. This causes the insert to fail — either at the TypeScript level or at the DB level if the trigger doesn't fire before the NOT NULL check
+Confirmed in database: entry `6f2ce6b6-c56a-4528-b9b7-8dec9708afd7` shows `entry_number = 'TEMP'` despite having a proper trigger.
+
+The double-entry posting itself is correct:
+- **Debit**: Cash in Hand (1000) — Rs. 200
+- **Credit**: Bank Account - Savings (1020) — Rs. 200
+- `is_posted: true`, balanced at Rs. 200 each
 
 ## Fix
 
 ### File: `src/pages/app/accounts/JournalEntryFormPage.tsx`
-- Add a placeholder `entry_number` to the insert payload that the trigger will overwrite:
-  ```ts
-  entry_number: 'TEMP', // overwritten by generate_journal_entry_number trigger
-  ```
-- This satisfies both the TypeScript type and the NOT NULL constraint, while the trigger replaces it with the actual auto-generated number
+Change `entry_number: 'TEMP'` to `entry_number: ''` so the trigger's WHEN clause matches and generates the proper sequence number (e.g., `JE-20260401-0001`).
 
-### Single-line change at line ~106:
-Add `entry_number: 'TEMP'` to the `entryPayload` object.
+```ts
+// Before
+entry_number: 'TEMP',
+
+// After  
+entry_number: '',
+```
+
+### Also: Fix existing "TEMP" entries via migration
+Run a one-time SQL migration to regenerate entry numbers for any journal entries stuck with "TEMP":
+
+```sql
+UPDATE journal_entries 
+SET entry_number = 'JE-' || TO_CHAR(entry_date, 'YYYYMMDD') || '-' || 
+  LPAD(ROW_NUMBER() OVER (PARTITION BY organization_id, entry_date ORDER BY created_at)::TEXT, 4, '0')
+WHERE entry_number = 'TEMP';
+```
 
 ## Files Changed
-- `src/pages/app/accounts/JournalEntryFormPage.tsx` — add `entry_number` placeholder to insert payload
+- `src/pages/app/accounts/JournalEntryFormPage.tsx` — change `'TEMP'` to `''`
+- **Migration** — fix existing TEMP entries
 
