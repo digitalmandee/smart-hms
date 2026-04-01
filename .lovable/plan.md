@@ -1,50 +1,32 @@
 
 
-# Fix: Deposit Application Missing GL Posting
+# Fix: GL Shows Empty for Header/Parent Accounts
 
-## Problem Found
-When an IPD discharge invoice is generated, the code inserts a `patient_deposits` record with `type = 'applied'` (useDischarge.ts line 614-628). However, the database trigger `post_patient_deposit_to_journal` only handles two types:
-- `type = 'deposit'` → DR Cash, CR Patient Deposits Liability
-- `type = 'refund'` → DR Patient Deposits Liability, CR Cash
+## Problem
+The General Ledger page only lists Level 4 (posting) accounts in the dropdown — it filters out all header accounts with `allAccounts.filter(a => !a.is_header)`. When the user selects a head account like "Service Revenue" or "Current Assets", they see **no transactions** because journal entries are posted to Level 4 children (e.g., REV-001), not to the parent.
 
-**`type = 'applied'` is completely ignored** — no GL entry is created. This means:
-- The deposit liability (LIA-DEP-001) is never cleared
-- Accounts Receivable (AR-001) is never reduced by the applied deposit amount
-- The GL is out of balance for every IPD discharge where deposit was applied
-
-## Required GL Entry for Deposit Application
-```text
-DR  Patient Deposits Liability (LIA-DEP-001)   applied_amount
-CR  Accounts Receivable (AR-001)                applied_amount
-```
-This clears the liability and reduces the receivable simultaneously.
+The user expects to select any account (including headers like "Service Revenue", "IPD Revenue", etc.) and see **all child account transactions rolled up**.
 
 ## Fix
 
-### Migration: Add `type = 'applied'` handling to the trigger
+### File 1: `src/pages/app/accounts/GeneralLedgerPage.tsx`
+- **Show all accounts in the dropdown** — remove the `!a.is_header` filter. Group them visually by level (indent or prefix with level indicator).
+- When a **header account** is selected, collect all descendant Level 4 account IDs recursively, then pass them to the ledger query.
+- When a **posting account** is selected, query as before (single account).
+- Add a helper function `getDescendantIds(accountId, allAccounts)` that walks the `parent_account_id` tree to find all leaf accounts.
 
-Update `post_patient_deposit_to_journal()` to add an `ELSIF` block for `type = 'applied'`:
+### File 2: `src/hooks/useAccounts.ts` — `useAccountLedger`
+- Accept `accountId: string | string[]` — when an array is passed, use `.in("account_id", ids)` instead of `.eq("account_id", accountId)`.
+- Add the account name to each line so the user can see which child account each transaction belongs to when viewing a header.
 
-```sql
-ELSIF NEW.type = 'applied' AND COALESCE(NEW.amount, 0) > 0 THEN
-  v_deposit_liability_account := get_or_create_default_account(
-    NEW.organization_id, 'LIA-DEP-001', 'Patient Deposits', 'liability');
-  v_ar_account := get_or_create_default_account(
-    NEW.organization_id, 'AR-001', 'Accounts Receivable', 'asset');
-  
-  -- JE: DR LIA-DEP-001, CR AR-001
-  entry_number = 'JE-DAPP-...'
-  reference_type = 'deposit_application'
-  
-  UPDATE patient_deposits SET journal_entry_id = v_journal_id WHERE id = NEW.id;
-```
+### File 3: Translation keys (`en.ts`, `ar.ts`, `ur.ts`)
+- Add `accounts.allChildTransactions` label for the header account view context.
 
-This ensures every deposit application creates the correct double-entry journal posting.
-
-### Backfill: Fix existing deposit applications that have no journal entry
-
-A second SQL statement will create journal entries for any existing `type = 'applied'` records that were inserted without GL posting. This will correct the historical data.
+## Result
+Selecting "Service Revenue" in the GL will show all invoice CR entries from REV-001 and any other revenue child accounts. Same for all other header accounts — Assets, Liabilities, Expenses, etc. will all roll up correctly.
 
 ## Files Changed
-- `supabase/migrations/new.sql` — update trigger function + backfill existing records
+- `src/pages/app/accounts/GeneralLedgerPage.tsx` — include headers in dropdown, resolve descendant IDs
+- `src/hooks/useAccounts.ts` — support array of account IDs in `useAccountLedger`
+- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new label
 
