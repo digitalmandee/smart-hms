@@ -173,12 +173,17 @@ export default function AdmissionFormPage() {
     paymentStatus: "pending" | "paid" | "partial" | "pay_later" | "waived",
   ) => {
     try {
+      const selectedProcedure = procedures.find(p => p.id === values.primary_procedure_id);
+      const procedureCharge = selectedProcedure?.default_price || 0;
+
       const admission = await createAdmission({
         patient_id: values.patient_id,
         branch_id: profile!.branch_id!,
         admission_date: format(values.admission_date, "yyyy-MM-dd"),
         admission_time: values.admission_time,
         admission_type: values.admission_type,
+        primary_procedure_id: values.primary_procedure_id || undefined,
+        procedure_charges: procedureCharge,
         ward_id: values.ward_id || undefined,
         bed_id: values.bed_id || undefined,
         attending_doctor_id: values.attending_doctor_id || undefined,
@@ -192,6 +197,7 @@ export default function AdmissionFormPage() {
           ? format(values.expected_discharge_date, "yyyy-MM-dd")
           : undefined,
         payment_status: paymentStatus,
+        estimated_cost: procedureCharge || undefined,
         // deposit is now tracked via patient_deposits table, not invoice
       });
 
