@@ -24,6 +24,7 @@ interface AccountPickerProps {
   category?: string;
   disabled?: boolean;
   excludeIds?: string[];
+  postingOnly?: boolean;
 }
 
 export function AccountPicker({
