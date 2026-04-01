@@ -85,7 +85,7 @@ export default function DepositDetailPage() {
   if (!deposit) {
     return (
       <div className="space-y-6">
-        <PageHeader title={t("billing.depositDetail")} />
+        <PageHeader title={t("billing.depositDetails")} />
         <Card>
           <CardContent className="py-12 text-center text-muted-foreground">
             {t("common.noData")}

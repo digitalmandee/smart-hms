@@ -101,7 +101,7 @@ export function MobileInvoiceList() {
   const haptics = useHaptics();
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | "all">("all");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
-  const [selectedDepositId, setSelectedDepositId] = useState<string | null>(null);
+  
 
   const { data: invoices, isLoading, refetch } = useInvoicesWithCategories(
     profile?.branch_id || undefined,
