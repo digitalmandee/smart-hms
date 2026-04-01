@@ -400,6 +400,18 @@ export function useVerifyGRN() {
           }
         }
       }
+
+      // Update GRN status AFTER all stock operations succeed
+      const { error: updateError } = await supabase
+        .from("goods_received_notes")
+        .update({
+          status: "verified" as GRNStatus,
+          verified_by: user?.id,
+          verified_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+      
+      if (updateError) throw updateError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["grns"] });
