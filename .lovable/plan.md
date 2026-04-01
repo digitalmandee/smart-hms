@@ -1,55 +1,65 @@
 
 
-# Redesign GRN & PO Printable Templates — Professional Invoice Style with Hospital Branding
+# Vendor Management Overhaul + GRN Flow Fixes
 
-## Problems (from screenshot)
-1. **No hospital branding** — no logo, no address, no contact info in header
-2. **Item name is blank** — shows nothing for medicine items (only `item.item?.name`, no medicine fallback)
-3. **Poor layout** — plain text dump, no borders on table, no visual hierarchy, looks like raw data not an invoice
-4. **No currency formatting** — shows "Rs. 0" with no proper formatting
-5. **Tailwind classes don't work in print window** — the `usePrint` hook opens a new window with raw HTML, Tailwind utility classes like `grid-cols-2`, `text-right`, `border-b` are NOT available in print, so everything collapses to plain unstyled text
+## Problems Identified
 
-## Root Cause
-`PrintableGRN` uses Tailwind classes but the print window opened by `usePrint` has NO Tailwind CSS loaded. The component renders correctly in-page but when its `innerHTML` is extracted into a new window, all styling is lost.
+1. **Vendor Detail Page is incomplete** — only shows contact info, bank details, and PO history. Missing:
+   - Outstanding balance / credits summary
+   - Vendor payment history
+   - Current active POs (only shows last 20, no status filter)
+   - No ledger account link
+   - No aging breakdown (0-30, 31-60, 61-90, 90+ days)
 
-## Solution
-Rewrite `PrintableGRN` and `PrintablePO` to use **inline styles** instead of Tailwind classes, include full hospital branding (logo, name, address, phone, email, registration number), and display medicine names properly. Design them like professional hospital invoices with:
-- Branded header with logo + org details
-- Bordered table with alternating row shading
-- Proper totals section aligned right
-- Signature blocks at bottom
-- Footer with org contact info
+2. **GRN Detail Page** — medicine names may still show blank in some edge cases; the `item.item?.name` fallback chain needs verification across all render points
 
-## Changes
+3. **Arabic (AR) translations** — vendor-related keys exist for nav but NOT for the new vendor profile sections (outstanding, credits, payment history, aging, etc.)
 
-### 1. `src/components/inventory/PrintableGRN.tsx` — Full rewrite
-- Accept `branding: OrganizationBranding` prop instead of just `organizationName`
-- Use inline styles throughout (no Tailwind)
-- Professional invoice layout:
-  - Header: Logo (if available) + Organization name, address, phone, email, reg number
-  - Document title: "GOODS RECEIVED NOTE" with colored accent bar
-  - Two-column info section: GRN details (left) + Vendor details (right)
-  - Bordered table with header background color, proper column widths
-  - Item name: `item.item?.name || item.medicine?.name || 'Unknown Item'`
-  - Totals section right-aligned in a box
-  - Notes section
-  - 3 signature blocks
-  - Footer: "This is a computer-generated document"
+## Plan
 
-### 2. `src/components/inventory/PrintablePO.tsx` — Same treatment
-- Accept `branding` prop
-- Inline styles, professional invoice look
-- Medicine name fallback already exists, keep it
+### Step 1: Enhance Vendor Detail Page with full financial profile
+**File: `src/pages/app/inventory/VendorDetailPage.tsx`**
 
-### 3. `src/pages/app/inventory/GRNDetailPage.tsx` — Pass branding
-- Import `useOrganizationBranding`
-- Pass `branding` to `PrintableGRN` instead of just `organizationName`
+Add 3 new sections below the existing cards:
 
-### 4. Update any PO detail page that uses `PrintablePO` — Pass branding similarly
+- **Outstanding Balance Card** — use existing `useVendorOutstandingBalance(id)` hook from `useVendorPayments.ts` to show:
+  - Total Payable (from posted GRNs)
+  - Total Paid
+  - Outstanding Balance
+  - Credit balance (if overpaid)
 
-## Technical Details
-- All styles will be inline (`style={{ ... }}`) so they survive the `usePrint` innerHTML extraction
-- Logo rendered as `<img>` tag with the `branding.logo_url` if available
-- Primary color from `branding.primary_color` used for accent bars and table headers
-- Currency formatted via the `fc` helper already in the component, using `useCurrencyFormatter` pattern
+- **Aging Summary Card** — break outstanding into 0-30, 31-60, 61-90, 90+ day buckets based on GRN `received_date`
+
+- **Payment History Tab/Section** — fetch vendor payments using `useVendorPayments` filtered by vendor ID, show table with: Payment #, Date, Amount, Method, Status, GRN reference
+
+- **Active POs Section** — filter `purchaseHistory` to show pending/approved POs separately from completed ones, with clear status badges
+
+### Step 2: Add `useVendorPaymentHistory` hook
+**File: `src/hooks/useVendorPayments.ts`**
+
+Add a new query function:
+```ts
+export function useVendorPaymentsByVendor(vendorId: string)
+```
+Fetches all payments for a specific vendor with joined vendor/GRN data.
+
+### Step 3: Fix GRN Detail medicine name display
+**File: `src/pages/app/inventory/GRNDetailPage.tsx`**
+
+Audit all item name render points (not just line 313) to ensure the fallback `item.item?.name || item.medicine?.name || 'Unknown Item'` is applied everywhere.
+
+### Step 4: Translations (EN/AR/UR)
+**Files: `en.ts`, `ar.ts`, `ur.ts`**
+
+Add keys for:
+- `vendor.outstandingBalance`, `vendor.totalPayable`, `vendor.totalPaid`, `vendor.creditBalance`
+- `vendor.aging`, `vendor.aging0_30`, `vendor.aging31_60`, `vendor.aging61_90`, `vendor.aging90Plus`
+- `vendor.paymentHistory`, `vendor.activeOrders`, `vendor.completedOrders`
+- `vendor.noPayments`, `vendor.noOutstanding`
+
+## Files Changed
+- `src/pages/app/inventory/VendorDetailPage.tsx` — add outstanding, aging, payment history, active PO sections
+- `src/hooks/useVendorPayments.ts` — add `useVendorPaymentsByVendor` query
+- `src/pages/app/inventory/GRNDetailPage.tsx` — medicine name fallback audit
+- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` — new vendor profile keys
 
