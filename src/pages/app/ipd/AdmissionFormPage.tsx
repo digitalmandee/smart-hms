@@ -32,6 +32,7 @@ import { usePatients } from "@/hooks/usePatients";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
 import { useCreateIPDDeposit } from "@/hooks/useIPDDeposit";
+import { useRequireSession } from "@/hooks/useRequireSession";
 import { useIPDBedTypeRates } from "@/hooks/useIPDBedTypeRates";
 import { useSurgeryRequest, useUpdateSurgeryRequest } from "@/hooks/useSurgeryRequests";
 import { AdmissionPaymentDialog } from "@/components/ipd/AdmissionPaymentDialog";
