@@ -512,12 +512,48 @@ export default function AdmissionFormPage() {
             </CardContent>
           </Card>
 
-          {/* Ward & Bed */}
+          {/* Procedure & Room Assignment */}
           <Card>
             <CardHeader>
-              <CardTitle>Ward & Bed Allocation</CardTitle>
+              <CardTitle>Procedure & Room Assignment</CardTitle>
             </CardHeader>
             <CardContent className="grid gap-6 md:grid-cols-2">
+              {/* Primary Procedure - Mandatory */}
+              <FormField
+                control={form.control}
+                name="primary_procedure_id"
+                render={({ field }) => {
+                  const selectedProc = procedures.find(p => p.id === field.value);
+                  return (
+                    <FormItem>
+                      <FormLabel>Primary Procedure <span className="text-destructive">*</span></FormLabel>
+                      <Select onValueChange={field.onChange} value={field.value}>
+                        <FormControl>
+                          <SelectTrigger>
+                            <SelectValue placeholder="Select procedure" />
+                          </SelectTrigger>
+                        </FormControl>
+                        <SelectContent>
+                          {procedures.map((proc) => (
+                            <SelectItem key={proc.id} value={proc.id}>
+                              <div className="flex items-center justify-between gap-4">
+                                <span>{proc.name}</span>
+                                {proc.default_price > 0 && (
+                                  <span className="text-muted-foreground text-xs">Rs. {proc.default_price?.toLocaleString()}</span>
+                                )}
+                              </div>
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                      {selectedProc && selectedProc.default_price > 0 && (
+                        <p className="text-sm text-primary font-medium">Procedure Charges: Rs. {selectedProc.default_price.toLocaleString()}</p>
+                      )}
+                      <FormMessage />
+                    </FormItem>
+                  );
+                }}
+              />
               <FormField
                 control={form.control}
                 name="ward_id"
