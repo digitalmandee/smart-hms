@@ -191,6 +191,55 @@ export default function ProfitLossPage() {
               </div>
             </div>
 
+            {/* COGS Section — only if there are COGS items */}
+            {data?.cogs && data.cogs.items.length > 0 && (
+              <div>
+                <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
+                  <TrendingDown className="h-5 w-5 text-orange-500" /> Cost of Goods Sold
+                </h3>
+                <div className="space-y-2 pl-4">
+                  {data.cogs.items.map((item) => {
+                    const prevItem = prevData?.cogs?.items.find(p => p.account_id === item.account_id);
+                    const change = prevItem ? getChangePercent(item.amount, prevItem.amount) : 0;
+                    return (
+                      <div key={item.account_id} className="flex justify-between py-1">
+                        <span>{item.account_name}</span>
+                        <div className="flex gap-8 items-center">
+                          <span className="font-mono">{formatCurrency(item.amount)}</span>
+                          {compareMode && (
+                            <>
+                              <span className="font-mono text-muted-foreground">{formatCurrency(prevItem?.amount || 0)}</span>
+                              <span className={`text-sm font-medium ${change <= 0 ? "text-green-600" : "text-red-600"}`}>
+                                {change >= 0 ? "+" : ""}{change.toFixed(1)}%
+                              </span>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+                <Separator className="my-2" />
+                <div className="flex justify-between font-semibold">
+                  <span>Total COGS</span>
+                  <span className="font-mono text-orange-600">{formatCurrency(data.cogs.total)}</span>
+                </div>
+              </div>
+            )}
+
+            {/* Gross Profit — only show if COGS exists */}
+            {data?.cogs && data.cogs.items.length > 0 && (
+              <>
+                <Separator />
+                <div className="flex justify-between font-semibold text-lg p-3 rounded-lg bg-muted/50">
+                  <span>Gross Profit</span>
+                  <span className={`font-mono ${(data?.grossProfit || 0) >= 0 ? "text-green-600" : "text-destructive"}`}>
+                    {formatCurrency(data?.grossProfit || 0)}
+                  </span>
+                </div>
+              </>
+            )}
+
             {/* Expenses Section */}
             <div>
               <h3 className="font-semibold text-lg mb-4 flex items-center gap-2">
