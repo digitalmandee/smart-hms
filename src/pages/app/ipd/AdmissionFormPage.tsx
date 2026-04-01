@@ -632,7 +632,7 @@ export default function AdmissionFormPage() {
                 name="attending_doctor_id"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Attending Doctor</FormLabel>
+                    <FormLabel>Attending Doctor <span className="text-destructive">*</span></FormLabel>
                     <Select onValueChange={field.onChange} value={field.value}>
                       <FormControl>
                         <SelectTrigger>
