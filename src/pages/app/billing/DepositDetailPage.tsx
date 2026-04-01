@@ -240,7 +240,7 @@ export default function DepositDetailPage() {
                         </span>
                       </div>
                       <Button variant="ghost" size="sm" asChild>
-                        <Link to={`/app/accounts/general-ledger?journal=${je.id}`}>
+                        <Link to={`/app/accounts/ledger?journal=${je.id}`}>
                           <ExternalLink className="h-3 w-3 mr-1" />
                           {t("billing.glEntries")}
                         </Link>
