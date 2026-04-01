@@ -256,21 +256,22 @@ export default function AdmissionFormPage() {
       const wardInfo = wards?.find((w) => w.id === pendingAdmissionData.ward_id);
       const bedInfo = beds?.find((b) => b.id === pendingAdmissionData.bed_id);
 
-      // Create deposit invoice (unpaid)
-      const invoice = await createDepositInvoice.mutateAsync({
+      // Create pending deposit record (no GL entry — cash not received yet)
+      await createIPDDeposit.mutateAsync({
         patientId: pendingAdmissionData.patient_id,
-        depositAmount: pendingAdmissionData.deposit_amount,
+        amount: pendingAdmissionData.deposit_amount,
         wardName: wardInfo?.name,
         bedNumber: bedInfo?.bed_number,
         notes: "Pay Later - Deposit pending collection",
+        status: "pending",
       });
 
       // Create admission with pay_later status
-      await createAdmissionWithPaymentStatus(pendingAdmissionData, "pay_later", invoice.id);
+      await createAdmissionWithPaymentStatus(pendingAdmissionData, "pay_later");
       
       setShowPaymentDialog(false);
       setPendingAdmissionData(null);
-    } catch (error) {
+    } catch (_error) {
       toast.error("Failed to create admission");
     } finally {
       setIsProcessingPayment(false);
