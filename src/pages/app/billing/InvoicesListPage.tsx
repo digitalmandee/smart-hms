@@ -15,7 +15,7 @@ import {
 import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useAuth } from "@/contexts/AuthContext";
 import { InvoiceStatusBadge } from "@/components/billing/InvoiceStatusBadge";
-import { Plus, FileText, FlaskConical, Radio, Stethoscope } from "lucide-react";
+import { Plus, FileText, FlaskConical, Radio, Stethoscope, Landmark } from "lucide-react";
 import { format } from "date-fns";
 import { ColumnDef } from "@tanstack/react-table";
 import { Database } from "@/integrations/supabase/types";
@@ -24,6 +24,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { MobileInvoiceList } from "@/components/mobile/MobileInvoiceList";
+import { Badge } from "@/components/ui/badge";
 
 type InvoiceStatus = Database["public"]["Enums"]["invoice_status"];
 
@@ -34,6 +35,7 @@ interface InvoiceRow {
   status: InvoiceStatus | null;
   total_amount: number | null;
   paid_amount: number | null;
+  isDeposit?: boolean;
   patient: {
     first_name: string;
     last_name: string | null;
@@ -95,6 +97,46 @@ function useInvoicesWithCategories(branchId?: string, statusFilter?: InvoiceStat
   });
 }
 
+// Hook to get patient deposits as invoice-like rows
+function useDepositRows(branchId?: string) {
+  return useQuery({
+    queryKey: ["deposit-invoice-rows", branchId],
+    queryFn: async () => {
+      let query = supabase
+        .from("patient_deposits")
+        .select(`
+          id, amount, type, status, created_at, notes, reference_number,
+          patient:patients!patient_deposits_patient_id_fkey(id, first_name, last_name, patient_number)
+        `)
+        .eq("type", "deposit")
+        .eq("status", "completed")
+        .order("created_at", { ascending: false });
+
+      if (branchId) {
+        query = query.eq("branch_id", branchId);
+      }
+
+      const { data, error } = await query;
+      if (error) throw error;
+
+      return (data || []).map((d: any) => ({
+        id: d.id,
+        invoice_number: d.reference_number || `DEP-${format(new Date(d.created_at), "yyMMdd")}-${d.id.slice(0, 4).toUpperCase()}`,
+        invoice_date: d.created_at,
+        status: "paid" as InvoiceStatus,
+        total_amount: Number(d.amount),
+        paid_amount: Number(d.amount),
+        isDeposit: true,
+        patient: d.patient || { first_name: "Unknown", last_name: null, patient_number: "-" },
+        categories: [],
+        hasLab: false,
+        hasRadiology: false,
+        hasConsultation: false,
+      }));
+    },
+  });
+}
+
 export default function InvoicesListPage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -115,10 +157,18 @@ export default function InvoicesListPage() {
     statusFilter
   );
 
+  const { data: depositRows, isLoading: depositsLoading } = useDepositRows(
+    profile?.branch_id || undefined
+  );
+
   const filteredInvoices = useMemo(() => {
-    if (!invoicesWithCategories) return [];
-    if (categoryFilter === "all") return invoicesWithCategories;
-    return invoicesWithCategories.filter(invoice => {
+    const invoices = invoicesWithCategories || [];
+    const deposits = (statusFilter === "all" || statusFilter === "paid") ? (depositRows || []) : [];
+    const combined = [...invoices, ...deposits];
+
+    if (categoryFilter === "all") return combined;
+    return combined.filter((invoice: any) => {
+      if (invoice.isDeposit) return false; // Deposits don't belong to lab/radiology/consultation
       switch (categoryFilter) {
         case "lab": return invoice.hasLab;
         case "radiology": return invoice.hasRadiology || invoice.categories?.includes('procedure');
@@ -126,13 +176,23 @@ export default function InvoicesListPage() {
         default: return true;
       }
     });
-  }, [invoicesWithCategories, categoryFilter]);
+  }, [invoicesWithCategories, depositRows, categoryFilter, statusFilter]);
 
   const columns: ColumnDef<InvoiceRow>[] = [
     {
       accessorKey: "invoice_number",
       header: t("invoices.invoiceNo"),
-      cell: ({ row }) => <span className="font-mono">{row.original.invoice_number}</span>,
+      cell: ({ row }) => (
+        <div className="flex items-center gap-2">
+          <span className="font-mono">{row.original.invoice_number}</span>
+          {row.original.isDeposit && (
+            <Badge variant="outline" className="text-xs gap-1 bg-primary/10 text-primary border-primary/20">
+              <Landmark className="h-3 w-3" />
+              {t("invoices.depositInvoice")}
+            </Badge>
+          )}
+        </div>
+      ),
     },
     {
       accessorKey: "invoice_date",
@@ -236,8 +296,11 @@ export default function InvoicesListPage() {
         data={(filteredInvoices as InvoiceRow[]) || []}
         searchKey="invoice_number"
         searchPlaceholder={t("invoices.searchPlaceholder")}
-        isLoading={isLoading}
-        onRowClick={(row) => navigate(`/app/billing/invoices/${row.id}`)}
+        isLoading={isLoading || depositsLoading}
+        onRowClick={(row) => {
+          if (row.isDeposit) return; // Deposits don't have a detail page
+          navigate(`/app/billing/invoices/${row.id}`);
+        }}
       />
     </div>
   );
