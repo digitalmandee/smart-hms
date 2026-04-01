@@ -12,6 +12,7 @@ interface CreateIPDDepositParams {
   wardName?: string;
   bedNumber?: string;
   status?: "completed" | "pending";
+  billingSessionId?: string;
 }
 
 /**
