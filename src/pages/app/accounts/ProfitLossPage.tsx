@@ -47,6 +47,9 @@ export default function ProfitLossPage() {
     const rows = [
       ...data.revenue.items.map(i => ({ section: "Revenue", account: i.account_name, amount: i.amount })),
       { section: "Revenue", account: "TOTAL REVENUE", amount: data.revenue.total },
+      ...(data.cogs?.items || []).map(i => ({ section: "COGS", account: i.account_name, amount: i.amount })),
+      ...(data.cogs && data.cogs.total > 0 ? [{ section: "COGS", account: "TOTAL COGS", amount: data.cogs.total }] : []),
+      ...(data.grossProfit !== data.revenue.total ? [{ section: "Gross", account: "GROSS PROFIT", amount: data.grossProfit }] : []),
       ...data.expenses.items.map(i => ({ section: "Expense", account: i.account_name, amount: i.amount })),
       { section: "Expense", account: "TOTAL EXPENSES", amount: data.expenses.total },
       { section: "Net", account: data.isProfit ? "NET INCOME" : "NET LOSS", amount: Math.abs(data.netIncome) },
