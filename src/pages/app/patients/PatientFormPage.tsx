@@ -231,6 +231,9 @@ export function PatientFormPage() {
         referred_by: data.referred_by || null,
         referral_details: data.referral_details || null,
         notes: data.notes || null,
+        guardian_name: data.guardian_name || null,
+        guardian_phone: data.guardian_phone || null,
+        guardian_relation: data.guardian_relation || null,
         branch_id: data.branch_id || null,
       };
 
