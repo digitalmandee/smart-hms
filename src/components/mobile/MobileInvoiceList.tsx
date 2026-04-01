@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Plus, FlaskConical, Radio, Stethoscope, User, Landmark } from "lucide-react";
+import { FileText, Plus, FlaskConical, Radio, Stethoscope, User, Landmark, Wallet } from "lucide-react";
+import { RecordDepositDialog } from "@/components/billing/RecordDepositDialog";
 
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
