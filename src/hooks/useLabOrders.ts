@@ -206,7 +206,7 @@ export function useCreateLabOrder() {
         const today = new Date();
         const dateStr = today.toISOString().slice(0, 10).replace(/-/g, "");
         const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
-        const invoiceNumber = `INV-${dateStr}-${randomSuffix}`;
+        const invoiceNumber = `LAB-${dateStr}-${randomSuffix}`;
 
         const subtotal = items.reduce((sum, item) => sum + (item.price || 0), 0);
 

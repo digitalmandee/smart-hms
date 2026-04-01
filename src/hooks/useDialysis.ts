@@ -327,7 +327,7 @@ export function useGenerateDialysisInvoice() {
       const today = new Date();
       const dateStr = today.toISOString().slice(0, 10).replace(/-/g, "");
       const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
-      const invoiceNumber = `INV-${dateStr}-${randomSuffix}`;
+      const invoiceNumber = `DLY-${dateStr}-${randomSuffix}`;
 
       const consumablesTotal = (consumablesCharges || []).reduce((sum, c) => sum + c.amount, 0);
       const totalAmount = sessionFee + consumablesTotal;
