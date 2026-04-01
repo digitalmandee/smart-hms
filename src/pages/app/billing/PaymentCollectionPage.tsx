@@ -240,6 +240,37 @@ export default function PaymentCollectionPage() {
           </CardContent>
         </Card>
 
+        {/* Deposit Balance Info */}
+        {depositData && depositData.balance > 0 && (
+          <Card className="border-emerald-500/50 bg-emerald-500/5 lg:col-span-2">
+            <CardContent className="pt-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Wallet className="h-5 w-5 text-emerald-600" />
+                <div>
+                  <p className="font-medium text-emerald-600">
+                    Available Deposit: {formatCurrency(depositData.balance)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    This patient has a deposit balance that can be applied
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const applyAmt = Math.min(depositData.balance, balance);
+                  setAmount(applyAmt);
+                  setNotes(`Applied from patient deposit (${formatCurrency(applyAmt)})`);
+                }}
+              >
+                <Wallet className="mr-2 h-4 w-4" />
+                Apply Deposit
+              </Button>
+            </CardContent>
+          </Card>
+        )}
+
         {/* Payment Form */}
         <Card>
           <CardHeader>
