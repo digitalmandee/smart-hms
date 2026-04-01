@@ -247,10 +247,16 @@ export default function InvoicesListPage() {
         title={t("invoices.title")}
         description={t("invoices.subtitle")}
         actions={
-          <Button onClick={() => navigate("/app/billing/invoices/new")}>
-            <Plus className="mr-2 h-4 w-4" />
-            {t("invoices.newInvoice")}
-          </Button>
+          <div className="flex gap-2">
+            <Button variant="outline" onClick={() => setDepositDialogOpen(true)}>
+              <Wallet className="mr-2 h-4 w-4" />
+              {t("invoices.recordDeposit")}
+            </Button>
+            <Button onClick={() => navigate("/app/billing/invoices/new")}>
+              <Plus className="mr-2 h-4 w-4" />
+              {t("invoices.newInvoice")}
+            </Button>
+          </div>
         }
       />
 
