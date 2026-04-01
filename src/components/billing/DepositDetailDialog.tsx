@@ -61,7 +61,7 @@ function useDepositDetail(depositId: string, open: boolean) {
           )
         `)
         .eq("reference_id", depositId)
-        .eq("reference_type", "deposit")
+        .eq("reference_type", "patient_deposit")
         .order("entry_date", { ascending: true });
 
       return { deposit, journalEntries: journalEntries || [] };
