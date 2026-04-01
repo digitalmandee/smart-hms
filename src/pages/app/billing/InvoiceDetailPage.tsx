@@ -356,6 +356,7 @@ export default function InvoiceDetailPage() {
                 taxAmount={Number(invoice.tax_amount) || 0}
                 discountAmount={Number(invoice.discount_amount) || 0}
                 paidAmount={Number(invoice.paid_amount) || 0}
+                depositApplied={depositAppliedAmount}
               />
             </CardContent>
           </Card>
