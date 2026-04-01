@@ -239,14 +239,40 @@ export function useVerifyGRN() {
         .single();
       
       if (!grn) throw new Error("GRN not found");
+      if (grn.status !== 'draft') throw new Error("GRN is already verified");
       
-      // Add to appropriate stock table based on item type FIRST (before status update)
+      const orgId = profile!.organization_id!;
+
+      // 1. Process stock updates — split by item type
       for (const item of grn.items) {
-        if (item.quantity_accepted > 0) {
-          const itemType = item.item_type || 'inventory';
+        if (item.quantity_accepted <= 0) continue;
+        const itemType = item.item_type || 'inventory';
+        
+        if (itemType === 'medicine') {
+          // Upsert medicine_inventory: merge if same batch exists
+          const { data: existing } = await supabase
+            .from("medicine_inventory")
+            .select("id, quantity")
+            .eq("branch_id", grn.branch_id)
+            .eq("medicine_id", item.medicine_id)
+            .eq("batch_number", item.batch_number || '')
+            .eq("expiry_date", item.expiry_date || '1900-01-01')
+            .maybeSingle();
           
-          if (itemType === 'medicine') {
-            // Add to medicine_inventory for pharmacy items
+          if (existing) {
+            // Merge: add quantity to existing batch
+            const { error: updateErr } = await supabase
+              .from("medicine_inventory")
+              .update({ 
+                quantity: (existing.quantity || 0) + item.quantity_accepted,
+                unit_price: item.unit_cost,
+                selling_price: item.selling_price || item.unit_cost,
+                vendor_id: grn.vendor_id,
+              })
+              .eq("id", existing.id);
+            if (updateErr) throw updateErr;
+          } else {
+            // Insert new batch
             const { error: stockError } = await supabase
               .from("medicine_inventory")
               .insert({
@@ -261,34 +287,114 @@ export function useVerifyGRN() {
                 vendor_id: grn.vendor_id,
                 supplier_name: null,
               });
-            
             if (stockError) throw stockError;
-          } else {
-            // Add to inventory_stock for general items
-            const { error: stockError } = await supabase
+          }
+
+          // Create pharmacy_stock_movement for audit trail (instead of stock_adjustments)
+          await supabase
+            .from("pharmacy_stock_movements")
+            .insert({
+              organization_id: orgId,
+              branch_id: grn.branch_id,
+              store_id: grn.store_id || null,
+              medicine_id: item.medicine_id,
+              movement_type: 'grn_receipt',
+              quantity: item.quantity_accepted,
+              unit_cost: item.unit_cost,
+              total_value: item.quantity_accepted * item.unit_cost,
+              batch_number: item.batch_number,
+              reference_type: 'grn',
+              reference_id: grn.id,
+              reference_number: grn.grn_number,
+              notes: `GRN receipt: ${grn.grn_number}`,
+              created_by: user?.id,
+            });
+        } else {
+          // Inventory items — existing logic
+          const { error: stockError } = await supabase
+            .from("inventory_stock")
+            .insert({
+              item_id: item.item_id,
+              branch_id: grn.branch_id,
+              store_id: grn.store_id || null,
+              batch_number: item.batch_number,
+              quantity: item.quantity_accepted,
+              unit_cost: item.unit_cost,
+              expiry_date: item.expiry_date,
+              vendor_id: grn.vendor_id,
+              grn_id: grn.id,
+            });
+          if (stockError) throw stockError;
+
+          // Stock adjustment record for inventory items only
+          let previousQty = 0;
+          if (item.item_id) {
+            const { data: stockRows } = await supabase
               .from("inventory_stock")
-              .insert({
-                item_id: item.item_id,
-                branch_id: grn.branch_id,
-                store_id: grn.store_id || null,
-                batch_number: item.batch_number,
-                quantity: item.quantity_accepted,
-                unit_cost: item.unit_cost,
-                expiry_date: item.expiry_date,
-                vendor_id: grn.vendor_id,
-                grn_id: grn.id,
-              });
+              .select("quantity")
+              .eq("item_id", item.item_id)
+              .eq("branch_id", grn.branch_id);
+            previousQty = (stockRows || []).reduce((s, r) => s + (r.quantity || 0), 0);
+          }
+
+          await supabase
+            .from("stock_adjustments")
+            .insert({
+              organization_id: orgId,
+              branch_id: grn.branch_id,
+              item_id: item.item_id,
+              adjustment_type: "increase",
+              quantity: item.quantity_accepted,
+              previous_quantity: previousQty - item.quantity_accepted, // before this insert
+              new_quantity: previousQty,
+              reason: `GRN: ${grn.grn_number}`,
+              reference_type: "grn",
+              reference_id: grn.id,
+              adjusted_by: user?.id,
+            });
+        }
+
+        // Update item-vendor mapping with last purchase price
+        if (grn.vendor_id && item.unit_cost) {
+          const itemKey = itemType === 'medicine' ? 'medicine_id' : 'item_id';
+          const itemValue = itemType === 'medicine' ? item.medicine_id : item.item_id;
+          
+          if (itemValue) {
+            const { data: existingMapping } = await supabase
+              .from("item_vendor_mapping")
+              .select("id")
+              .eq("vendor_id", grn.vendor_id)
+              .eq(itemKey, itemValue)
+              .maybeSingle();
             
-            if (stockError) throw stockError;
+            if (existingMapping) {
+              await supabase
+                .from("item_vendor_mapping")
+                .update({
+                  last_purchase_price: item.unit_cost,
+                  last_purchase_date: new Date().toISOString().split('T')[0],
+                })
+                .eq("id", existingMapping.id);
+            } else {
+              await supabase
+                .from("item_vendor_mapping")
+                .insert({
+                  organization_id: orgId,
+                  [itemKey]: itemValue,
+                  vendor_id: grn.vendor_id,
+                  last_purchase_price: item.unit_cost,
+                  last_purchase_date: new Date().toISOString().split('T')[0],
+                  is_preferred: false,
+                });
+            }
           }
         }
       }
-      
-      // Update PO received quantities if linked
+
+      // 2. Update PO received quantities if linked
       if (grn.purchase_order_id) {
         for (const item of grn.items) {
           if (item.po_item_id) {
-            // Get current received quantity
             const { data: poItem } = await supabase
               .from("purchase_order_items")
               .select("received_quantity")
@@ -319,9 +425,31 @@ export function useVerifyGRN() {
           .from("purchase_orders")
           .update({ status: newStatus })
           .eq("id", grn.purchase_order_id);
+
+        // Auto-populate requisition from PO if GRN doesn't have one
+        if (!grn.requisition_id) {
+          const { data: po } = await supabase
+            .from("purchase_orders")
+            .select("requisition_id")
+            .eq("id", grn.purchase_order_id)
+            .maybeSingle();
+          
+          if (po?.requisition_id) {
+            await supabase
+              .from("goods_received_notes")
+              .update({ requisition_id: po.requisition_id } as any)
+              .eq("id", id);
+            
+            // Also update the requisition status
+            await supabase
+              .from("stock_requisitions")
+              .update({ status: "issued" } as any)
+              .eq("id", po.requisition_id);
+          }
+        }
       }
       
-      // If GRN is linked to a requisition, mark it as 'issued' so requester can accept
+      // 3. If GRN is directly linked to a requisition, mark it as 'issued'
       const grnRequisitionId = (grn as any).requisition_id;
       if (grnRequisitionId) {
         await supabase
@@ -330,78 +458,7 @@ export function useVerifyGRN() {
           .eq("id", grnRequisitionId);
       }
 
-      // Create stock adjustment records and update item-vendor mappings
-      for (const item of grn.items) {
-        if (item.quantity_accepted > 0) {
-          // Query actual current stock for accurate audit trail
-          let previousQty = 0;
-          if (item.item_id) {
-            const { data: stockRows } = await supabase
-              .from("inventory_stock")
-              .select("quantity")
-              .eq("item_id", item.item_id)
-              .eq("branch_id", grn.branch_id);
-            previousQty = (stockRows || []).reduce((s, r) => s + (r.quantity || 0), 0);
-          }
-
-          await supabase
-            .from("stock_adjustments")
-            .insert({
-              organization_id: profile!.organization_id!,
-              branch_id: grn.branch_id,
-              item_id: item.item_id,
-              adjustment_type: "increase",
-              quantity: item.quantity_accepted,
-              previous_quantity: previousQty,
-              new_quantity: previousQty + item.quantity_accepted,
-              reason: `GRN: ${grn.grn_number}`,
-              reference_type: "grn",
-              reference_id: grn.id,
-              adjusted_by: user?.id,
-            });
-          
-          // Update item-vendor mapping with last purchase price
-          if (grn.vendor_id && item.unit_cost) {
-            const itemKey = item.item_type === 'medicine' ? 'medicine_id' : 'item_id';
-            const itemValue = item.item_type === 'medicine' ? item.medicine_id : item.item_id;
-            
-            if (itemValue) {
-              // Check if mapping exists
-              const { data: existingMapping } = await supabase
-                .from("item_vendor_mapping")
-                .select("id")
-                .eq("vendor_id", grn.vendor_id)
-                .eq(itemKey, itemValue)
-                .maybeSingle();
-              
-              if (existingMapping) {
-                // Update existing mapping
-                await supabase
-                  .from("item_vendor_mapping")
-                  .update({
-                    last_purchase_price: item.unit_cost,
-                    last_purchase_date: new Date().toISOString().split('T')[0],
-                  })
-                  .eq("id", existingMapping.id);
-              } else {
-                // Create new mapping
-                await supabase
-                  .from("item_vendor_mapping")
-                  .insert({
-                    organization_id: profile!.organization_id!,
-                    [itemKey]: itemValue,
-                    vendor_id: grn.vendor_id,
-                    last_purchase_price: item.unit_cost,
-                    last_purchase_date: new Date().toISOString().split('T')[0],
-                    is_preferred: false,
-                  });
-              }
-            }
-          }
-        }
-      }
-
-      // Update GRN status AFTER all stock operations succeed
+      // 4. Update GRN status LAST — after all operations succeed
       const { error: updateError } = await supabase
         .from("goods_received_notes")
         .update({
@@ -419,6 +476,8 @@ export function useVerifyGRN() {
       queryClient.invalidateQueries({ queryKey: ["inventory-stock"] });
       queryClient.invalidateQueries({ queryKey: ["inventory-items"] });
       queryClient.invalidateQueries({ queryKey: ["purchase-orders"] });
+      queryClient.invalidateQueries({ queryKey: ["medicine-inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["requisitions"] });
       toast.success("GRN verified and stock updated");
     },
     onError: (error: Error) => {

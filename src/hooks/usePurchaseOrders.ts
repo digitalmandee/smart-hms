@@ -160,6 +160,7 @@ export function useCreatePurchaseOrder() {
       expected_delivery_date?: string;
       terms?: string;
       notes?: string;
+      requisition_id?: string;
       items: PurchaseOrderItem[];
     }) => {
       // Calculate totals
