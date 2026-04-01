@@ -349,7 +349,46 @@ export default function InvoiceDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Lab Order Status */}
+          {/* Patient Deposit Balance */}
+          {(availableDeposit > 0 || (depositData && depositData.deposits > 0)) && (
+            <Card className="border-emerald-500/50 bg-emerald-500/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2 text-emerald-600">
+                  <Wallet className="h-4 w-4" />
+                  Patient Deposit
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Total Deposits</span>
+                  <span>{formatCurrency(depositData?.deposits || 0)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Applied</span>
+                  <span>{formatCurrency((depositData?.applied || 0) + (depositData?.refunds || 0))}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-bold">
+                  <span>Available Balance</span>
+                  <span className="text-emerald-600">{formatCurrency(availableDeposit)}</span>
+                </div>
+                {canApplyDeposit && (
+                  <Button
+                    className="w-full"
+                    variant="outline"
+                    onClick={handleApplyDeposit}
+                    disabled={createDeposit.isPending || recordPayment.isPending}
+                  >
+                    <Wallet className="mr-2 h-4 w-4" />
+                    {createDeposit.isPending || recordPayment.isPending
+                      ? "Applying..."
+                      : `Apply ${formatCurrency(Math.min(availableDeposit, invoiceBalance))} from Deposit`}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {labItemsInfo?.hasLabItems && (
             <Card>
               <CardHeader>
