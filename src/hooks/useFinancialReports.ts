@@ -770,20 +770,36 @@ export function useDetailedPnL(startDate?: string, endDate?: string, branchId?: 
       };
 
       const revenueGroups = buildGroups("revenue");
-      const expenseGroups = buildGroups("expense");
+      const allExpenseGroups = buildGroups("expense");
+
+      // Separate COGS groups from operating expense groups
+      const cogsGroups = allExpenseGroups.filter(g =>
+        g.accounts.some(a => a.account_number.startsWith("EXP-COGS"))
+      ).map(g => ({
+        ...g,
+        accounts: g.accounts.filter(a => a.account_number.startsWith("EXP-COGS")),
+        total: g.accounts.filter(a => a.account_number.startsWith("EXP-COGS")).reduce((s, a) => s + a.amount, 0),
+      })).filter(g => g.total > 0);
+
+      const expenseGroups = allExpenseGroups.map(g => {
+        const nonCogs = g.accounts.filter(a => !a.account_number.startsWith("EXP-COGS"));
+        return { ...g, accounts: nonCogs, total: nonCogs.reduce((s, a) => s + a.amount, 0) };
+      }).filter(g => g.total > 0);
 
       const totalRevenue = revenueGroups.reduce((s, g) => s + g.total, 0);
+      const totalCOGS = cogsGroups.reduce((s, g) => s + g.total, 0);
+      const grossProfit = totalRevenue - totalCOGS;
       const totalExpenses = expenseGroups.reduce((s, g) => s + g.total, 0);
-      const netIncome = totalRevenue - totalExpenses;
+      const netIncome = grossProfit - totalExpenses;
 
       return {
         revenueGroups,
-        cogsGroups: [] as DetailedPnLGroup[],
+        cogsGroups,
         expenseGroups,
         otherIncomeGroups: [] as DetailedPnLGroup[],
         totalRevenue,
-        totalCOGS: 0,
-        grossProfit: totalRevenue,
+        totalCOGS,
+        grossProfit,
         totalExpenses,
         totalOtherIncome: 0,
         operatingProfit: netIncome,
