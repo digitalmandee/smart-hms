@@ -271,7 +271,7 @@ export function MobileInvoiceList() {
                   onClick={() => {
                     if (isDeposit) {
                       const realId = invoice.id.replace("dep-", "");
-                      setSelectedDepositId(realId);
+                      navigate(`/app/billing/deposits/${realId}`);
                     } else {
                       handleInvoiceClick(invoice);
                     }
