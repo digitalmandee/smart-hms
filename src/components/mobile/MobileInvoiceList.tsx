@@ -1,6 +1,7 @@
 import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileText, Plus, FlaskConical, Radio, Stethoscope, MoreVertical, User, Landmark } from "lucide-react";
+import { FileText, Plus, FlaskConical, Radio, Stethoscope, User, Landmark } from "lucide-react";
+import { DepositDetailDialog } from "@/components/billing/DepositDetailDialog";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -100,6 +101,7 @@ export function MobileInvoiceList() {
   const haptics = useHaptics();
   const [statusFilter, setStatusFilter] = useState<InvoiceStatus | "all">("all");
   const [categoryFilter, setCategoryFilter] = useState<CategoryFilter>("all");
+  const [selectedDepositId, setSelectedDepositId] = useState<string | null>(null);
 
   const { data: invoices, isLoading, refetch } = useInvoicesWithCategories(
     profile?.branch_id || undefined,
@@ -183,6 +185,7 @@ export function MobileInvoiceList() {
   };
 
   return (
+    <>
     <PullToRefresh onRefresh={handleRefresh}>
       <div className="px-4 py-4 space-y-4 pb-28">
         {/* Header */}
@@ -263,10 +266,16 @@ export function MobileInvoiceList() {
                 <Card 
                   key={invoice.id} 
                   className={cn(
-                    "active:scale-[0.98] transition-transform",
-                    !isDeposit && "cursor-pointer"
+                    "active:scale-[0.98] transition-transform cursor-pointer"
                   )}
-                  onClick={() => !isDeposit && handleInvoiceClick(invoice)}
+                  onClick={() => {
+                    if (isDeposit) {
+                      const realId = invoice.id.replace("dep-", "");
+                      setSelectedDepositId(realId);
+                    } else {
+                      handleInvoiceClick(invoice);
+                    }
+                  }}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-3">
@@ -343,5 +352,12 @@ export function MobileInvoiceList() {
         <Plus className="h-6 w-6" />
       </Button>
     </PullToRefresh>
+
+    <DepositDetailDialog
+      open={!!selectedDepositId}
+      onOpenChange={(open) => !open && setSelectedDepositId(null)}
+      depositId={selectedDepositId || ""}
+    />
+    </>
   );
 }

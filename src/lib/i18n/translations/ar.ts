@@ -743,6 +743,12 @@ export const ar: Record<TranslationKey, string> = {
   "billing.closingRemarks": "أي ملاحظات ختامية...",
   "billing.saveDraft": "حفظ كمسودة",
   "billing.submitForApproval": "إرسال للموافقة",
+  "billing.depositDetails": "تفاصيل الإيداع",
+  "billing.referenceNumber": "رقم المرجع",
+  "billing.collectedBy": "تم التحصيل بواسطة",
+  "billing.glEntries": "قيود دفتر الأستاذ العام",
+  "billing.noGLEntries": "لا توجد قيود محاسبية لهذا الإيداع",
+  "billing.viewPatientBilling": "عرض فواتير المريض",
 
   // HR Module
   "hr.dashboard": "لوحة تحكم الموارد البشرية",

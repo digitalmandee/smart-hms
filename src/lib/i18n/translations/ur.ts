@@ -743,6 +743,12 @@ export const ur: Record<TranslationKey, string> = {
   "billing.closingRemarks": "کوئی اختتامی ملاحظات...",
   "billing.saveDraft": "مسودہ محفوظ کریں",
   "billing.submitForApproval": "منظوری کے لیے جمع کریں",
+  "billing.depositDetails": "ڈپازٹ کی تفصیلات",
+  "billing.referenceNumber": "حوالہ نمبر",
+  "billing.collectedBy": "وصول کنندہ",
+  "billing.glEntries": "جنرل لیجر اندراجات",
+  "billing.noGLEntries": "اس ڈپازٹ کے لیے کوئی لیجر اندراج نہیں ملا",
+  "billing.viewPatientBilling": "مریض کی بلنگ دیکھیں",
 
   // HR Module
   "hr.dashboard": "HR ڈیش بورڈ",
