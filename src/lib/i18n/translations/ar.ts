@@ -512,6 +512,8 @@ export const ar: Record<TranslationKey, string> = {
   "invoices.pending": "معلق",
   "invoices.partiallyPaid": "مدفوع جزئياً",
   "invoices.cancelled": "ملغي",
+  "invoices.depositInvoice": "إيداع",
+  "invoices.depositCollection": "تحصيل الإيداع",
 
   // Admissions module
   "admissions.title": "القبول",
