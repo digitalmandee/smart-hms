@@ -111,6 +111,9 @@ export function QuickPatientModal({ onPatientCreated, trigger }: QuickPatientMod
         national_id: data.national_id || null,
         emergency_contact_name: data.emergency_contact_name || null,
         emergency_contact_phone: data.emergency_contact_phone || null,
+        guardian_name: data.guardian_name || null,
+        guardian_phone: data.guardian_phone || null,
+        guardian_relation: data.guardian_relation || null,
         // branch_id is handled by the hook using profile.branch_id
       });
 
