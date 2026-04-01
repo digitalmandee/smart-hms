@@ -431,7 +431,7 @@ const styles = {
 };
 
 export const PrintableInvoice = forwardRef<HTMLDivElement, PrintableInvoiceProps>(
-  ({ invoice, organization, branchName, currencySymbol = "Rs.", currencyLocale = "en-PK", taxLabel = "Tax" }, ref) => {
+  ({ invoice, organization, branchName, currencySymbol = "Rs.", currencyLocale = "en-PK", taxLabel = "Tax", depositApplied = 0, depositAvailable, remainingDeposit, previousCashPayments }, ref) => {
     const balance = (invoice.total_amount || 0) - (invoice.paid_amount || 0);
     const isPaid = invoice.status === "paid";
     const verificationUrl = getInvoiceVerificationUrl(invoice.invoice_number, organization?.slug);
