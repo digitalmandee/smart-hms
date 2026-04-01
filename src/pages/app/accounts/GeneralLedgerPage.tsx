@@ -1,4 +1,5 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import { formatCurrency } from "@/lib/currency";
 import { format } from "date-fns";
 import { BookOpen } from "lucide-react";
@@ -24,13 +25,32 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { useAccounts, useAccount, useAccountLedger } from "@/hooks/useAccounts";
+import { supabase } from "@/integrations/supabase/client";
 
 const GeneralLedgerPage = () => {
+  const [searchParams] = useSearchParams();
+  const journalParam = searchParams.get("journal");
   const [selectedAccountId, setSelectedAccountId] = useState<string>("");
   const [dateRange, setDateRange] = useState<{ from: string; to: string }>({ from: "", to: "" });
 
   const { data: allAccounts = [], isLoading: accountsLoading } = useAccounts({ isActive: true });
   const accounts = allAccounts.filter((a) => !a.is_header);
+
+  // Auto-select account when navigated with ?journal= param
+  useEffect(() => {
+    if (journalParam && !selectedAccountId && accounts.length > 0) {
+      supabase
+        .from("journal_entry_lines")
+        .select("account_id")
+        .eq("journal_entry_id", journalParam)
+        .limit(1)
+        .then(({ data }) => {
+          if (data && data.length > 0) {
+            setSelectedAccountId(data[0].account_id);
+          }
+        });
+    }
+  }, [journalParam, selectedAccountId, accounts.length]);
   
   const hasValidDateRange = dateRange.from && dateRange.to;
   const { data: ledgerEntries = [], isLoading: ledgerLoading } = useAccountLedger(
