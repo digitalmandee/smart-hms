@@ -562,6 +562,10 @@ export function PatientDetailPage() {
                 <Receipt className="h-4 w-4" />
                 Billing
               </TabsTrigger>
+              <TabsTrigger value="financial-ledger" className="gap-2">
+                <FileText className="h-4 w-4" />
+                Financial Ledger
+              </TabsTrigger>
               <TabsTrigger value="insurance" className="gap-2">
                 <Shield className="h-4 w-4" />
                 Insurance
