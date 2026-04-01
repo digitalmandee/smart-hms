@@ -18,6 +18,7 @@ import {
 
 import { useGRN, useVerifyGRN, usePostGRN } from "@/hooks/useGRN";
 import { usePrint } from "@/hooks/usePrint";
+import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
 import { format } from "date-fns";
 import { toast } from "sonner";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
@@ -33,6 +34,7 @@ export default function GRNDetailPage() {
   const { formatCurrency } = useCurrencyFormatter();
   const { profile } = useAuth();
   const { data: organization } = useOrganization(profile?.organization_id);
+  const { data: branding } = useOrganizationBranding();
   const [highlightedItem, setHighlightedItem] = useState<string | null>(null);
 
   const { data: grn, isLoading } = useGRN(id || "");
@@ -147,7 +149,7 @@ export default function GRNDetailPage() {
     <div className="space-y-6">
       {/* Hidden printable component */}
       <div className="hidden">
-        <PrintableGRN ref={printRef} grn={grn} organizationName={organization?.name || "Organization"} />
+        <PrintableGRN ref={printRef} grn={grn} branding={branding} />
       </div>
 
       <PageHeader

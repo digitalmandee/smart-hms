@@ -42,6 +42,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { usePrint } from "@/hooks/usePrint";
+import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
 
 export default function PODetailPage() {
   const navigate = useNavigate();
@@ -49,6 +50,7 @@ export default function PODetailPage() {
   const { formatCurrency } = useCurrencyFormatter();
   const { profile } = useAuth();
   const { data: organization } = useOrganization(profile?.organization_id);
+  const { data: branding } = useOrganizationBranding();
 
   const { data: po, isLoading } = usePurchaseOrder(id || "");
   const approveMutation = useApprovePurchaseOrder();
@@ -352,7 +354,7 @@ export default function PODetailPage() {
 
       {/* Hidden Printable */}
       <div className="hidden">
-        <PrintablePO ref={printRef} po={po} organizationName={organization?.name || "Organization"} />
+        <PrintablePO ref={printRef} po={po} branding={branding} />
       </div>
     </div>
   );
