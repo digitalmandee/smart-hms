@@ -22,7 +22,7 @@ export function usePatientDeposits(patientId?: string) {
   });
 }
 
-export function usePatientBalance(patientId?: string) {
+export function useDepositBalance(patientId?: string) {
   const { profile } = useAuth();
   return useQuery({
     queryKey: ["patient-balance", profile?.organization_id, patientId],

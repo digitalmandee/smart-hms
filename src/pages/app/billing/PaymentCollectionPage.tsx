@@ -15,10 +15,11 @@ import { PaymentMethodSelector } from "@/components/billing/PaymentMethodSelecto
 import { PrintableReceipt } from "@/components/billing/PrintableReceipt";
 import { SessionRequiredGuard } from "@/components/billing/SessionRequiredGuard";
 import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
-import { ArrowLeft, CreditCard, Printer, CheckCircle } from "lucide-react";
+import { ArrowLeft, CreditCard, Printer, CheckCircle, Wallet } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePrint } from "@/hooks/usePrint";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useDepositBalance } from "@/hooks/usePatientDeposits";
 
 export default function PaymentCollectionPage() {
   const { id } = useParams();
@@ -33,6 +34,7 @@ export default function PaymentCollectionPage() {
   const { data: invoice, isLoading } = useInvoice(id);
   const { data: organizations } = useOrganizations();
   const recordPaymentMutation = useRecordPayment();
+  const { data: depositData } = useDepositBalance(invoice?.patient?.id);
 
   const [amount, setAmount] = useState<number>(0);
   const [paymentMethodId, setPaymentMethodId] = useState<string>("");
@@ -237,6 +239,37 @@ export default function PaymentCollectionPage() {
             </div>
           </CardContent>
         </Card>
+
+        {/* Deposit Balance Info */}
+        {depositData && depositData.balance > 0 && (
+          <Card className="border-emerald-500/50 bg-emerald-500/5 lg:col-span-2">
+            <CardContent className="pt-4 flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Wallet className="h-5 w-5 text-emerald-600" />
+                <div>
+                  <p className="font-medium text-emerald-600">
+                    Available Deposit: {formatCurrency(depositData.balance)}
+                  </p>
+                  <p className="text-xs text-muted-foreground">
+                    This patient has a deposit balance that can be applied
+                  </p>
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => {
+                  const applyAmt = Math.min(depositData.balance, balance);
+                  setAmount(applyAmt);
+                  setNotes(`Applied from patient deposit (${formatCurrency(applyAmt)})`);
+                }}
+              >
+                <Wallet className="mr-2 h-4 w-4" />
+                Apply Deposit
+              </Button>
+            </CardContent>
+          </Card>
+        )}
 
         {/* Payment Form */}
         <Card>

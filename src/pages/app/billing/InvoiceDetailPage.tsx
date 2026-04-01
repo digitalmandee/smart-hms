@@ -34,7 +34,11 @@ import {
   ExternalLink,
   FlaskConical,
   Loader2,
+  Wallet,
 } from "lucide-react";
+import { useDepositBalance, useCreatePatientDeposit } from "@/hooks/usePatientDeposits";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useRecordPayment } from "@/hooks/useBilling";
 import { Skeleton } from "@/components/ui/skeleton";
 import { usePrint } from "@/hooks/usePrint";
 import { useQuery } from "@tanstack/react-query";
@@ -53,6 +57,12 @@ export default function InvoiceDetailPage() {
   const cancelMutation = useCancelInvoice();
   const createLabOrderMutation = useCreateLabOrderFromInvoice();
   const generateZatcaMutation = useGenerateZatcaQR();
+  const { formatCurrency } = useCurrencyFormatter();
+
+  // Deposit balance for the patient
+  const { data: depositData } = useDepositBalance(invoice?.patient?.id);
+  const createDeposit = useCreatePatientDeposit();
+  const recordPayment = useRecordPayment();
 
   const showZatca = country_code === 'SA' && e_invoicing_enabled;
 
@@ -140,10 +150,44 @@ export default function InvoiceDetailPage() {
     );
   }
 
-  const balance = (invoice.total_amount || 0) - (invoice.paid_amount || 0);
+  const invoiceBalance = (invoice.total_amount || 0) - (invoice.paid_amount || 0);
   const canEdit = invoice.status === "draft";
   const canPay = ["pending", "partially_paid"].includes(invoice.status || "");
   const canCancel = ["draft", "pending"].includes(invoice.status || "");
+  const availableDeposit = depositData?.balance || 0;
+  const canApplyDeposit = canPay && availableDeposit > 0 && invoiceBalance > 0;
+
+  const handleApplyDeposit = async () => {
+    if (!canApplyDeposit || !id || !invoice.patient?.id) return;
+    const applyAmount = Math.min(availableDeposit, invoiceBalance);
+    
+    // Create "applied" deposit record
+    await createDeposit.mutateAsync({
+      patient_id: invoice.patient.id,
+      amount: applyAmount,
+      type: "applied",
+      invoice_id: id,
+      notes: `Applied to ${invoice.invoice_number}`,
+    });
+
+    // Record as payment on the invoice (use first available payment method)
+    const { data: methods } = await supabase
+      .from("payment_methods")
+      .select("id")
+      .eq("organization_id", profile!.organization_id!)
+      .eq("is_active", true)
+      .limit(1);
+
+    if (methods?.[0]) {
+      await recordPayment.mutateAsync({
+        invoiceId: id,
+        amount: applyAmount,
+        paymentMethodId: methods[0].id,
+        referenceNumber: "Deposit Applied",
+        notes: `Applied from patient deposit balance`,
+      });
+    }
+  };
 
   return (
     <div className="space-y-6">
@@ -305,7 +349,46 @@ export default function InvoiceDetailPage() {
             </CardContent>
           </Card>
 
-          {/* Lab Order Status */}
+          {/* Patient Deposit Balance */}
+          {(availableDeposit > 0 || (depositData && depositData.deposits > 0)) && (
+            <Card className="border-emerald-500/50 bg-emerald-500/5">
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm flex items-center gap-2 text-emerald-600">
+                  <Wallet className="h-4 w-4" />
+                  Patient Deposit
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Total Deposits</span>
+                  <span>{formatCurrency(depositData?.deposits || 0)}</span>
+                </div>
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">Applied</span>
+                  <span>{formatCurrency((depositData?.applied || 0) + (depositData?.refunds || 0))}</span>
+                </div>
+                <Separator />
+                <div className="flex justify-between font-bold">
+                  <span>Available Balance</span>
+                  <span className="text-emerald-600">{formatCurrency(availableDeposit)}</span>
+                </div>
+                {canApplyDeposit && (
+                  <Button
+                    className="w-full"
+                    variant="outline"
+                    onClick={handleApplyDeposit}
+                    disabled={createDeposit.isPending || recordPayment.isPending}
+                  >
+                    <Wallet className="mr-2 h-4 w-4" />
+                    {createDeposit.isPending || recordPayment.isPending
+                      ? "Applying..."
+                      : `Apply ${formatCurrency(Math.min(availableDeposit, invoiceBalance))} from Deposit`}
+                  </Button>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {labItemsInfo?.hasLabItems && (
             <Card>
               <CardHeader>
