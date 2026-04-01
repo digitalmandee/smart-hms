@@ -240,19 +240,7 @@ export function useVerifyGRN() {
       
       if (!grn) throw new Error("GRN not found");
       
-      // Update GRN status
-      const { error: updateError } = await supabase
-        .from("goods_received_notes")
-        .update({
-          status: "verified" as GRNStatus,
-          verified_by: user?.id,
-          verified_at: new Date().toISOString(),
-        })
-        .eq("id", id);
-      
-      if (updateError) throw updateError;
-      
-      // Add to appropriate stock table based on item type
+      // Add to appropriate stock table based on item type FIRST (before status update)
       for (const item of grn.items) {
         if (item.quantity_accepted > 0) {
           const itemType = item.item_type || 'inventory';
@@ -272,7 +260,6 @@ export function useVerifyGRN() {
                 expiry_date: item.expiry_date,
                 vendor_id: grn.vendor_id,
                 supplier_name: null,
-                organization_id: profile!.organization_id!,
               });
             
             if (stockError) throw stockError;
@@ -413,6 +400,18 @@ export function useVerifyGRN() {
           }
         }
       }
+
+      // Update GRN status AFTER all stock operations succeed
+      const { error: updateError } = await supabase
+        .from("goods_received_notes")
+        .update({
+          status: "verified" as GRNStatus,
+          verified_by: user?.id,
+          verified_at: new Date().toISOString(),
+        })
+        .eq("id", id);
+      
+      if (updateError) throw updateError;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["grns"] });
