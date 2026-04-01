@@ -490,6 +490,64 @@ export function PatientFormPage() {
                   )}
                 />
               </div>
+
+              {/* Guardian Fields - shown when gender is child */}
+              {form.watch("gender") === "child" && (
+                <div className="p-4 border border-primary/20 rounded-lg bg-primary/5 space-y-4">
+                  <p className="text-sm font-semibold text-primary">{t('gender.child')} — Guardian Details</p>
+                  <div className="grid gap-4 sm:grid-cols-3">
+                    <FormField
+                      control={form.control}
+                      name="guardian_name"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('patient.guardianName')} <span className="text-destructive">*</span></FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder={t('patient.guardianName')} className="h-11" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="guardian_phone"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('patient.guardianPhone')}</FormLabel>
+                          <FormControl>
+                            <Input {...field} placeholder="03XX-XXXXXXX" className="h-11" />
+                          </FormControl>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                    <FormField
+                      control={form.control}
+                      name="guardian_relation"
+                      render={({ field }) => (
+                        <FormItem>
+                          <FormLabel>{t('patient.guardianRelation')}</FormLabel>
+                          <Select onValueChange={field.onChange} value={field.value}>
+                            <FormControl>
+                              <SelectTrigger className="h-11">
+                                <SelectValue placeholder={t('patient.guardianRelation')} />
+                              </SelectTrigger>
+                            </FormControl>
+                            <SelectContent>
+                              <SelectItem value="father">Father</SelectItem>
+                              <SelectItem value="mother">Mother</SelectItem>
+                              <SelectItem value="grandparent">Grandparent</SelectItem>
+                              <SelectItem value="other">Other</SelectItem>
+                            </SelectContent>
+                          </Select>
+                          <FormMessage />
+                        </FormItem>
+                      )}
+                    />
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
