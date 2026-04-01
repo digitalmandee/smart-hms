@@ -21,6 +21,7 @@ import { usePrint } from "@/hooks/usePrint";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useDepositBalance } from "@/hooks/usePatientDeposits";
 import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
 
 export default function PaymentCollectionPage() {
