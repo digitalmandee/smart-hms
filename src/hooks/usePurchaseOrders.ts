@@ -160,6 +160,7 @@ export function useCreatePurchaseOrder() {
       expected_delivery_date?: string;
       terms?: string;
       notes?: string;
+      requisition_id?: string;
       items: PurchaseOrderItem[];
     }) => {
       // Calculate totals
@@ -211,7 +212,8 @@ export function useCreatePurchaseOrder() {
           discount_amount: discountAmount,
           total_amount: totalAmount,
           created_by: user?.id,
-        })
+          ...(data.requisition_id ? { requisition_id: data.requisition_id } : {}),
+        } as any)
         .select()
         .single();
       

@@ -199,6 +199,7 @@ export default function POFormPage() {
         expected_delivery_date: data.expected_delivery_date,
         terms: data.terms,
         notes: data.notes,
+        requisition_id: fromRequisitionId || undefined,
         items,
       });
       navigate(`/app/inventory/purchase-orders/${result.id}`);
