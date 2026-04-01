@@ -358,6 +358,7 @@ export function MobileInvoiceList() {
       </Button>
     </PullToRefresh>
 
+    <RecordDepositDialog open={depositDialogOpen} onOpenChange={setDepositDialogOpen} />
     </>
   );
 }
