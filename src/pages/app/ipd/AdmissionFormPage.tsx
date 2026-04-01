@@ -184,7 +184,7 @@ export default function AdmissionFormPage() {
           ? format(values.expected_discharge_date, "yyyy-MM-dd")
           : undefined,
         payment_status: paymentStatus,
-        admission_invoice_id: invoiceId,
+        // deposit is now tracked via patient_deposits table, not invoice
       });
 
       // If this admission is linked to a surgery request, update it
