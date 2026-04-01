@@ -587,7 +587,6 @@ export const ur: Record<TranslationKey, string> = {
   "billing.amount": "رقم",
   "billing.collectPayment": "ادائیگی وصول کریں",
   "billing.previousPaid": "پہلے ادا شدہ",
-  "billing.thisPayment": "یہ ادائیگی",
   "billing.invoiceTotal": "انوائس کل",
   "billing.thankYou": "آپ کی ادائیگی کا شکریہ!",
   "billing.receivedBy": "وصول کنندہ",
