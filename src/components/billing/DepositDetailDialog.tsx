@@ -99,7 +99,7 @@ export function DepositDetailDialog({
           </div>
         ) : !deposit ? (
           <p className="text-muted-foreground text-center py-8">
-            {t("common.notFound")}
+            {t("common.noData")}
           </p>
         ) : (
           <div className="space-y-5">
