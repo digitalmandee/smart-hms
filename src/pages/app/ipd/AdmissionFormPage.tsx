@@ -28,6 +28,7 @@ import {
 } from "@/components/ui/select";
 import { useCreateAdmission } from "@/hooks/useAdmissions";
 import { useWards, useBeds } from "@/hooks/useIPD";
+import { useServiceTypes } from "@/hooks/useBilling";
 import { usePatients } from "@/hooks/usePatients";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
