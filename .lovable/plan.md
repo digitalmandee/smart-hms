@@ -1,84 +1,53 @@
 
 
-# Fix: Receipt & Invoice Summary — 3-Section Deposit/Payment Breakdown
+# Fix: PrintableInvoice (A4 TAX INVOICE) Missing 3-Section Breakdown
 
 ## Problem
-The current receipt and invoice summary mixes deposit applications with cash payments in a single confusing "Previous Paid" line. Balance can show negative numbers. No deposit utilization section exists.
+The A4 print invoice (`PrintableInvoice.tsx`) was never updated with the 3-section layout. It still shows flat "Paid" and "BALANCE DUE" lines — mixing deposit applied with cash payments. The thermal receipts (`PrintableReceipt` and `PrintablePaymentReceipt`) were updated but this component was missed.
 
-## Solution
-Restructure both `InvoiceTotals` (on-screen) and `PrintableReceipt` / `PrintablePaymentReceipt` (print) into 3 clear sections per the user's specification.
+## Fix
 
-## Changes
+### 1. `PrintableInvoice.tsx` — Replace totals section (lines 587-633)
 
-### 1. `InvoiceTotals.tsx` — Redesign into 3 sections
+Replace the current flat totals with the 3-section layout:
 
-Add new props: `depositAvailable`, `remainingDeposit`, `previousCashPayments`, `thisPayment`.
+**Section 1 — Invoice Totals** (existing subtotal/tax/discount + "Net Invoice Total" instead of "TOTAL")
 
-**Section 1 — Invoice Totals** (existing, no change): Subtotal, Tax, Discount, Net Total.
-
-**Section 2 — Deposit Utilization** (only when `depositApplied > 0` or `depositAvailable > 0`):
+**Section 2 — Deposit Utilization** (conditional, only if deposit exists):
 - Deposit Available
 - Deposit Applied (green)
 - Remaining Deposit
 
-**Section 3 — Settlement Details**:
-- Previous Cash Payments (only if > 0)
-- This Payment (only if > 0)
+**Section 3 — Settlement Details** (conditional, only if any payment exists):
+- Previous Cash Payments
+- This Payment (if applicable)
 - Total Settled (bold, border-top)
 - Balance Due (red) / Refund Due (blue) / Fully Settled (green)
 
-Rules: Balance Due never negative. If overpaid → show Refund Due. If zero → Fully Settled.
+Add new props: `depositApplied`, `depositAvailable`, `remainingDeposit`, `previousCashPayments`.
 
-### 2. `PrintableReceipt.tsx` — Same 3-section layout for thermal print
+Calculate settlement:
+```
+cashPayments = previousCashPayments ?? max(paid_amount - depositApplied, 0)
+totalSettled = depositApplied + cashPayments
+balanceDue = max(total - totalSettled, 0)
+refundDue = totalSettled > total ? totalSettled - total : 0
+```
 
-Add `depositApplied`, `depositAvailable`, `remainingDeposit` optional props.
+### 2. `InvoiceDetailPage.tsx` — Pass deposit data to PrintableInvoice
 
-Replace the current summary section with:
-- Net Invoice Total
-- Deposit section (if applicable): Available → Applied → Remaining
-- Previous Cash Payments (calculated as `previousPaid - depositApplied`)
-- This Payment
-- Dashed separator
-- Total Settled
-- Balance Due / Refund Due / Fully Settled
+Already has `depositAppliedAmount` and `availableDeposit` variables. Pass them:
+```
+depositApplied={depositAppliedAmount}
+depositAvailable={availableDeposit}
+remainingDeposit={Math.max((availableDeposit || 0) - depositAppliedAmount, 0)}
+```
 
-Never show negative balance.
+Also pass `currencySymbol` and `taxLabel` from country config.
 
-### 3. `PrintablePaymentReceipt.tsx` — Same deposit/settlement split
-
-Add `depositApplied`, `depositAvailable`, `remainingDeposit`, `previousCashPayments` optional props.
-
-After the "Total:" row, add deposit utilization section and settlement section before payment details. Balance Due already exists — add Refund Due / Fully Settled logic.
-
-### 4. `PaymentCollectionPage.tsx` — Pass deposit data to receipt
-
-Query `patient_deposits` for `type = 'applied'` on this invoice to get `depositApplied`. Query deposit balance for `depositAvailable`. Pass these to `PrintableReceipt`.
-
-Calculate `previousCashPayments` = total payments on invoice (excluding current) — query `payments` table for this invoice, sum amounts, subtract current payment.
-
-### 5. `InvoiceDetailPage.tsx` — Pass new props to InvoiceTotals
-
-Already has `depositAppliedAmount`. Add `depositAvailable` from existing `availableDeposit` variable. Calculate `remainingDeposit = depositAvailable - depositApplied` (clamped to 0 if deposit was from a previous balance). No `thisPayment` needed here (detail page, not payment page).
-
-### 6. Translation keys (en.ts, ar.ts, ur.ts)
-
-New keys:
-- `billing.netInvoiceTotal` / صافي المبلغ / خالص رقم
-- `billing.depositAvailable` / الإيداع المتاح / دستیاب ڈپازٹ
-- `billing.depositApplied_full` / الإيداع المطبق / لاگو شدہ ڈپازٹ
-- `billing.remainingDeposit` / الإيداع المتبقي / بقیہ ڈپازٹ
-- `billing.previousCashPayments` / المدفوعات النقدية السابقة / سابقہ نقد ادائیگیاں
-- `billing.thisPayment` / هذه الدفعة / یہ ادائیگی
-- `billing.totalSettled` / إجمالي التسوية / کل تصفیہ
-- `billing.balanceDue` / الرصيد المستحق / واجب الادا بیلنس
-- `billing.refundDue` / مبلغ الاسترداد / واپسی واجب الادا
-- `billing.fullySettled` / تمت التسوية بالكامل / مکمل تصفیہ
+### 3. Amount in Words — Use net total (no change needed, already uses `invoice.total_amount`)
 
 ## Files Changed
-- `src/components/billing/InvoiceTotals.tsx`
-- `src/components/billing/PrintableReceipt.tsx`
-- `src/components/billing/PrintablePaymentReceipt.tsx`
-- `src/pages/app/billing/PaymentCollectionPage.tsx`
-- `src/pages/app/billing/InvoiceDetailPage.tsx`
-- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts`
+- `src/components/billing/PrintableInvoice.tsx` — add props, replace totals with 3-section layout
+- `src/pages/app/billing/InvoiceDetailPage.tsx` — pass deposit props to PrintableInvoice
 
