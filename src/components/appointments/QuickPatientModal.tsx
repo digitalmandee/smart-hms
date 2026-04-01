@@ -41,11 +41,14 @@ const quickPatientSchema = z.object({
   first_name: z.string().min(1, 'First name is required'),
   last_name: z.string().optional(),
   phone: z.string().min(1, 'Phone number is required'),
-  gender: z.enum(['male', 'female', 'other']).optional(),
+  gender: z.enum(['male', 'female', 'other', 'child']).optional(),
   age: z.string().optional(),
   national_id: z.string().optional(),
   emergency_contact_name: z.string().optional(),
   emergency_contact_phone: z.string().optional(),
+  guardian_name: z.string().optional(),
+  guardian_phone: z.string().optional(),
+  guardian_relation: z.string().optional(),
 });
 
 type QuickPatientData = z.infer<typeof quickPatientSchema>;
