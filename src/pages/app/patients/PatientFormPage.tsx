@@ -55,7 +55,7 @@ const patientSchema = z.object({
   last_name: z.string().optional(),
   father_husband_name: z.string().optional(),
   date_of_birth: z.string().optional(),
-  gender: z.enum(["male", "female", "other"]).optional(),
+  gender: z.enum(["male", "female", "other", "child"]).optional(),
   marital_status: z.enum(["single", "married", "divorced", "widowed", "other"]).optional(),
   number_of_children: z.string().optional(),
   blood_group: z.string().optional(),
@@ -82,6 +82,11 @@ const patientSchema = z.object({
   emergency_contact_name: z.string().optional(),
   emergency_contact_relation: z.string().optional(),
   emergency_contact_phone: z.string().optional(),
+  
+  // Guardian (for child patients)
+  guardian_name: z.string().optional(),
+  guardian_phone: z.string().optional(),
+  guardian_relation: z.string().optional(),
   
   // Insurance
   insurance_provider: z.string().optional(),
