@@ -100,9 +100,7 @@ export default function AdmissionFormPage() {
     creditLimit?: number;
   }>({});
 
-  const createDepositInvoice = useCreateDepositInvoice();
-  const recordPayment = useRecordDepositPayment();
-  const linkAdmissionInvoice = useLinkAdmissionInvoice();
+  const createIPDDeposit = useCreateIPDDeposit();
 
   const form = useForm<AdmissionFormValues>({
     resolver: zodResolver(admissionFormSchema),
