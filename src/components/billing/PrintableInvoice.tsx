@@ -591,6 +591,7 @@ export const PrintableInvoice = forwardRef<HTMLDivElement, PrintableInvoiceProps
         {/* ===== TOTALS SECTION ===== */}
         <div style={styles.totalsContainer}>
           <div style={styles.totalsBox}>
+            {/* Section 1: Invoice Totals */}
             <div style={styles.totalsRow}>
               <span style={styles.totalsLabel}>Subtotal:</span>
               <span style={styles.totalsValue}>
@@ -614,25 +615,84 @@ export const PrintableInvoice = forwardRef<HTMLDivElement, PrintableInvoiceProps
               </div>
             )}
             <div style={styles.totalsTotalRow}>
-              <span>TOTAL:</span>
+              <span>Net Invoice Total:</span>
               <span style={{ fontFamily: "monospace" }}>
                 {fc(Number(invoice.total_amount))}
               </span>
             </div>
-            {Number(invoice.paid_amount) > 0 && (
-              <div style={styles.totalsPaidRow}>
-                <span>Paid:</span>
-                <span style={{ fontFamily: "monospace" }}>
-                  {fc(Number(invoice.paid_amount))}
-                </span>
-              </div>
+
+            {/* Section 2: Deposit Utilization */}
+            {((depositApplied || 0) > 0 || (depositAvailable !== undefined && depositAvailable > 0)) && (
+              <>
+                <div style={{ borderTop: "1px dashed #d1d5db", margin: "8px 0", paddingTop: "8px" }}>
+                  <span style={{ fontSize: "9pt", fontWeight: 600, color: "#6b7280", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Deposit Utilization</span>
+                </div>
+                {depositAvailable !== undefined && depositAvailable > 0 && (
+                  <div style={styles.totalsRow}>
+                    <span style={styles.totalsLabel}>Deposit Available:</span>
+                    <span style={styles.totalsValue}>{fc(depositAvailable)}</span>
+                  </div>
+                )}
+                {(depositApplied || 0) > 0 && (
+                  <div style={styles.totalsRow}>
+                    <span style={{ ...styles.totalsLabel, color: "#16a34a" }}>Deposit Applied:</span>
+                    <span style={{ ...styles.totalsValue, color: "#16a34a" }}>- {fc(depositApplied || 0)}</span>
+                  </div>
+                )}
+                {remainingDeposit !== undefined && remainingDeposit > 0 && (
+                  <div style={styles.totalsRow}>
+                    <span style={styles.totalsLabel}>Remaining Deposit:</span>
+                    <span style={styles.totalsValue}>{fc(remainingDeposit)}</span>
+                  </div>
+                )}
+              </>
             )}
-            <div style={getBalanceStyle()}>
-              <span>BALANCE DUE:</span>
-              <span style={{ fontFamily: "monospace" }}>
-                {fc(balance)}
-              </span>
-            </div>
+
+            {/* Section 3: Settlement Details */}
+            {(() => {
+              const depApplied = depositApplied || 0;
+              const cashPmts = previousCashPayments ?? Math.max(Number(invoice.paid_amount) - depApplied, 0);
+              const totalSettled = depApplied + cashPmts;
+              const balDue = Math.max(Number(invoice.total_amount) - totalSettled, 0);
+              const refDue = totalSettled > Number(invoice.total_amount) ? totalSettled - Number(invoice.total_amount) : 0;
+              const fullySettled = totalSettled > 0 && balDue === 0 && refDue === 0;
+
+              if (totalSettled <= 0) return null;
+
+              return (
+                <>
+                  <div style={{ borderTop: "1px dashed #d1d5db", margin: "8px 0", paddingTop: "8px" }}>
+                    <span style={{ fontSize: "9pt", fontWeight: 600, color: "#6b7280", textTransform: "uppercase" as const, letterSpacing: "0.05em" }}>Settlement Details</span>
+                  </div>
+                  {cashPmts > 0 && (
+                    <div style={styles.totalsRow}>
+                      <span style={styles.totalsLabel}>Previous Cash Payments:</span>
+                      <span style={styles.totalsValue}>{fc(cashPmts)}</span>
+                    </div>
+                  )}
+                  <div style={{ ...styles.totalsTotalRow, borderTop: "1px solid #d1d5db", marginTop: "4px", paddingTop: "6px" }}>
+                    <span>Total Settled:</span>
+                    <span style={{ fontFamily: "monospace" }}>{fc(totalSettled)}</span>
+                  </div>
+                  {refDue > 0 ? (
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontWeight: 700, fontSize: "13pt", color: "#2563eb" }}>
+                      <span>Refund Due:</span>
+                      <span style={{ fontFamily: "monospace" }}>{fc(refDue)}</span>
+                    </div>
+                  ) : balDue > 0 ? (
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontWeight: 700, fontSize: "13pt", color: "#dc2626" }}>
+                      <span>Balance Due:</span>
+                      <span style={{ fontFamily: "monospace" }}>{fc(balDue)}</span>
+                    </div>
+                  ) : fullySettled ? (
+                    <div style={{ display: "flex", justifyContent: "space-between", padding: "6px 0", fontWeight: 700, fontSize: "13pt", color: "#16a34a" }}>
+                      <span>Status:</span>
+                      <span>Fully Settled</span>
+                    </div>
+                  ) : null}
+                </>
+              );
+            })()}
           </div>
         </div>
 
