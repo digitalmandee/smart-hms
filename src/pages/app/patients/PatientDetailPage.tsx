@@ -62,6 +62,7 @@ import { PatientBloodHistory } from "@/components/patients/PatientBloodHistory";
 import { PatientImagingHistory } from "@/components/patients/PatientImagingHistory";
 import { PatientPregnanciesHistory } from "@/components/patients/PatientPregnanciesHistory";
 import { PatientCertificatesHistory } from "@/components/patients/PatientCertificatesHistory";
+import { PatientFinancialLedger } from "@/components/patients/PatientFinancialLedger";
 import { LabResultsPreview } from "@/components/lab/LabResultsPreview";
 import { PatientVitalsHistory } from "@/components/patients/PatientVitalsHistory";
 import { Baby, Award, Thermometer, Ticket, Shield, Fingerprint } from "lucide-react";
@@ -561,6 +562,10 @@ export function PatientDetailPage() {
                 <Receipt className="h-4 w-4" />
                 Billing
               </TabsTrigger>
+              <TabsTrigger value="financial-ledger" className="gap-2">
+                <FileText className="h-4 w-4" />
+                Financial Ledger
+              </TabsTrigger>
               <TabsTrigger value="insurance" className="gap-2">
                 <Shield className="h-4 w-4" />
                 Insurance
@@ -725,6 +730,10 @@ export function PatientDetailPage() {
 
             <TabsContent value="billing">
               <PatientBillingHistory patientId={patient.id} />
+            </TabsContent>
+
+            <TabsContent value="financial-ledger">
+              <PatientFinancialLedger patientId={patient.id} />
             </TabsContent>
 
             <TabsContent value="insurance">

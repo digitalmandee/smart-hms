@@ -3583,6 +3583,31 @@ export const en = {
   "demo.bonus.payrollAllocation.desc": "GOSI contributions and end-of-service benefit accruals",
   "demo.bonus.payrollAllocation.talk": "Monthly payroll costs broken down by department with 12% employer GOSI and ESB provision calculations",
 
+  // Patient Financial Ledger
+  "ledger.title": "Financial Ledger",
+  "ledger.totalBilled": "Total Billed",
+  "ledger.totalPaid": "Total Paid",
+  "ledger.outstanding": "Outstanding",
+  "ledger.depositsBalance": "Deposits Balance",
+  "ledger.type.label": "Type",
+  "ledger.type.invoice": "Invoice",
+  "ledger.type.payment": "Payment",
+  "ledger.type.deposit": "Deposit",
+  "ledger.reference": "Reference",
+  "ledger.description": "Description",
+  "ledger.debit": "Debit",
+  "ledger.credit": "Credit",
+  "ledger.balance": "Balance",
+  "ledger.glEntry": "GL Entry",
+  "ledger.noTransactions": "No financial transactions found",
+  "ledger.journalDetails": "Journal Entry Details",
+  "ledger.account": "Account",
+  "ledger.invoiceBilled": "Invoice billed",
+  "ledger.payment": "Payment received",
+  "ledger.deposit": "Deposit received",
+  "ledger.depositRefund": "Deposit refund",
+  "ledger.depositApplied": "Deposit applied",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;
