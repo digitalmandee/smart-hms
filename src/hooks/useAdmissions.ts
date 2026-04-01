@@ -223,7 +223,7 @@ export const useCreateAdmission = () => {
           admission_number,
           status: "pending", // Changed: starts as pending until nurse confirms
           created_by: profile.id,
-        })
+        } as any)
         .select()
         .single();
 
