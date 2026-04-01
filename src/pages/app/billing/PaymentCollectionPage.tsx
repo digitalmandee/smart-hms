@@ -265,7 +265,7 @@ export default function PaymentCollectionPage() {
                   const applyAmt = Math.min(depositData.balance, balance);
                   
                   // Create "applied" deposit record — triggers GL: DR LIA-DEP-001, CR AR-001
-                  const { data: depResult, error: depError } = await supabase
+                  const { error: depError } = await supabase
                     .from("patient_deposits")
                     .insert({
                       organization_id: profile!.organization_id!,
