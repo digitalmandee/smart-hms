@@ -219,10 +219,19 @@ const JournalEntryFormPage = () => {
               <Select value={referenceType} onValueChange={setReferenceType}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="manual">Manual</SelectItem>
-                  <SelectItem value="invoice">Invoice</SelectItem>
-                  <SelectItem value="shipment">Shipment</SelectItem>
-                  <SelectItem value="stock_adjustment">Stock Adjustment</SelectItem>
+                  <SelectItem value="manual">{l("refManual")}</SelectItem>
+                  <SelectItem value="invoice">{l("refInvoice")}</SelectItem>
+                  <SelectItem value="payment">{l("refPayment")}</SelectItem>
+                  <SelectItem value="expense">{l("refExpense")}</SelectItem>
+                  <SelectItem value="payroll">{l("refPayroll")}</SelectItem>
+                  <SelectItem value="pos_sale">{l("refPosSale")}</SelectItem>
+                  <SelectItem value="shipment">{l("refShipment")}</SelectItem>
+                  <SelectItem value="stock_adjustment">{l("refStockAdj")}</SelectItem>
+                  <SelectItem value="grn">{l("refGrn")}</SelectItem>
+                  <SelectItem value="vendor_payment">{l("refVendorPay")}</SelectItem>
+                  <SelectItem value="patient_deposit">{l("refPatientDep")}</SelectItem>
+                  <SelectItem value="credit_note">{l("refCreditNote")}</SelectItem>
+                  <SelectItem value="donation">{l("refDonation")}</SelectItem>
                 </SelectContent>
               </Select>
             </div>
