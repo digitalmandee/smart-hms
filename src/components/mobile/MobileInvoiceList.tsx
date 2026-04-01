@@ -255,23 +255,34 @@ export function MobileInvoiceList() {
               <p className="text-muted-foreground">No invoices found</p>
             </div>
           ) : (
-            filteredInvoices.map((invoice) => {
+            filteredInvoices.map((invoice: any) => {
               const balance = Number(invoice.total_amount || 0) - Number(invoice.paid_amount || 0);
+              const isDeposit = !!invoice.isDeposit;
               
               return (
                 <Card 
                   key={invoice.id} 
-                  className="cursor-pointer active:scale-[0.98] transition-transform"
-                  onClick={() => handleInvoiceClick(invoice)}
+                  className={cn(
+                    "active:scale-[0.98] transition-transform",
+                    !isDeposit && "cursor-pointer"
+                  )}
+                  onClick={() => !isDeposit && handleInvoiceClick(invoice)}
                 >
                   <CardContent className="p-4">
                     <div className="flex items-start justify-between gap-3">
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
+                          {isDeposit && <Landmark className="h-4 w-4 text-primary" />}
                           <span className="font-mono font-semibold text-sm">
                             {invoice.invoice_number}
                           </span>
-                          <InvoiceStatusBadge status={invoice.status} />
+                          {isDeposit ? (
+                            <Badge variant="secondary" className="text-xs bg-primary/10 text-primary">
+                              Deposit
+                            </Badge>
+                          ) : (
+                            <InvoiceStatusBadge status={invoice.status} />
+                          )}
                         </div>
                         
                         {invoice.patient && (
@@ -301,12 +312,12 @@ export function MobileInvoiceList() {
                         <p className="font-bold text-lg">
                           Rs. {Number(invoice.total_amount || 0).toLocaleString()}
                         </p>
-                        {invoice.paid_amount > 0 && (
+                        {!isDeposit && invoice.paid_amount > 0 && (
                           <p className="text-xs text-success">
                             Paid: Rs. {Number(invoice.paid_amount).toLocaleString()}
                           </p>
                         )}
-                        {balance > 0 && (
+                        {!isDeposit && balance > 0 && (
                           <p className="text-xs text-destructive font-medium">
                             Due: Rs. {balance.toLocaleString()}
                           </p>
