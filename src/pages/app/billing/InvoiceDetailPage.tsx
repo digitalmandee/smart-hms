@@ -574,6 +574,9 @@ export default function InvoiceDetailPage() {
             logo_url: organization.logo_url,
             slug: organization.slug,
           } : undefined}
+          depositApplied={depositAppliedAmount}
+          depositAvailable={availableDeposit > 0 ? (depositData?.balance || 0) + depositAppliedAmount : undefined}
+          remainingDeposit={availableDeposit > 0 ? availableDeposit : undefined}
         />
       </div>
     </div>
