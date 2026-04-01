@@ -1201,6 +1201,7 @@ function App() {
 
                {/* Accounts routes */}
               <Route path="accounts" element={<AccountsDashboard />} />
+              <Route path="accounts/demo-flow" element={<React.Suspense fallback={<div>Loading...</div>}><FinanceDemoFlowPage /></React.Suspense>} />
               <Route path="accounts/chart-of-accounts" element={<ChartOfAccountsPage />} />
               <Route path="accounts/chart-of-accounts/new" element={<AccountFormPage />} />
               <Route path="accounts/chart-of-accounts/:id" element={<AccountDetailPage />} />
