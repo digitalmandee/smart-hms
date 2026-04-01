@@ -138,7 +138,7 @@ export default function DepositDetailPage() {
         {/* Details */}
         <Card>
           <CardHeader>
-            <CardTitle className="text-base">{t("common.details")}</CardTitle>
+            <CardTitle className="text-base">{t("billing.depositDetails")}</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <div className="flex items-start gap-3">
