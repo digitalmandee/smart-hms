@@ -1,5 +1,5 @@
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
+
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useCountryConfig } from "@/contexts/CountryConfigContext";
 
@@ -8,6 +8,7 @@ interface InvoiceTotalsProps {
   taxAmount: number;
   discountAmount: number;
   paidAmount?: number;
+  depositApplied?: number;
   editable?: boolean;
   onTaxChange?: (value: number) => void;
   onDiscountChange?: (value: number) => void;
@@ -18,6 +19,7 @@ export function InvoiceTotals({
   taxAmount,
   discountAmount,
   paidAmount = 0,
+  depositApplied = 0,
   editable = false,
   onTaxChange,
   onDiscountChange,
@@ -25,7 +27,9 @@ export function InvoiceTotals({
   const { formatCurrency } = useCurrencyFormatter();
   const { tax_label } = useCountryConfig();
   const total = subtotal + taxAmount - discountAmount;
+  const cashCollected = Math.max(paidAmount - depositApplied, 0);
   const balance = total - paidAmount;
+  const refundDue = paidAmount > total ? paidAmount - total : 0;
 
   return (
     <div className="space-y-3 text-sm">
@@ -71,20 +75,47 @@ export function InvoiceTotals({
         <span>{formatCurrency(total)}</span>
       </div>
 
-      {paidAmount > 0 && (
+      {/* Deposit + Cash breakdown when deposit was applied */}
+      {depositApplied > 0 && (
         <>
           <div className="flex justify-between text-success">
-            <span>Paid</span>
-            <span>{formatCurrency(paidAmount)}</span>
+            <span>Deposit Applied</span>
+            <span>- {formatCurrency(depositApplied)}</span>
           </div>
-          <div className="flex justify-between font-semibold text-lg">
-            <span>Balance Due</span>
-            <span className={balance > 0 ? "text-destructive" : "text-success"}>
-              {formatCurrency(balance)}
-            </span>
-          </div>
+          {cashCollected > 0 && (
+            <div className="flex justify-between text-success">
+              <span>Cash Collected</span>
+              <span>- {formatCurrency(cashCollected)}</span>
+            </div>
+          )}
         </>
       )}
+
+      {/* Fallback: show single Paid line when no deposit breakdown */}
+      {depositApplied === 0 && paidAmount > 0 && (
+        <div className="flex justify-between text-success">
+          <span>Paid</span>
+          <span>{formatCurrency(paidAmount)}</span>
+        </div>
+      )}
+
+      {/* Balance / Refund / Fully Settled */}
+      {refundDue > 0 ? (
+        <div className="flex justify-between font-semibold text-lg">
+          <span>Refund Due</span>
+          <span className="text-info">{formatCurrency(refundDue)}</span>
+        </div>
+      ) : balance > 0 ? (
+        <div className="flex justify-between font-semibold text-lg">
+          <span>Balance Due</span>
+          <span className="text-destructive">{formatCurrency(balance)}</span>
+        </div>
+      ) : paidAmount > 0 ? (
+        <div className="flex justify-between font-semibold text-lg">
+          <span>Status</span>
+          <span className="text-success">Fully Settled</span>
+        </div>
+      ) : null}
     </div>
   );
 }
