@@ -35,6 +35,10 @@ interface PrintablePaymentReceiptProps {
   showQR?: boolean;
   currencySymbol?: string;
   taxLabel?: string;
+  depositApplied?: number;
+  depositAvailable?: number;
+  remainingDeposit?: number;
+  previousCashPayments?: number;
 }
 
 const styles = {
@@ -97,11 +101,6 @@ const styles = {
   } as React.CSSProperties,
   value: {
     fontFamily: "'Courier New', Courier, monospace",
-  } as React.CSSProperties,
-  dashedBorder: {
-    borderTop: '1px dashed #9ca3af',
-    paddingTop: '8px',
-    marginBottom: '12px',
   } as React.CSSProperties,
   patientSection: {
     borderTop: '1px dashed #9ca3af',
@@ -181,6 +180,38 @@ const styles = {
     paddingTop: '4px',
     borderTop: '1px solid #d1d5db',
   } as React.CSSProperties,
+  sectionTitle: {
+    fontSize: '10px',
+    fontWeight: 'bold',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.5px',
+    color: '#6b7280',
+    marginBottom: '6px',
+    marginTop: '8px',
+  } as React.CSSProperties,
+  depositRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginBottom: '4px',
+    color: '#16a34a',
+    fontSize: '11px',
+  } as React.CSSProperties,
+  settlementRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginBottom: '4px',
+    fontSize: '11px',
+  } as React.CSSProperties,
+  totalSettledRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontWeight: 'bold',
+    fontSize: '13px',
+    paddingTop: '4px',
+    borderTop: '1px solid #d1d5db',
+    marginTop: '4px',
+    marginBottom: '4px',
+  } as React.CSSProperties,
   paymentSection: {
     borderTop: '1px dashed #9ca3af',
     padding: '12px 0',
@@ -208,7 +239,22 @@ const styles = {
     fontSize: '13px',
     color: '#dc2626',
     paddingTop: '4px',
-    borderTop: '1px solid #fecaca',
+  } as React.CSSProperties,
+  refundDueRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontWeight: 'bold',
+    fontSize: '13px',
+    color: '#2563eb',
+    paddingTop: '4px',
+  } as React.CSSProperties,
+  fullySettledRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    fontWeight: 'bold',
+    fontSize: '13px',
+    color: '#16a34a',
+    paddingTop: '4px',
   } as React.CSSProperties,
   qrSection: {
     textAlign: 'center' as const,
@@ -261,15 +307,26 @@ export const PrintablePaymentReceipt = forwardRef<HTMLDivElement, PrintablePayme
     paidAmount, 
     paymentMethod, 
     referenceNumber,
-    balanceDue = 0,
+    balanceDue: rawBalanceDue = 0,
     receivedBy,
     organization,
     showQR = true,
     currencySymbol = "Rs.",
     taxLabel = "Tax",
+    depositApplied = 0,
+    depositAvailable,
+    remainingDeposit,
+    previousCashPayments = 0,
   }, ref) => {
     const qrData = getInvoiceVerificationUrl(invoiceNumber, organization.slug);
     const fc = (amount: number) => `${currencySymbol} ${amount.toLocaleString()}`;
+
+    // Calculate settlement correctly
+    const totalSettled = depositApplied + previousCashPayments + paidAmount;
+    const balanceDue = Math.max(totalAmount - totalSettled, 0);
+    const refundDue = totalSettled > totalAmount ? totalSettled - totalAmount : 0;
+    const isFullySettled = totalSettled > 0 && balanceDue === 0 && refundDue === 0;
+    const showDepositSection = depositApplied > 0 || (depositAvailable !== undefined && depositAvailable > 0);
 
     return (
       <div ref={ref} style={styles.container}>
@@ -337,7 +394,7 @@ export const PrintablePaymentReceipt = forwardRef<HTMLDivElement, PrintablePayme
           </div>
         )}
 
-        {/* Totals */}
+        {/* Section 1: Invoice Totals */}
         <div style={styles.totalsSection}>
           {subtotal !== undefined && (
             <div style={styles.totalsRow}>
@@ -358,15 +415,47 @@ export const PrintablePaymentReceipt = forwardRef<HTMLDivElement, PrintablePayme
             </div>
           )}
           <div style={styles.totalRow}>
-            <span>Total:</span>
+            <span>Net Invoice Total:</span>
             <span>{fc(totalAmount)}</span>
           </div>
         </div>
 
-        {/* Payment Details */}
+        {/* Section 2: Deposit Utilization */}
+        {showDepositSection && (
+          <div style={{ paddingTop: '4px', marginBottom: '4px' }}>
+            <p style={styles.sectionTitle}>Deposit</p>
+            {depositAvailable !== undefined && depositAvailable > 0 && (
+              <div style={styles.settlementRow}>
+                <span>Deposit Available:</span>
+                <span>{fc(depositAvailable)}</span>
+              </div>
+            )}
+            {depositApplied > 0 && (
+              <div style={styles.depositRow}>
+                <span>Deposit Applied:</span>
+                <span>- {fc(depositApplied)}</span>
+              </div>
+            )}
+            {remainingDeposit !== undefined && remainingDeposit > 0 && (
+              <div style={styles.settlementRow}>
+                <span>Remaining Deposit:</span>
+                <span>{fc(remainingDeposit)}</span>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* Section 3: Settlement Details */}
         <div style={styles.paymentSection}>
+          <p style={styles.sectionTitle}>Settlement</p>
+          {previousCashPayments > 0 && (
+            <div style={styles.settlementRow}>
+              <span>Previous Cash Payments:</span>
+              <span>{fc(previousCashPayments)}</span>
+            </div>
+          )}
           <div style={styles.amountPaidRow}>
-            <span>Amount Paid:</span>
+            <span>This Payment:</span>
             <span style={styles.amountPaidValue}>{fc(paidAmount)}</span>
           </div>
           <div style={styles.methodRow}>
@@ -379,12 +468,28 @@ export const PrintablePaymentReceipt = forwardRef<HTMLDivElement, PrintablePayme
               <span style={styles.value}>{referenceNumber}</span>
             </div>
           )}
-          {balanceDue > 0 && (
+
+          <div style={styles.totalSettledRow}>
+            <span>Total Settled:</span>
+            <span>{fc(totalSettled)}</span>
+          </div>
+
+          {refundDue > 0 ? (
+            <div style={styles.refundDueRow}>
+              <span>Refund Due:</span>
+              <span>{fc(refundDue)}</span>
+            </div>
+          ) : balanceDue > 0 ? (
             <div style={styles.balanceDueRow}>
               <span>Balance Due:</span>
               <span>{fc(balanceDue)}</span>
             </div>
-          )}
+          ) : isFullySettled ? (
+            <div style={styles.fullySettledRow}>
+              <span>Status:</span>
+              <span>Fully Settled</span>
+            </div>
+          ) : null}
         </div>
 
         {/* QR Code */}
