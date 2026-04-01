@@ -43,6 +43,7 @@ export interface GoodsReceivedNote {
   branch_id: string;
   grn_number: string;
   purchase_order_id: string | null;
+  requisition_id: string | null;
   vendor_id: string;
   received_date: string;
   invoice_number: string | null;
