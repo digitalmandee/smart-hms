@@ -42,6 +42,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { usePrint } from "@/hooks/usePrint";
+import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
 
 export default function PODetailPage() {
   const navigate = useNavigate();
