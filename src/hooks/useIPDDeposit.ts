@@ -3,158 +3,153 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 
-interface CreateDepositInvoiceParams {
+interface CreateIPDDepositParams {
   patientId: string;
-  admissionId?: string;
-  depositAmount: number;
-  wardName?: string;
-  bedNumber?: string;
-  notes?: string;
-}
-
-interface RecordDepositPaymentParams {
-  invoiceId: string;
   amount: number;
-  paymentMethodId: string;
-  billingSessionId?: string;  // Links to billing session for audit trail
+  paymentMethodId?: string;
   referenceNumber?: string;
   notes?: string;
+  wardName?: string;
+  bedNumber?: string;
+  status?: "completed" | "pending";
 }
 
-export function useCreateDepositInvoice() {
+/**
+ * Creates a patient_deposits record for IPD admission deposit.
+ * If status is "completed" (paid now), also posts GL entry:
+ *   DR CASH-001 (Cash in Hand)
+ *   CR LIA-DEP-001 (Patient Deposits Liability)
+ */
+export function useCreateIPDDeposit() {
   const { profile } = useAuth();
   const queryClient = useQueryClient();
 
   return useMutation({
-    mutationFn: async (params: CreateDepositInvoiceParams) => {
-      // Generate invoice number
-      const invoiceNumber = `DEP-${Date.now().toString(36).toUpperCase()}`;
+    mutationFn: async (params: CreateIPDDepositParams) => {
+      const depositStatus = params.status || "completed";
+      const depositNotes = params.notes || 
+        `IPD Admission Deposit - ${params.wardName || "IPD"} ${params.bedNumber ? `(Bed ${params.bedNumber})` : ""}`.trim();
 
-      // Create the invoice
-      const { data: invoice, error: invoiceError } = await supabase
-        .from("invoices")
+      // 1. Create patient_deposits record
+      const { data: deposit, error: depositError } = await supabase
+        .from("patient_deposits")
         .insert({
-          organization_id: profile!.organization_id,
-          branch_id: profile!.branch_id!,
-        patient_id: params.patientId,
-        invoice_number: invoiceNumber,
-        invoice_date: new Date().toISOString().split("T")[0],
-        subtotal: params.depositAmount,
-          tax_amount: 0,
-          discount_amount: 0,
-          total_amount: params.depositAmount,
-          paid_amount: 0,
-          balance_amount: params.depositAmount,
-          status: "pending",
-          notes: params.notes || `Admission deposit for ${params.wardName || "IPD"} ${params.bedNumber ? `- Bed ${params.bedNumber}` : ""}`,
+          organization_id: profile!.organization_id!,
+          branch_id: profile!.branch_id,
+          patient_id: params.patientId,
+          amount: params.amount,
+          type: "deposit",
+          status: depositStatus,
+          payment_method_id: params.paymentMethodId || null,
+          reference_number: params.referenceNumber || null,
+          notes: depositNotes,
           created_by: profile!.id,
         })
         .select()
         .single();
 
-      if (invoiceError) throw invoiceError;
+      if (depositError) throw depositError;
 
-      // Create invoice item for deposit
-      const { error: itemError } = await supabase
-        .from("invoice_items")
-        .insert({
-          invoice_id: invoice.id,
-          description: `Admission Deposit - ${params.wardName || "IPD"} ${params.bedNumber ? `(Bed ${params.bedNumber})` : ""}`,
-          quantity: 1,
-          unit_price: params.depositAmount,
-          discount_percent: 0,
-          total_price: params.depositAmount,
-        });
+      // 2. If paid now, post GL entry: DR Cash, CR Patient Deposits Liability
+      if (depositStatus === "completed" && params.paymentMethodId) {
+        try {
+          // Use get_or_create_default_account to ensure accounts exist
+          const { data: cashAccountId } = await supabase.rpc("get_or_create_default_account", {
+            p_organization_id: profile!.organization_id!,
+            p_account_code: "CASH-001",
+            p_account_name: "Cash in Hand",
+            p_account_type_category: "asset",
+          });
 
-      if (itemError) throw itemError;
+          const { data: depositLiabilityId } = await supabase.rpc("get_or_create_default_account", {
+            p_organization_id: profile!.organization_id!,
+            p_account_code: "LIA-DEP-001",
+            p_account_name: "Patient Deposits Liability",
+            p_account_type_category: "liability",
+          });
 
-      return invoice;
+          if (cashAccountId && depositLiabilityId) {
+            // Create journal entry
+            const { data: journalEntry, error: jeError } = await supabase
+              .from("journal_entries")
+              .insert({
+                organization_id: profile!.organization_id!,
+                branch_id: profile!.branch_id,
+                entry_number: "", // trigger generates this
+                entry_date: new Date().toISOString().split("T")[0],
+                description: `Patient deposit collected - ${depositNotes}`,
+                reference_type: "patient_deposit",
+                reference_id: deposit.id,
+                is_posted: true,
+              })
+              .select()
+              .single();
+
+            if (jeError) throw jeError;
+
+            // Insert journal lines: DR Cash, CR Liability
+            const { error: linesError } = await supabase
+              .from("journal_entry_lines")
+              .insert([
+                {
+                  journal_entry_id: journalEntry.id,
+                  account_id: cashAccountId,
+                  description: "Patient deposit received",
+                  debit_amount: params.amount,
+                  credit_amount: 0,
+                },
+                {
+                  journal_entry_id: journalEntry.id,
+                  account_id: depositLiabilityId,
+                  description: "Patient deposit liability",
+                  debit_amount: 0,
+                  credit_amount: params.amount,
+                },
+              ]);
+
+            if (linesError) throw linesError;
+
+            // Link journal entry to deposit record
+            await supabase
+              .from("patient_deposits")
+              .update({ journal_entry_id: journalEntry.id })
+              .eq("id", deposit.id);
+          }
+        } catch (glError) {
+          console.error("GL posting for deposit failed:", glError);
+          // Don't fail the whole operation — deposit record is created
+        }
+      }
+
+      return deposit;
     },
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
+      queryClient.invalidateQueries({ queryKey: ["patient-deposits"] });
+      queryClient.invalidateQueries({ queryKey: ["patient-balance"] });
+      queryClient.invalidateQueries({ queryKey: ["journal-entries"] });
     },
     onError: (error) => {
-      console.error("Failed to create deposit invoice:", error);
-      toast.error("Failed to create deposit invoice");
+      console.error("Failed to create IPD deposit:", error);
+      toast.error("Failed to record deposit");
     },
   });
 }
 
-export function useRecordDepositPayment() {
-  const { profile } = useAuth();
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async (params: RecordDepositPaymentParams) => {
-      // Record the payment with session link
-      const { data: payment, error: paymentError } = await supabase
-        .from("payments")
-        .insert({
-          invoice_id: params.invoiceId,
-          amount: params.amount,
-          payment_method_id: params.paymentMethodId,
-          billing_session_id: params.billingSessionId || null,
-          payment_date: new Date().toISOString(),
-          reference_number: params.referenceNumber,
-          notes: params.notes,
-          received_by: profile!.id,
-        })
-        .select()
-        .single();
-
-      if (paymentError) throw paymentError;
-
-      // Update invoice paid amount and status
-      const { data: invoice, error: fetchError } = await supabase
-        .from("invoices")
-        .select("paid_amount, total_amount")
-        .eq("id", params.invoiceId)
-        .single();
-
-      if (fetchError) throw fetchError;
-
-      const newPaidAmount = (invoice.paid_amount || 0) + params.amount;
-      const newBalance = invoice.total_amount - newPaidAmount;
-      const newStatus = newBalance <= 0 ? "paid" : "partially_paid";
-
-      const { error: updateError } = await supabase
-        .from("invoices")
-        .update({
-          paid_amount: newPaidAmount,
-          balance_amount: Math.max(0, newBalance),
-          status: newStatus,
-        })
-        .eq("id", params.invoiceId);
-
-      if (updateError) throw updateError;
-
-      return payment;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["invoices"] });
-      queryClient.invalidateQueries({ queryKey: ["payments"] });
-      toast.success("Payment recorded successfully");
-    },
-    onError: (error) => {
-      console.error("Failed to record payment:", error);
-      toast.error("Failed to record payment");
-    },
-  });
-}
-
-export function useLinkAdmissionInvoice() {
+/**
+ * Links admission to deposit by updating payment_status.
+ * We no longer use admission_invoice_id for deposits.
+ */
+export function useLinkAdmissionDeposit() {
   const queryClient = useQueryClient();
 
   return useMutation({
     mutationFn: async (params: {
       admissionId: string;
-      invoiceId: string;
       paymentStatus: "pending" | "paid" | "partial" | "pay_later" | "waived";
     }) => {
       const { error } = await supabase
         .from("admissions")
         .update({
-          admission_invoice_id: params.invoiceId,
           payment_status: params.paymentStatus,
         })
         .eq("id", params.admissionId);
@@ -166,3 +161,16 @@ export function useLinkAdmissionInvoice() {
     },
   });
 }
+
+// Keep backward-compatible exports for any other consumers
+export const useCreateDepositInvoice = useCreateIPDDeposit;
+export const useRecordDepositPayment = () => {
+  // No-op — payment is now handled inline in useCreateIPDDeposit
+  return useMutation({
+    mutationFn: async (_params: any) => {
+      console.warn("useRecordDepositPayment is deprecated. Payment is handled by useCreateIPDDeposit.");
+      return null;
+    },
+  });
+};
+export const useLinkAdmissionInvoice = useLinkAdmissionDeposit;

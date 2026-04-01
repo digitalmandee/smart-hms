@@ -31,7 +31,7 @@ import { useWards, useBeds } from "@/hooks/useIPD";
 import { usePatients } from "@/hooks/usePatients";
 import { useDoctors } from "@/hooks/useDoctors";
 import { useAuth } from "@/contexts/AuthContext";
-import { useCreateDepositInvoice, useRecordDepositPayment, useLinkAdmissionInvoice } from "@/hooks/useIPDDeposit";
+import { useCreateIPDDeposit } from "@/hooks/useIPDDeposit";
 import { useIPDBedTypeRates } from "@/hooks/useIPDBedTypeRates";
 import { useSurgeryRequest, useUpdateSurgeryRequest } from "@/hooks/useSurgeryRequests";
 import { AdmissionPaymentDialog } from "@/components/ipd/AdmissionPaymentDialog";
