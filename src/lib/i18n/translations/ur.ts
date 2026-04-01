@@ -3515,5 +3515,30 @@ export const ur: Record<TranslationKey, string> = {
   "demo.bonus.payrollAllocation.desc": "سوشل سیکیورٹی شراکت اور سروس ختم ہونے کے فوائد",
   "demo.bonus.payrollAllocation.talk": "ماہانہ تنخواہ لاگت محکمہ وار تقسیم 12% آجر شراکت کے ساتھ",
 
+  // Patient Financial Ledger
+  "ledger.title": "مالیاتی لیجر",
+  "ledger.totalBilled": "کل بل",
+  "ledger.totalPaid": "کل ادائیگی",
+  "ledger.outstanding": "واجب الادا",
+  "ledger.depositsBalance": "ڈپازٹ بیلنس",
+  "ledger.type.label": "قسم",
+  "ledger.type.invoice": "انوائس",
+  "ledger.type.payment": "ادائیگی",
+  "ledger.type.deposit": "ڈپازٹ",
+  "ledger.reference": "حوالہ",
+  "ledger.description": "تفصیل",
+  "ledger.debit": "ڈیبٹ",
+  "ledger.credit": "کریڈٹ",
+  "ledger.balance": "بیلنس",
+  "ledger.glEntry": "جی ایل اندراج",
+  "ledger.noTransactions": "کوئی مالیاتی لین دین نہیں",
+  "ledger.journalDetails": "جرنل اندراج تفصیلات",
+  "ledger.account": "اکاؤنٹ",
+  "ledger.invoiceBilled": "انوائس درج",
+  "ledger.payment": "ادائیگی موصول",
+  "ledger.deposit": "ڈپازٹ موصول",
+  "ledger.depositRefund": "ڈپازٹ واپسی",
+  "ledger.depositApplied": "ڈپازٹ لاگو",
+
 };
 

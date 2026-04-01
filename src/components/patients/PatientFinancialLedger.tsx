@@ -178,13 +178,12 @@ export function PatientFinancialLedger({ patientId }: PatientFinancialLedgerProp
 
     payments?.forEach((pay) => {
       const je = journalMap.get(pay.id);
-      const methodName = (pay.payment_method as any)?.name || "";
       entries.push({
         id: pay.id,
-        date: pay.payment_date,
+        date: pay.payment_date || pay.notes || "",
         type: "payment",
-        reference: pay.receipt_number || "-",
-        description: methodName ? `${t("ledger.payment")} (${methodName})` : t("ledger.payment"),
+        reference: pay.reference_number || "-",
+        description: t("ledger.payment"),
         debit: 0,
         credit: Number(pay.amount) || 0,
         journalEntryId: je?.id,

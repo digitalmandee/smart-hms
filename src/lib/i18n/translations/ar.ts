@@ -3515,5 +3515,30 @@ export const ar: Record<TranslationKey, string> = {
   "demo.bonus.payrollAllocation.desc": "اشتراكات التأمينات الاجتماعية ومكافأة نهاية الخدمة",
   "demo.bonus.payrollAllocation.talk": "تكاليف الرواتب الشهرية موزعة حسب القسم مع 12% اشتراك صاحب العمل",
 
+  // Patient Financial Ledger
+  "ledger.title": "الدفتر المالي",
+  "ledger.totalBilled": "إجمالي الفواتير",
+  "ledger.totalPaid": "إجمالي المدفوع",
+  "ledger.outstanding": "المستحق",
+  "ledger.depositsBalance": "رصيد الودائع",
+  "ledger.type.label": "النوع",
+  "ledger.type.invoice": "فاتورة",
+  "ledger.type.payment": "دفعة",
+  "ledger.type.deposit": "وديعة",
+  "ledger.reference": "المرجع",
+  "ledger.description": "الوصف",
+  "ledger.debit": "مدين",
+  "ledger.credit": "دائن",
+  "ledger.balance": "الرصيد",
+  "ledger.glEntry": "قيد دفتر الأستاذ",
+  "ledger.noTransactions": "لا توجد معاملات مالية",
+  "ledger.journalDetails": "تفاصيل القيد المحاسبي",
+  "ledger.account": "الحساب",
+  "ledger.invoiceBilled": "فاتورة مسجلة",
+  "ledger.payment": "دفعة مستلمة",
+  "ledger.deposit": "وديعة مستلمة",
+  "ledger.depositRefund": "استرداد وديعة",
+  "ledger.depositApplied": "وديعة مطبقة",
+
 };
 

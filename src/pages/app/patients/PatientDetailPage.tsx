@@ -732,6 +732,10 @@ export function PatientDetailPage() {
               <PatientBillingHistory patientId={patient.id} />
             </TabsContent>
 
+            <TabsContent value="financial-ledger">
+              <PatientFinancialLedger patientId={patient.id} />
+            </TabsContent>
+
             <TabsContent value="insurance">
               <PatientInsuranceTab patientId={patient.id} />
             </TabsContent>
