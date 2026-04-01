@@ -1,68 +1,50 @@
 
 
-# Audit: GL Posting Verification + Add "Record Deposit" to Invoices Section
+# Fix: Deposit Application Missing GL Posting
 
-## Part 1: GL Posting Verification (Current State)
+## Problem Found
+When an IPD discharge invoice is generated, the code inserts a `patient_deposits` record with `type = 'applied'` (useDischarge.ts line 614-628). However, the database trigger `post_patient_deposit_to_journal` only handles two types:
+- `type = 'deposit'` → DR Cash, CR Patient Deposits Liability
+- `type = 'refund'` → DR Patient Deposits Liability, CR Cash
 
-All invoice types are correctly posting to GL via database triggers:
+**`type = 'applied'` is completely ignored** — no GL entry is created. This means:
+- The deposit liability (LIA-DEP-001) is never cleared
+- Accounts Receivable (AR-001) is never reduced by the applied deposit amount
+- The GL is out of balance for every IPD discharge where deposit was applied
 
-### Invoice Creation (trigger: `post_invoice_to_journal`)
-- **DR** Accounts Receivable (AR-001) — invoice total
-- **CR** Revenue (REV-001 or service-specific) — invoice total
-- Reference type: `invoice`
+## Required GL Entry for Deposit Application
+```text
+DR  Patient Deposits Liability (LIA-DEP-001)   applied_amount
+CR  Accounts Receivable (AR-001)                applied_amount
+```
+This clears the liability and reduces the receivable simultaneously.
 
-### Payment Recording (trigger: `post_payment_to_journal`)
-- **DR** Cash/Bank (resolved via `payment_methods.ledger_account_id`) — payment amount
-- **CR** Accounts Receivable (AR-001) — payment amount
-- Reference type: `payment`
+## Fix
 
-### Patient Deposit Collection (trigger: `post_patient_deposit_journal`)
-- **DR** Cash in Hand (CASH-001) — deposit amount
-- **CR** Patient Deposits Liability (LIA-DEP-001) — deposit amount
-- Reference type: `patient_deposit`
+### Migration: Add `type = 'applied'` handling to the trigger
 
-### Deposit Application to Invoice (application in `useGenerateIPDInvoice`)
-- **DR** Patient Deposits Liability (LIA-DEP-001) — applied amount
-- **CR** Accounts Receivable (AR-001) — applied amount
-- Reference type: `deposit_application`
+Update `post_patient_deposit_to_journal()` to add an `ELSIF` block for `type = 'applied'`:
 
-### Credit Note Approval (trigger: `post_credit_note_to_journal`)
-- **DR** Revenue (REV-001) — credit amount
-- **CR** Accounts Receivable (AR-001) — credit amount
-- Reference type: `credit_note`
+```sql
+ELSIF NEW.type = 'applied' AND COALESCE(NEW.amount, 0) > 0 THEN
+  v_deposit_liability_account := get_or_create_default_account(
+    NEW.organization_id, 'LIA-DEP-001', 'Patient Deposits', 'liability');
+  v_ar_account := get_or_create_default_account(
+    NEW.organization_id, 'AR-001', 'Accounts Receivable', 'asset');
+  
+  -- JE: DR LIA-DEP-001, CR AR-001
+  entry_number = 'JE-DAPP-...'
+  reference_type = 'deposit_application'
+  
+  UPDATE patient_deposits SET journal_entry_id = v_journal_id WHERE id = NEW.id;
+```
 
-All five flows are correctly wired. The patient's multiple invoices each generate their own journal entries and are independently trackable in the GL.
+This ensures every deposit application creates the correct double-entry journal posting.
 
----
+### Backfill: Fix existing deposit applications that have no journal entry
 
-## Part 2: Add "Record Deposit" Button to Invoices Section
+A second SQL statement will create journal entries for any existing `type = 'applied'` records that were inserted without GL posting. This will correct the historical data.
 
-### Problem
-Currently, to record a standalone patient deposit (advance payment not tied to any service), users must navigate to **Accounts > Patient Deposits** (`/app/accounts/patient-deposits`). There is no way to do this from the Invoices list page where billing staff normally work.
-
-### Plan
-
-#### File 1: `src/pages/app/billing/InvoicesListPage.tsx`
-- Add a **"Record Deposit"** button (with `Wallet` icon) next to the existing "New Invoice" button in the PageHeader actions
-- Clicking opens a dialog with:
-  - Patient search (using existing `PatientSearch` component)
-  - Amount input
-  - Payment method selector (using existing `payment_methods` query)
-  - Reference number input
-  - Notes textarea
-- On submit, calls `useCreatePatientDeposit` hook (already exists) with `billing_session_id` from active session
-- Dialog resets and closes on success; deposit immediately appears in the merged invoice list
-
-#### File 2: `src/components/mobile/MobileInvoiceList.tsx`
-- Add the same "Record Deposit" button to the mobile view header
-- Same dialog logic as desktop
-
-#### File 3: Translation keys (`en.ts`, `ar.ts`, `ur.ts`)
-- Add keys: `invoices.recordDeposit`, `invoices.recordDepositDesc`, `invoices.depositAmount`, `invoices.depositRecorded`
-
-### Technical Notes
-- Reuse `useCreatePatientDeposit` from `src/hooks/usePatientDeposits.ts` — it already handles the insert and invalidates queries
-- The deposit will auto-appear in the invoice list because `useDepositRows` already fetches all `type='deposit'` records
-- GL posting happens automatically via the existing `post_patient_deposit_journal` database trigger
-- Active billing session ID should be fetched and passed so the deposit counts in session collections
+## Files Changed
+- `supabase/migrations/new.sql` — update trigger function + backfill existing records
 
