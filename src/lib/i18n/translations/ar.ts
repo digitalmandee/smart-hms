@@ -3741,5 +3741,11 @@ export const ar: Record<TranslationKey, string> = {
   "billing_tax.tax_col": "ضريبة %",
   "billing_tax.tax_amount_col": "مبلغ الضريبة",
 
+  // GRN GL Integration
+  "grn.gl_entry_posted": "تم ترحيل قيد دفتر الأستاذ",
+  "grn.view_journal_entry": "عرض قيد اليومية",
+  "grn.gl_posted_desc": "قيد اليومية تم ترحيله تلقائياً: مدين أصول المخزون / دائن الحسابات الدائنة",
+  "grn.gl_total_value": "قيمة دفتر الأستاذ",
+
 };
 

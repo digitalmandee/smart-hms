@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import {
   ArrowLeft, Printer, Package, CheckCircle2, FileCheck, AlertCircle, RotateCcw,
-  ShieldCheck, ShieldX, ShieldAlert,
+  ShieldCheck, ShieldX, ShieldAlert, BookOpen,
 } from "lucide-react";
 
 import { useGRN, useVerifyGRN, usePostGRN } from "@/hooks/useGRN";
@@ -23,25 +23,41 @@ import { format } from "date-fns";
 import { toast } from "sonner";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useAuth } from "@/contexts/AuthContext";
-import { useOrganization } from "@/hooks/useOrganizations";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
-import { useMutation, useQueryClient } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useTranslation } from "@/lib/i18n";
 
 export default function GRNDetailPage() {
   const navigate = useNavigate();
   const { id } = useParams();
   const { formatCurrency } = useCurrencyFormatter();
   const { profile } = useAuth();
-  const { data: organization } = useOrganization(profile?.organization_id);
   const { data: branding } = useOrganizationBranding();
   const [highlightedItem, setHighlightedItem] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   const { data: grn, isLoading } = useGRN(id || "");
   const verifyMutation = useVerifyGRN();
   const postMutation = usePostGRN();
   const { printRef, handlePrint } = usePrint();
   const queryClient = useQueryClient();
+
+  // Fetch linked journal entry for GL display
+  const { data: journalEntry } = useQuery({
+    queryKey: ["grn-journal", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("journal_entries")
+        .select("id, entry_number, entry_date, description")
+        .eq("reference_type", "grn")
+        .eq("reference_id", id!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id && !!grn && (grn.status === "verified" || grn.status === "posted"),
+  });
 
   const qcMutation = useMutation({
     mutationFn: async ({ itemId, status }: { itemId: string; status: string }) => {
@@ -215,6 +231,30 @@ export default function GRNDetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* GL Entry Banner */}
+      {journalEntry && (grn.status === "verified" || grn.status === "posted") && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <BookOpen className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="font-semibold">{t("grn.gl_entry_posted")}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("grn.gl_posted_desc")} — {journalEntry.entry_number}
+                  </p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" asChild>
+                <Link to={`/app/accounts/journal-entries/${journalEntry.id}`}>
+                  {t("grn.view_journal_entry")}
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Linked Requisition Banner */}
       {(grn as any).requisition_id && (

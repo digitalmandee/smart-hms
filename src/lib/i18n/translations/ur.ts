@@ -3741,5 +3741,11 @@ export const ur: Record<TranslationKey, string> = {
   "billing_tax.tax_col": "ٹیکس %",
   "billing_tax.tax_amount_col": "ٹیکس رقم",
 
+  // GRN GL Integration
+  "grn.gl_entry_posted": "جی ایل اندراج پوسٹ ہو گیا",
+  "grn.view_journal_entry": "جرنل اندراج دیکھیں",
+  "grn.gl_posted_desc": "جرنل اندراج خود بخود پوسٹ ہوا: DR انوینٹری اثاثہ / CR قابل ادائیگی اکاؤنٹس",
+  "grn.gl_total_value": "جی ایل قیمت",
+
 };
 
