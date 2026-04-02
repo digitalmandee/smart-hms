@@ -2,6 +2,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Search, Download, RefreshCw, Building2, Clock, CreditCard, Receipt } from "lucide-react";
 import { exportToCSV, formatCurrency as exportFmtCurrency, formatDate } from "@/lib/exportUtils";
+import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,7 +41,7 @@ export default function PayablesPage() {
   const { data: payables, isLoading, refetch } = useQuery({
     queryKey: ["payables-grn", profile?.organization_id],
     queryFn: async () => {
-      // Fetch posted GRNs
+      // Fetch posted + verified GRNs
       const { data: grns, error: grnError } = await supabase
         .from("goods_received_notes")
         .select(`
@@ -53,7 +54,7 @@ export default function PayablesPage() {
           vendor:vendors(id, name, contact_person, phone),
           purchase_order:purchase_orders(po_number)
         `)
-        .eq("status", "posted")
+        .in("status", ["posted", "verified"])
         .order("received_date", { ascending: false });
       
       if (grnError) throw grnError;
@@ -217,6 +218,43 @@ export default function PayablesPage() {
         </Card>
       </div>
 
+      {/* Aging Bar Chart */}
+      {payables && payables.length > 0 && (() => {
+        const agingBuckets = [
+          { name: "Current", min: 0, max: 30, color: "#22c55e" },
+          { name: "31-60", min: 31, max: 60, color: "#eab308" },
+          { name: "61-90", min: 61, max: 90, color: "#f97316" },
+          { name: "90+", min: 91, max: Infinity, color: "#ef4444" },
+        ];
+        const agingData = agingBuckets.map((bucket) => {
+          const total = payables
+            .filter((grn: any) => {
+              const days = Math.floor((new Date().getTime() - new Date(grn.received_date).getTime()) / (1000 * 60 * 60 * 24));
+              return days >= bucket.min && days <= bucket.max;
+            })
+            .reduce((sum: number, grn: any) => sum + (grn.outstanding_amount || 0), 0);
+          return { name: bucket.name, amount: total, fill: bucket.color };
+        });
+        return (
+          <Card>
+            <CardHeader><CardTitle className="text-base">Payables Aging Summary</CardTitle></CardHeader>
+            <CardContent>
+              <div className="h-[200px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={agingData}>
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} width={70} />
+                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
+                      {agingData.map((entry, idx) => <Cell key={idx} fill={entry.fill} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
       {/* Filters */}
       <Card>
         <CardContent className="pt-6">

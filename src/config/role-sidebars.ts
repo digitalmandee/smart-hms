@@ -1210,6 +1210,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "TrendingUp",
         children: [
           { name: "Outstanding", path: "/app/accounts/receivables", icon: "FileText" },
+          { name: "Insurance Aging", path: "/app/accounts/receivables?tab=insurance", icon: "Building2" },
         ]
       },
       { 
@@ -1332,6 +1333,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "TrendingUp",
         children: [
           { name: "Outstanding", path: "/app/accounts/receivables", icon: "FileText" },
+          { name: "Insurance Aging", path: "/app/accounts/receivables?tab=insurance", icon: "Building2" },
         ]
       },
       { 
