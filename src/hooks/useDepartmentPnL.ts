@@ -262,67 +262,84 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
         { revenue: 0, cogs: 0, grossProfit: 0, expenses: 0, netProfit: 0 }
       );
 
-      // 6. Pharmacy medicine-level profit from POS
+      // 6. Pharmacy medicine-level profit from POS (no FK joins — query separately)
       let pharmacyMedicines: PharmacyMedicineProfit[] = [];
       try {
-        let posQuery = supabase
-          .from("pharmacy_pos_items")
-          .select(`
-            quantity, unit_price, total_price,
-            medicine:medicines(name, cost_price),
-            pos_transaction:pharmacy_pos_transactions!inner(created_at, organization_id, branch_id)
-          `)
-          .eq("pos_transaction.organization_id", profile.organization_id);
+        // Step 1: Get POS transaction IDs filtered by org/date/branch
+        let txQuery = supabase
+          .from("pharmacy_pos_transactions")
+          .select("id, created_at")
+          .eq("organization_id", profile.organization_id);
 
-        if (startDate) posQuery = posQuery.gte("pos_transaction.created_at", startDate);
-        if (endDate) posQuery = posQuery.lte("pos_transaction.created_at", endDate);
-        if (branchId) posQuery = posQuery.eq("pos_transaction.branch_id", branchId);
+        if (startDate) txQuery = txQuery.gte("created_at", startDate);
+        if (endDate) txQuery = txQuery.lte("created_at", endDate);
+        if (branchId) txQuery = txQuery.eq("branch_id", branchId);
 
-        const { data: posItems } = await posQuery;
+        const { data: posTxns } = await txQuery;
+        const txIds = (posTxns || []).map((t: any) => t.id);
 
-        if (posItems && posItems.length > 0) {
-          const medMap: Record<string, PharmacyMedicineProfit> = {};
-          for (const item of posItems) {
-            const med = item.medicine as any;
-            const name = med?.name || "Unknown";
-            const costPrice = Number(med?.cost_price) || Number(item.unit_price) * 0.65;
-            const sellingPrice = Number(item.unit_price) || 0;
-            const qty = Number(item.quantity) || 0;
+        if (txIds.length > 0) {
+          // Step 2: Get POS items for those transactions (no joins)
+          const { data: posItems } = await supabase
+            .from("pharmacy_pos_items")
+            .select("medicine_id, quantity, unit_price, total_price, transaction_id")
+            .in("transaction_id", txIds);
 
-            if (!medMap[name]) {
-              medMap[name] = {
-                medicine_name: name, quantity_sold: 0, cost_price: costPrice,
-                selling_price: sellingPrice, total_revenue: 0, total_cost: 0, profit: 0, margin_percent: 0,
-              };
+          if (posItems && posItems.length > 0) {
+            // Step 3: Get medicine cost prices
+            const medIds = [...new Set(posItems.map((i: any) => i.medicine_id).filter(Boolean))];
+            const medLookup: Record<string, { name: string; cost_price: number }> = {};
+
+            if (medIds.length > 0) {
+              const { data: meds } = await supabase
+                .from("medicines")
+                .select("id, name, cost_price")
+                .in("id", medIds);
+              for (const m of meds || []) {
+                medLookup[m.id] = { name: m.name, cost_price: Number(m.cost_price) || 0 };
+              }
             }
-            medMap[name].quantity_sold += qty;
-            medMap[name].total_revenue += Number(item.total_price) || sellingPrice * qty;
-            medMap[name].total_cost += costPrice * qty;
-          }
 
-          pharmacyMedicines = Object.values(medMap)
-            .map((m) => ({
-              ...m,
-              profit: m.total_revenue - m.total_cost,
-              margin_percent: m.total_revenue > 0 ? ((m.total_revenue - m.total_cost) / m.total_revenue) * 100 : 0,
-            }))
-            .sort((a, b) => b.profit - a.profit)
-            .slice(0, 20);
+            // Step 4: Aggregate
+            const medMap: Record<string, PharmacyMedicineProfit> = {};
+            for (const item of posItems) {
+              const med = medLookup[item.medicine_id] || null;
+              const name = med?.name || "Unknown";
+              const costPrice = med?.cost_price || Number(item.unit_price) * 0.65;
+              const sellingPrice = Number(item.unit_price) || 0;
+              const qty = Number(item.quantity) || 0;
+
+              if (!medMap[name]) {
+                medMap[name] = {
+                  medicine_name: name, quantity_sold: 0, cost_price: costPrice,
+                  selling_price: sellingPrice, total_revenue: 0, total_cost: 0, profit: 0, margin_percent: 0,
+                };
+              }
+              medMap[name].quantity_sold += qty;
+              medMap[name].total_revenue += Number(item.total_price) || sellingPrice * qty;
+              medMap[name].total_cost += costPrice * qty;
+            }
+
+            pharmacyMedicines = Object.values(medMap)
+              .map((m) => ({
+                ...m,
+                profit: m.total_revenue - m.total_cost,
+                margin_percent: m.total_revenue > 0 ? ((m.total_revenue - m.total_cost) / m.total_revenue) * 100 : 0,
+              }))
+              .sort((a, b) => b.profit - a.profit)
+              .slice(0, 20);
+          }
         }
       } catch {
         // POS data optional
       }
 
-      // 7. Expenses from expenses table
+      // 7. Expenses from expenses table (no FK joins — query separately)
       let expenseRecords: ExpenseRecord[] = [];
       try {
         let expQuery = supabase
           .from("expenses")
-          .select(`
-            id, created_at, expense_number, category, description, amount, paid_to,
-            created_by_profile:profiles!expenses_created_by_fkey(full_name),
-            payment_method:payment_methods(name)
-          `)
+          .select("id, created_at, expense_number, category, description, amount, paid_to, created_by, payment_method_id")
           .eq("organization_id", profile.organization_id);
 
         if (startDate) expQuery = expQuery.gte("created_at", startDate);
@@ -332,7 +349,33 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
         expQuery = expQuery.order("created_at", { ascending: false });
 
         const { data: expData } = await expQuery;
-        if (expData) {
+        if (expData && expData.length > 0) {
+          // Fetch profiles for created_by
+          const creatorIds = [...new Set(expData.map((e: any) => e.created_by).filter(Boolean))];
+          const profileLookup: Record<string, string> = {};
+          if (creatorIds.length > 0) {
+            const { data: profiles } = await supabase
+              .from("profiles")
+              .select("id, full_name")
+              .in("id", creatorIds);
+            for (const p of profiles || []) {
+              profileLookup[p.id] = p.full_name || "—";
+            }
+          }
+
+          // Fetch payment methods
+          const pmIds = [...new Set(expData.map((e: any) => e.payment_method_id).filter(Boolean))];
+          const pmLookup: Record<string, string> = {};
+          if (pmIds.length > 0) {
+            const { data: pms } = await supabase
+              .from("payment_methods")
+              .select("id, name")
+              .in("id", pmIds);
+            for (const pm of pms || []) {
+              pmLookup[pm.id] = pm.name || "Cash";
+            }
+          }
+
           expenseRecords = expData.map((e: any) => ({
             id: e.id,
             date: e.created_at?.slice(0, 10) || "",
@@ -341,23 +384,20 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
             description: e.description || "",
             amount: Number(e.amount) || 0,
             paid_to: e.paid_to || "—",
-            payment_method: e.payment_method?.name || "Cash",
-            created_by: e.created_by_profile?.full_name || "—",
+            payment_method: pmLookup[e.payment_method_id] || "Cash",
+            created_by: profileLookup[e.created_by] || "—",
           }));
         }
       } catch {
         // optional
       }
 
-      // 8. GRN records
+      // 8. GRN records (no FK join — query vendors separately)
       let grnRecords: GRNRecord[] = [];
       try {
         let grnQuery = supabase
           .from("goods_received_notes")
-          .select(`
-            id, grn_number, invoice_amount, received_date, status,
-            vendor:vendors(name)
-          `)
+          .select("id, grn_number, invoice_amount, received_date, status, vendor_id")
           .eq("organization_id", profile.organization_id);
 
         if (startDate) grnQuery = grnQuery.gte("received_date", startDate);
@@ -369,6 +409,19 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
         const { data: grnData } = await grnQuery;
 
         if (grnData && grnData.length > 0) {
+          // Fetch vendor names
+          const vendorIds = [...new Set(grnData.map((g: any) => g.vendor_id).filter(Boolean))];
+          const vendorLookup: Record<string, string> = {};
+          if (vendorIds.length > 0) {
+            const { data: vendors } = await supabase
+              .from("vendors")
+              .select("id, name")
+              .in("id", vendorIds);
+            for (const v of vendors || []) {
+              vendorLookup[v.id] = v.name || "—";
+            }
+          }
+
           // Fetch vendor payments for these GRNs
           const grnIds = grnData.map((g: any) => g.id);
           const { data: payments } = await supabase
@@ -395,7 +448,7 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
             return {
               id: g.id,
               grn_number: g.grn_number || "",
-              vendor_name: g.vendor?.name || "—",
+              vendor_name: vendorLookup[g.vendor_id] || "—",
               invoice_amount: invoiceAmt,
               received_date: g.received_date || "",
               status: g.status || "",
