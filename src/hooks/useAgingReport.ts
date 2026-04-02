@@ -165,7 +165,9 @@ export function useAgingReport() {
           id, claim_number, claim_date, submission_date, total_amount, approved_amount, paid_amount, status,
           patient_insurance:patient_insurance(
             patient:patients(first_name, last_name),
-            insurance_company:insurance_companies(name)
+            insurance_plan:insurance_plans(
+              insurance_company:insurance_companies(name)
+            )
           )
         `)
         .eq("organization_id", orgId!)
