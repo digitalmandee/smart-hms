@@ -1,47 +1,64 @@
 
 
-# Fix: Deposit Includes Procedure Charges + Split Payment in Invoice Collection
+# Department P&L — Detailed Master Report with Transaction Drill-Down & PDF/Excel Export
 
-## Issues
-
-1. **Deposit ignores procedure charges** — `BedRateDisplay` calculates suggested deposit as 60% of room cost only. The selected procedure charge is not factored in, so the deposit is under-calculated.
-
-2. **No split payment on invoice payment page** — The `PaymentCollectionPage.tsx` only supports a single payment method. The split payment UI exists in `AdmissionPaymentDialog` but not in the invoice payment flow.
+## Problem
+Current Department P&L only shows summary aggregates (totals per department). The CFO needs to see **every individual transaction** — each expense, each sale — mapped to its department, with a proper downloadable PDF report.
 
 ## Plan
 
-### Fix 1: Include procedure charges in deposit calculation
+### 1. Enhance `useDepartmentPnL` hook to return individual transactions
 
-**File: `src/pages/app/ipd/AdmissionFormPage.tsx`**
+Add a new `transactions` array to the return data containing every journal entry line mapped to a department:
 
-- When procedure is selected or bed/discharge date changes, calculate total estimated cost = procedure charge + room cost
-- Update the `onSuggestedDepositChange` callback from `BedRateDisplay` to add procedure charges on top
-- Also show the combined breakdown: "Procedure: Rs X + Room: Rs Y = Total: Rs Z → Suggested Deposit (60%): Rs D"
+```typescript
+interface DepartmentTransaction {
+  date: string;
+  journal_number: string;
+  description: string;
+  department: string;
+  account_name: string;
+  account_number: string;
+  type: "Revenue" | "COGS" | "Expense";
+  debit: number;
+  credit: number;
+  net_amount: number;
+}
+```
 
-Approach: After `BedRateDisplay` calls `onSuggestedDepositChange(roomDeposit)`, intercept and add procedure charge. Better approach — pass procedure charge into `BedRateDisplay` so it can calculate the combined deposit.
+In the existing query (step 2), also fetch `journal_entry.journal_number, journal_entry.description, journal_entry.entry_date` and the line's `description`. Build the transactions list alongside the aggregation loop (step 4), pushing each qualifying Revenue/Expense line into the array.
 
-**File: `src/components/ipd/BedRateDisplay.tsx`**
+**File**: `src/hooks/useDepartmentPnL.ts`
 
-- Add `procedureCharge?: number` prop
-- Include it in `suggestedDeposit` calculation: `suggestedDeposit = (estimatedRoomCost + procedureCharge) * 0.6`
-- Show procedure charge in the display breakdown
+### 2. Add "Transactions" tab to DepartmentPnLPage
 
-### Fix 2: Add split payment to invoice PaymentCollectionPage
+Add a 4th tab showing a searchable, sortable table of all individual transactions:
+- Columns: Date, Journal #, Description, Department, Account, Type (Revenue/COGS/Expense), Debit, Credit, Net
+- Search filter across description/account/department
+- Type filter dropdown (All / Revenue / COGS / Expense)
+- Color-coded type badges
 
-**File: `src/pages/app/billing/PaymentCollectionPage.tsx`**
+**File**: `src/pages/app/accounts/DepartmentPnLPage.tsx`
 
-- Add the same split payment UI pattern from `AdmissionPaymentDialog`:
-  - Toggle switch for "Split Payment"
-  - Multiple payment method rows with amount + method + reference
-  - Validation that splits sum equals total
-- When split is enabled, record multiple payments (one per split) or record the primary and note the rest
+### 3. Replace basic CSV export with `ReportExportButton`
 
-Since the `useRecordPayment` hook records a single payment, for split we'll call it multiple times (once per split), each with its own method and amount. This keeps GL entries accurate per payment method.
+Replace the manual CSV export button with the existing `ReportExportButton` component that provides CSV + PDF + Print. Configure it with:
+- Department summary columns for the main export
+- PDF options with organization branding, date range, filters
+- Summary totals row
 
-### Files to change
+Also add a separate export button on the Transactions tab for exporting the full transaction detail.
 
-- **Edit**: `src/components/ipd/BedRateDisplay.tsx` — add `procedureCharge` prop, include in deposit calc and display
-- **Edit**: `src/pages/app/ipd/AdmissionFormPage.tsx` — pass procedure charge to BedRateDisplay
-- **Edit**: `src/pages/app/billing/PaymentCollectionPage.tsx` — add split payment toggle + UI + multi-payment recording
-- **Edit**: `src/lib/i18n/translations/en.ts`, `ur.ts`, `ar.ts` — new labels for split payment
+**File**: `src/pages/app/accounts/DepartmentPnLPage.tsx`
+
+### 4. Translations
+
+Add new keys for: `dept_pnl.transactions`, `dept_pnl.journal_number`, `dept_pnl.description`, `dept_pnl.type`, `dept_pnl.debit`, `dept_pnl.credit`, `dept_pnl.search_transactions`, `dept_pnl.filter_type`
+
+**Files**: `src/lib/i18n/translations/en.ts`, `ur.ts`, `ar.ts`
+
+## Files to Change
+- `src/hooks/useDepartmentPnL.ts` — add transactions array to query results
+- `src/pages/app/accounts/DepartmentPnLPage.tsx` — add Transactions tab, replace CSV with ReportExportButton
+- `src/lib/i18n/translations/en.ts`, `ur.ts`, `ar.ts` — new labels
 
