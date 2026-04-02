@@ -26,9 +26,9 @@ interface ConsultationRow {
 }
 
 export default function ConsultationReport() {
-  const { organization } = useOrganization();
+  const { profile } = useAuth();
   const { t } = useTranslation();
-  const orgId = organization?.id;
+  const orgId = profile?.organization_id;
 
   const [dateFrom, setDateFrom] = useState(format(startOfMonth(new Date()), "yyyy-MM-dd"));
   const [dateTo, setDateTo] = useState(format(endOfMonth(new Date()), "yyyy-MM-dd"));
