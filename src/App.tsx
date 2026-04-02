@@ -1407,6 +1407,7 @@ function App() {
               <Route path="settings/users/invite" element={<UserInvitePage />} />
               <Route path="settings/billing" element={<BillingSettingsPage />} />
               <Route path="settings/tax" element={<TaxSettingsPage />} />
+              <Route path="settings/billing-tax-slabs" element={<React.Suspense fallback={<div>Loading...</div>}><BillingTaxSlabsPage /></React.Suspense>} />
               <Route path="settings/receipts" element={<ReceiptTemplatesPage />} />
               <Route path="settings/clinical" element={<ClinicalConfigPage />} />
               <Route path="settings/lab" element={<LabSettingsPage />} />
