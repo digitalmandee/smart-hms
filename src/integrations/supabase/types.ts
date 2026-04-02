@@ -19982,6 +19982,7 @@ export type Database = {
           order_date: string
           organization_id: string
           po_number: string
+          requisition_id: string | null
           status: Database["public"]["Enums"]["po_status"]
           store_id: string | null
           subtotal: number
@@ -20004,6 +20005,7 @@ export type Database = {
           order_date?: string
           organization_id: string
           po_number: string
+          requisition_id?: string | null
           status?: Database["public"]["Enums"]["po_status"]
           store_id?: string | null
           subtotal?: number
@@ -20026,6 +20028,7 @@ export type Database = {
           order_date?: string
           organization_id?: string
           po_number?: string
+          requisition_id?: string | null
           status?: Database["public"]["Enums"]["po_status"]
           store_id?: string | null
           subtotal?: number
@@ -20062,6 +20065,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "purchase_orders_requisition_id_fkey"
+            columns: ["requisition_id"]
+            isOneToOne: false
+            referencedRelation: "stock_requisitions"
             referencedColumns: ["id"]
           },
           {

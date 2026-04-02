@@ -1,0 +1,1 @@
+ALTER TABLE public.purchase_orders ADD COLUMN IF NOT EXISTS requisition_id UUID REFERENCES public.stock_requisitions(id);
