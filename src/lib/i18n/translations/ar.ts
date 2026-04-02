@@ -3714,5 +3714,32 @@ export const ar: Record<TranslationKey, string> = {
   "consultation.searchPlaceholder": "البحث بالمريض أو الطبيب أو التشخيص...",
   "consultation.noData": "لم يتم العثور على استشارات للفترة المحددة",
 
+  // Billing Tax Slabs
+  "billing_tax.title": "شرائح ضريبة الفواتير",
+  "billing_tax.description": "إدارة معدلات الضرائب لفئات الفوترة المختلفة",
+  "billing_tax.add_slab": "إضافة شريحة ضريبية",
+  "billing_tax.edit_slab": "تعديل شريحة ضريبية",
+  "billing_tax.tax_categories": "فئات الضرائب",
+  "billing_tax.tax_categories_desc": "حدد معدلات ضريبية مختلفة للخدمات والأدوية والمختبر وغيرها",
+  "billing_tax.no_slabs": "لم يتم تكوين شرائح ضريبية بعد. أضف أول فئة ضريبية.",
+  "billing_tax.rate": "معدل الضريبة",
+  "billing_tax.applies_to": "ينطبق على",
+  "billing_tax.all_categories": "جميع الفئات",
+  "billing_tax.services": "الخدمات",
+  "billing_tax.medicines": "الأدوية",
+  "billing_tax.lab": "المختبر",
+  "billing_tax.custom": "مخصص",
+  "billing_tax.set_default": "تعيين كافتراضي",
+  "billing_tax.default": "افتراضي",
+  "billing_tax.active": "نشط",
+  "billing_tax.inactive": "غير نشط",
+  "billing_tax.saved": "تم حفظ الشريحة الضريبية",
+  "billing_tax.saved_desc": "تم حفظ الشريحة الضريبية بنجاح.",
+  "billing_tax.save_error": "فشل في حفظ الشريحة الضريبية.",
+  "billing_tax.deleted": "تم حذف الشريحة الضريبية",
+  "billing_tax.slab_form_desc": "تكوين معدل الضريبة والفئة التي ينطبق عليها.",
+  "billing_tax.tax_col": "ضريبة %",
+  "billing_tax.tax_amount_col": "مبلغ الضريبة",
+
 };
 

@@ -175,6 +175,24 @@ export default function TaxSettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Percent className="h-5 w-5" />
+            Billing Tax Slabs
+          </CardTitle>
+          <CardDescription>
+            Manage different tax rates for different service categories (e.g., Standard 17%, Zero Rated, Reduced 5%)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" onClick={() => navigate("/app/settings/billing-tax-slabs")}>
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Manage Tax Slabs
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }
