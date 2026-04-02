@@ -24,6 +24,8 @@ export function BedRateDisplay({
   bedTypeRates,
   expectedDischargeDate,
   admissionDate = new Date(),
+  procedureCharge = 0,
+  procedureName,
   onSuggestedDepositChange,
 }: BedRateDisplayProps) {
   const dailyRate = getBedDailyRate(bedType, bedTypeRates);
@@ -33,8 +35,9 @@ export function BedRateDisplay({
     : null;
 
   const estimatedRoomCost = expectedDays ? expectedDays * dailyRate : null;
-  const suggestedDeposit = expectedDays 
-    ? calculateSuggestedDeposit(expectedDays, dailyRate)
+  const totalEstimatedCost = (estimatedRoomCost || 0) + procedureCharge;
+  const suggestedDeposit = totalEstimatedCost > 0
+    ? Math.round(totalEstimatedCost * 0.6)
     : null;
 
   // Notify parent of suggested deposit
