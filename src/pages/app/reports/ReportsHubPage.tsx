@@ -91,6 +91,22 @@ const clinicalReports: ReportCard[] = [
     module: "Emergency",
     color: "bg-red-500",
   },
+  {
+    title: "OPD Department Report",
+    description: "Department-wise OPD statistics, patient flow, and doctor performance",
+    icon: Building2,
+    path: "/app/reports/opd-departments",
+    module: "OPD",
+    color: "bg-sky-500",
+  },
+  {
+    title: "Consultation Report",
+    description: "Consultation details, diagnosis trends, follow-up tracking",
+    icon: ClipboardList,
+    path: "/app/reports/consultation-report",
+    module: "OPD",
+    color: "bg-fuchsia-500",
+  },
 ];
 
 const operationalReports: ReportCard[] = [
