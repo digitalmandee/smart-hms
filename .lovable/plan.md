@@ -1,63 +1,50 @@
 
 
-# Fix: Aging Report Shows All Zeros + Remove "CFO" Text
+# Fix: Invoice Form — Auto-Load Patient & Pending Procedure Charges
 
-## Root Cause
+## Problem
+When navigating to `/app/billing/invoices/new?patientId=xxx`, the form:
+1. Does NOT auto-select the patient from the URL parameter
+2. Does NOT load pending unbilled charges (lab orders, imaging orders, consultations)
+3. Shows "Available Deposit" which is confusing — user thinks deposit reduces the invoice total
 
-The **insurance_claims query fails with 400 error**, which causes the entire `queryFn` to throw (line 173: `if (clErr) throw clErr`). Since the query throws, React Query treats the whole result as an error and the UI falls back to default zeros.
-
-**Why it fails**: The Supabase join `patient_insurance(insurance_company:insurance_companies(name))` is invalid. `patient_insurance` has no FK to `insurance_companies`. The actual path is:
-
-```text
-insurance_claims → patient_insurance → insurance_plans → insurance_companies
-```
-
-So the correct nested join is:
-```
-patient_insurance:patient_insurance(
-  patient:patients(first_name, last_name),
-  insurance_plan:insurance_plans(
-    insurance_company:insurance_companies(name)
-  )
-)
-```
+The invoice should always be for the **full procedure amount**. Deposits stay separate. If patient pays less, the balance remains unpaid on the invoice.
 
 ## Changes
 
-### 1. Fix insurance_claims query in `src/hooks/useAgingReport.ts`
+### File: `src/pages/app/billing/InvoiceFormPage.tsx`
 
-**Line 166-169**: Replace the broken join with the correct 3-level path through `insurance_plans`:
-```
-patient_insurance:patient_insurance(
-  patient:patients(first_name, last_name),
-  insurance_plan:insurance_plans(
-    insurance_company:insurance_companies(name)
-  )
-)
-```
+**1. Read `patientId` from URL and auto-select patient**
+- Extract `patientId` from `searchParams`
+- Fetch patient data from Supabase when `patientId` is present
+- Auto-set `selectedPatient` state
 
-**Line 185**: Update the insurer name extraction to traverse the new path:
-```
-pi?.insurance_plan?.insurance_company?.name || "Unknown"
-```
+**2. Auto-load pending unbilled charges for selected patient**
+- Add a query to fetch unbilled lab orders (`invoice_id IS NULL`) for the patient
+- Add a query to fetch unbilled imaging orders (`invoice_id IS NULL`) for the patient
+- Add a query to fetch unpaid appointments (consultation fees) for the patient
+- When patient is selected and has pending charges, auto-populate the `items` array with those charges
+- Show an info banner: "X pending charges found for this patient" with a button to load them
 
-### 2. Remove "CFO" text from translations
+**3. Clarify deposit display in PatientBalanceCard**
+- Update the "Available Deposit" card description to say: "Available credit — will NOT be auto-deducted from this invoice. Can be applied during payment collection."
 
-**3 files** — update `aging.subtitle` key:
+### File: `src/components/billing/PatientBalanceCard.tsx`
+- Change deposit description text from "Available credit that can be applied to invoices" to "Available credit — apply during payment collection. Invoice total stays unchanged."
 
-- `src/lib/i18n/translations/en.ts`: Change to `"Receivable tracking with department & insurance breakdown"`
-- `src/lib/i18n/translations/ur.ts`: Remove "CFO" from Urdu subtitle
-- `src/lib/i18n/translations/ar.ts`: Remove "CFO" from Arabic subtitle
-- Also remove "CFO" from `demo.step.accountsDashboard.talk` in en.ts and ur.ts
+### Translation files (en.ts, ur.ts, ar.ts)
+- Add keys: `billing.depositNote`, `billing.pendingChargesFound`, `billing.loadPendingCharges`
 
-### 3. Remove fallback "CFO" text in `src/pages/app/accounts/ReceivablesPage.tsx`
-
-**Line 145**: Update the fallback string from `"CFO-grade receivable tracking..."` to `"Receivable tracking with department & insurance breakdown"`
+## Technical Detail
+- Pending charges query: fetch from `lab_orders` (where `invoice_id IS NULL`, `patient_id = X`), `imaging_orders` (same), and `appointments` (where `payment_status != 'paid'`, `invoice_id IS NULL`)
+- Each charge maps to an invoice item with description, quantity=1, unit_price from service_type default_price
+- User can still add/remove items manually before submitting
+- Invoice is always created with `paid_amount: 0` — no deposit auto-deduction
 
 ## Files to Change
-- `src/hooks/useAgingReport.ts` — fix insurance_claims join path
-- `src/pages/app/accounts/ReceivablesPage.tsx` — remove CFO from fallback
-- `src/lib/i18n/translations/en.ts` — remove CFO from 2 keys
-- `src/lib/i18n/translations/ur.ts` — remove CFO from 2 keys
-- `src/lib/i18n/translations/ar.ts` — remove CFO from 1 key
+- `src/pages/app/billing/InvoiceFormPage.tsx` — read patientId param, auto-load pending charges
+- `src/components/billing/PatientBalanceCard.tsx` — clarify deposit description
+- `src/lib/i18n/translations/en.ts` — new labels
+- `src/lib/i18n/translations/ur.ts` — new labels
+- `src/lib/i18n/translations/ar.ts` — new labels
 
