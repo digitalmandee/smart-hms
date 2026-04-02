@@ -1245,6 +1245,7 @@ function App() {
                 <Route path="accounts/audit-log" element={<FinancialAuditLogPage />} />
                 <Route path="accounts/cash-to-bank-report" element={<CashToBankReportPage />} />
                 <Route path="accounts/reports/detailed-pnl" element={<DetailedPnLPage />} />
+                <Route path="accounts/reports/department-pnl" element={<DepartmentPnLPage />} />
                 <Route path="accounts/reports/ar-reconciliation" element={<ARReconciliationPage />} />
 
                {/* Donation Management routes */}
