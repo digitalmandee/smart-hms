@@ -1,52 +1,78 @@
 
 
-# Fix: Pharmacy POS Data + GRN Visibility in Department P&L
+# Complete Hospital P&L Report — With Procurement & Vendor Payables
 
-## Issues Found
+## What Changes
 
-### Issue 1: Pharmacy POS query fails (400 error)
-The `useDepartmentPnL.ts` hook queries `pharmacy_pos_transactions` using `transaction_date` (line 243), but this column does not exist. The actual column is `created_at`. This causes the entire pharmacy medicine profit section to silently fail and return empty.
+Transform the Department P&L page from a revenue/expense-only view into a **complete hospital financial report** with 3 new sections:
 
-### Issue 2: GRN/PO transactions not visible
-This is **by design** in the current P&L — GRN posting creates journal entries that hit `INV-001` (Asset) and `AP-001` (Liability). The P&L filter at line 148 only keeps `revenue` and `expense` category accounts, so asset/liability entries are excluded. This is correct accounting — inventory purchases are balance sheet items, not P&L items. However, the COGS entries from pharmacy sales (EXP-COGS-001) should appear when medicines are sold.
+1. **Expenses Section** — all recorded expenses (petty cash, refunds, staff advances, misc) from the `expenses` table
+2. **Procurement/GRN Section** — all GRNs showing vendor, amount, payment status (paid/credited)
+3. **Vendor Credit Payable Section** — outstanding AP balance per vendor (GRN value minus payments made)
 
-The user likely expects to see procurement cost reflected. The proper flow is: GRN hits balance sheet (INV-001/AP-001), then when medicines are sold via POS, the COGS trigger posts to EXP-COGS-001 which IS a P&L expense. If COGS entries exist, they will show once Issue 1 is fixed.
+## Architecture
 
-### Issue 3: Stale query with `journal_number`
-Network shows a 400 error for a `journal_number` reference. The hook code is already fixed to use `entry_number`, so this is likely a cached/stale query from an older build. No code change needed — it resolves on reload.
+### Hook: `src/hooks/useDepartmentPnL.ts`
 
-## Fix
+Add 3 new queries and return types:
 
-### File: `src/hooks/useDepartmentPnL.ts`
+**New interfaces:**
+- `ExpenseRecord` — id, date, expense_number, category, description, amount, paid_to, payment_method, created_by
+- `GRNRecord` — id, grn_number, vendor_name, invoice_amount, received_date, status, total_paid, balance_due
+- `VendorPayable` — vendor_name, vendor_code, total_grn_value, total_paid, outstanding_balance, last_payment_date
 
-**Single change** — line 243: replace `transaction_date` with `created_at` in the pharmacy POS items query select and all filter references.
+**New queries inside the existing queryFn:**
 
+1. **Expenses**: Query `expenses` table filtered by org, date range, branch — select amount, category, description, paid_to, expense_number, payment method name, created_by profile name
+
+2. **GRNs**: Query `goods_received_notes` filtered by org, date range, branch — with status = 'verified' — select grn_number, invoice_amount, received_date, vendor name. Then query `vendor_payments` for the same GRNs to calculate paid vs outstanding per GRN.
+
+3. **Vendor Payables**: Aggregate from the GRN + vendor_payments data above — group by vendor, sum GRN invoice amounts, subtract payments, show outstanding balance. Only show vendors with non-zero outstanding.
+
+Return all three arrays alongside existing `departments`, `totals`, `pharmacyMedicines`, `transactions`.
+
+Also update `totals` to include `totalExpensesRecorded` (from expenses table) and `totalProcurement` (from GRNs) and `totalVendorPayable` (outstanding AP).
+
+### Page: `src/pages/app/accounts/DepartmentPnLPage.tsx`
+
+**Summary Cards** — Add 2 more cards:
+- Total Procurement (GRN value)  
+- Vendor Payable (outstanding AP)
+
+Making it a 6-card grid (2 rows of 3).
+
+**New Tabs** (add to existing tab bar):
+- **Expenses** tab — table showing all expenses with columns: Date, Expense #, Category, Description, Paid To, Amount, Payment Method, Created By
+- **Procurement (GRN)** tab — table showing all GRNs with: Date, GRN #, Vendor, Invoice Amount, Paid, Outstanding, Status badge (Paid/Credit Payable)
+- **Vendor Payables** tab — table showing per-vendor: Vendor Name, Code, Total GRN Value, Total Paid, Outstanding Balance, Last Payment Date
+
+Each tab gets its own export button with appropriate columns.
+
+### Translations: `en.ts`, `ur.ts`, `ar.ts`
+
+Add labels for:
+- `dept_pnl.expenses_tab`, `dept_pnl.procurement`, `dept_pnl.vendor_payables`
+- `dept_pnl.total_procurement`, `dept_pnl.vendor_payable`
+- `dept_pnl.grn_number`, `dept_pnl.vendor_name`, `dept_pnl.invoice_amount`, `dept_pnl.paid_amount`, `dept_pnl.outstanding`, `dept_pnl.payment_status`
+- `dept_pnl.expense_number`, `dept_pnl.category`, `dept_pnl.paid_to`, `dept_pnl.payment_method`
+- `dept_pnl.vendor_code`, `dept_pnl.total_grn_value`, `dept_pnl.total_paid`, `dept_pnl.last_payment`
+
+## GRN Payment Status Logic
+
+```text
+For each GRN:
+  total_paid = SUM(vendor_payments.amount WHERE grn_id = grn.id AND status IN ('approved','paid'))
+  balance_due = invoice_amount - total_paid
+  
+  If balance_due <= 0 → "Paid" (green badge)
+  If balance_due > 0 AND total_paid > 0 → "Partial" (orange badge)  
+  If total_paid = 0 → "Credit Payable" (red badge)
 ```
-// Current (line 243):
-pos_transaction:pharmacy_pos_transactions!inner(transaction_date, organization_id, branch_id)
-
-// Fixed:
-pos_transaction:pharmacy_pos_transactions!inner(created_at, organization_id, branch_id)
-```
-
-Also update the date filter references on lines 247-248:
-```
-// Current:
-posQuery.gte("pos_transaction.transaction_date", startDate)
-posQuery.lte("pos_transaction.transaction_date", endDate)
-
-// Fixed:
-posQuery.gte("pos_transaction.created_at", startDate)
-posQuery.lte("pos_transaction.created_at", endDate)
-```
-
-And the branch filter on line 249 stays the same.
-
-This single fix will:
-- Restore pharmacy medicine-level profit data (medicine name, qty sold, cost, revenue, margin)
-- Show pharmacy COGS in the department breakdown (already working from journal entries)
-- The GRN procurement entries correctly stay off the P&L (they are balance sheet entries) but their downstream effect (COGS when sold) will now be visible
 
 ## Files to Change
-- `src/hooks/useDepartmentPnL.ts` — replace `transaction_date` with `created_at` (3 occurrences)
+- `src/hooks/useDepartmentPnL.ts` — add expenses, GRN, vendor payable queries + interfaces
+- `src/pages/app/accounts/DepartmentPnLPage.tsx` — add 3 new tabs, 2 summary cards
+- `src/lib/i18n/translations/en.ts` — English labels
+- `src/lib/i18n/translations/ur.ts` — Urdu labels
+- `src/lib/i18n/translations/ar.ts` — Arabic labels
 
