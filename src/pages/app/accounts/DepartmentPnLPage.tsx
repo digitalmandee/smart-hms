@@ -440,7 +440,7 @@ export default function DepartmentPnLPage() {
                                 <TableCell colSpan={7} className="p-0">
                                   <div className="bg-muted/30 p-4 border-y">
                                     <div className="flex items-center gap-2 mb-3">
-                                      <h4 className="font-medium text-sm">{t("dept_pnl.drill_down_title")}</h4>
+                                      <h4 className="font-medium text-sm">{t("dept_pnl.transactions")}</h4>
                                       <Badge variant="secondary" className="text-xs">{deptTxns.length}</Badge>
                                     </div>
                                     {deptTxns.length === 0 ? (
