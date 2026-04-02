@@ -112,7 +112,8 @@ export function InvoiceItemsBuilder({
 
   const handleAddItem = () => {
     if (!newItem.description || newItem.unit_price <= 0) return;
-    onChange([...items, newItem]);
+    const itemWithTax = { ...newItem, tax_percent: newItem.tax_percent ?? (defaultTaxSlab?.tax_rate || 0) };
+    onChange([...items, itemWithTax]);
     setNewItem({
       description: "",
       quantity: 1,
