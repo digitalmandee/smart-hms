@@ -3693,7 +3693,6 @@ export const en = {
   "dept_pnl.qty_sold": "Qty Sold",
   "dept_pnl.cost_price": "Cost Price",
   "dept_pnl.selling_price": "Selling Price",
-  "dept_pnl.total_revenue": "Total Revenue",
   "dept_pnl.total_cost": "Total Cost",
   "dept_pnl.profit": "Profit",
   "dept_pnl.no_pharmacy_data": "No pharmacy sales data for this period",
