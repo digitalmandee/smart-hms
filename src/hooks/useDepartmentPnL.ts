@@ -262,52 +262,73 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
         { revenue: 0, cogs: 0, grossProfit: 0, expenses: 0, netProfit: 0 }
       );
 
-      // 6. Pharmacy medicine-level profit from POS
+      // 6. Pharmacy medicine-level profit from POS (no FK joins — query separately)
       let pharmacyMedicines: PharmacyMedicineProfit[] = [];
       try {
-        let posQuery = supabase
-          .from("pharmacy_pos_items")
-          .select(`
-            quantity, unit_price, total_price,
-            medicine:medicines(name, cost_price),
-            pos_transaction:pharmacy_pos_transactions!inner(created_at, organization_id, branch_id)
-          `)
-          .eq("pos_transaction.organization_id", profile.organization_id);
+        // Step 1: Get POS transaction IDs filtered by org/date/branch
+        let txQuery = supabase
+          .from("pharmacy_pos_transactions")
+          .select("id, created_at")
+          .eq("organization_id", profile.organization_id);
 
-        if (startDate) posQuery = posQuery.gte("pos_transaction.created_at", startDate);
-        if (endDate) posQuery = posQuery.lte("pos_transaction.created_at", endDate);
-        if (branchId) posQuery = posQuery.eq("pos_transaction.branch_id", branchId);
+        if (startDate) txQuery = txQuery.gte("created_at", startDate);
+        if (endDate) txQuery = txQuery.lte("created_at", endDate);
+        if (branchId) txQuery = txQuery.eq("branch_id", branchId);
 
-        const { data: posItems } = await posQuery;
+        const { data: posTxns } = await txQuery;
+        const txIds = (posTxns || []).map((t: any) => t.id);
 
-        if (posItems && posItems.length > 0) {
-          const medMap: Record<string, PharmacyMedicineProfit> = {};
-          for (const item of posItems) {
-            const med = item.medicine as any;
-            const name = med?.name || "Unknown";
-            const costPrice = Number(med?.cost_price) || Number(item.unit_price) * 0.65;
-            const sellingPrice = Number(item.unit_price) || 0;
-            const qty = Number(item.quantity) || 0;
+        if (txIds.length > 0) {
+          // Step 2: Get POS items for those transactions (no joins)
+          const { data: posItems } = await supabase
+            .from("pharmacy_pos_items")
+            .select("medicine_id, quantity, unit_price, total_price, transaction_id")
+            .in("transaction_id", txIds);
 
-            if (!medMap[name]) {
-              medMap[name] = {
-                medicine_name: name, quantity_sold: 0, cost_price: costPrice,
-                selling_price: sellingPrice, total_revenue: 0, total_cost: 0, profit: 0, margin_percent: 0,
-              };
+          if (posItems && posItems.length > 0) {
+            // Step 3: Get medicine cost prices
+            const medIds = [...new Set(posItems.map((i: any) => i.medicine_id).filter(Boolean))];
+            const medLookup: Record<string, { name: string; cost_price: number }> = {};
+
+            if (medIds.length > 0) {
+              const { data: meds } = await supabase
+                .from("medicines")
+                .select("id, name, cost_price")
+                .in("id", medIds);
+              for (const m of meds || []) {
+                medLookup[m.id] = { name: m.name, cost_price: Number(m.cost_price) || 0 };
+              }
             }
-            medMap[name].quantity_sold += qty;
-            medMap[name].total_revenue += Number(item.total_price) || sellingPrice * qty;
-            medMap[name].total_cost += costPrice * qty;
-          }
 
-          pharmacyMedicines = Object.values(medMap)
-            .map((m) => ({
-              ...m,
-              profit: m.total_revenue - m.total_cost,
-              margin_percent: m.total_revenue > 0 ? ((m.total_revenue - m.total_cost) / m.total_revenue) * 100 : 0,
-            }))
-            .sort((a, b) => b.profit - a.profit)
-            .slice(0, 20);
+            // Step 4: Aggregate
+            const medMap: Record<string, PharmacyMedicineProfit> = {};
+            for (const item of posItems) {
+              const med = medLookup[item.medicine_id] || null;
+              const name = med?.name || "Unknown";
+              const costPrice = med?.cost_price || Number(item.unit_price) * 0.65;
+              const sellingPrice = Number(item.unit_price) || 0;
+              const qty = Number(item.quantity) || 0;
+
+              if (!medMap[name]) {
+                medMap[name] = {
+                  medicine_name: name, quantity_sold: 0, cost_price: costPrice,
+                  selling_price: sellingPrice, total_revenue: 0, total_cost: 0, profit: 0, margin_percent: 0,
+                };
+              }
+              medMap[name].quantity_sold += qty;
+              medMap[name].total_revenue += Number(item.total_price) || sellingPrice * qty;
+              medMap[name].total_cost += costPrice * qty;
+            }
+
+            pharmacyMedicines = Object.values(medMap)
+              .map((m) => ({
+                ...m,
+                profit: m.total_revenue - m.total_cost,
+                margin_percent: m.total_revenue > 0 ? ((m.total_revenue - m.total_cost) / m.total_revenue) * 100 : 0,
+              }))
+              .sort((a, b) => b.profit - a.profit)
+              .slice(0, 20);
+          }
         }
       } catch {
         // POS data optional
