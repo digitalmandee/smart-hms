@@ -145,7 +145,7 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
         if (!acct) continue;
         
         // Only include Revenue and Expense categories
-        if (acct.category !== "Revenue" && acct.category !== "Expense") continue;
+        if (acct.category.toLowerCase() !== "revenue" && acct.category.toLowerCase() !== "expense") continue;
 
         // Aggregate
         if (!accountTotals[line.account_id]) {
