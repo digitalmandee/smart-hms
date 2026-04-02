@@ -605,7 +605,7 @@ export default function DepartmentPnLPage() {
                         <TableHead>{t("dept_pnl.paid_to")}</TableHead>
                         <TableHead className="text-right">{t("common.amount")}</TableHead>
                         <TableHead>{t("dept_pnl.payment_method")}</TableHead>
-                        <TableHead>{t("common.created_by")}</TableHead>
+                        <TableHead>{t("dept_pnl.created_by")}</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>

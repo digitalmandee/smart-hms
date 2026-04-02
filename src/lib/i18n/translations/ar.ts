@@ -3652,6 +3652,7 @@ export const ar: Record<TranslationKey, string> = {
   "dept_pnl.total_grn_value": "إجمالي قيمة GRN",
   "dept_pnl.total_paid": "إجمالي المدفوع",
   "dept_pnl.last_payment": "آخر دفعة",
+  "dept_pnl.created_by": "أنشئ بواسطة",
 
 };
 

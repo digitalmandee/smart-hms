@@ -3652,6 +3652,7 @@ export const ur: Record<TranslationKey, string> = {
   "dept_pnl.total_grn_value": "کل GRN قیمت",
   "dept_pnl.total_paid": "کل ادا شدہ",
   "dept_pnl.last_payment": "آخری ادائیگی",
+  "dept_pnl.created_by": "تخلیق کار",
 
 };
 

@@ -3725,6 +3725,7 @@ export const en = {
   "dept_pnl.total_grn_value": "Total GRN Value",
   "dept_pnl.total_paid": "Total Paid",
   "dept_pnl.last_payment": "Last Payment",
+  "dept_pnl.created_by": "Created By",
 
 } as const;
 
