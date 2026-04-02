@@ -160,6 +160,22 @@ const financialReports: ReportCard[] = [
     color: "bg-amber-500",
   },
   {
+    title: "Aging Report",
+    description: "AR/AP aging analysis, outstanding receivables & payables by bucket",
+    icon: Clock,
+    path: "/app/accounts/receivables",
+    module: "Accounts",
+    color: "bg-rose-500",
+  },
+  {
+    title: "Department P&L",
+    description: "Department-wise profit & loss with revenue, COGS, expenses breakdown",
+    icon: BarChart3,
+    path: "/app/accounts/reports/department-pnl",
+    module: "Accounts",
+    color: "bg-indigo-600",
+  },
+  {
     title: "Financial Reports",
     description: "Trial balance, P&L statement, balance sheet",
     icon: DollarSign,
