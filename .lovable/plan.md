@@ -1,134 +1,50 @@
 
 
-# HMIS Aging Report — Complete Audit & Enhancement Plan
+# Fix: Department P&L Report — Data Not Showing & Filters Not Working
 
-## Audit Findings
+## Root Causes Found
 
-```text
-REQUIREMENT                          CURRENT STATE                               VERDICT
-──────────────────────────────────── ─────────────────────────────────────────── ───────
-A. Aging calculation basis           Invoice date only, no due_date column       PARTIAL
-   Bucket correctness                Current/1-30/31-60/61-90/90+ ✓             PASS
-B. Module coverage                   Only "invoices" table queried               FAIL
-   OPD/IPD/Lab/Pharmacy/Corporate    No department breakdown, no source filter   FAIL
-   Insurance Claims                  Claims have aging in useClaimsReports       PARTIAL
-C. Insurance aging basis             Uses created_at, not submission_date        FAIL
-   Claim statuses supported          Yes (pending/submitted/approved/rejected)   PASS
-   Unpaid/partial claims in aging    Only pending/submitted, not partial         PARTIAL
-D. Partial payments                  Uses (total - paid_amount) = outstanding    PASS
-E. Credit notes / write-offs         credit_notes table exists but NOT deducted  FAIL
-   Discounts                         discount_amount on invoice, not factored    FAIL
-F. GL sync / AR = GL balance         AR Reconciliation page exists separately    PASS
-G. Department-level filtering        No department/source on receivables page    FAIL
-H. Drill-down to invoice/patient     Can click View/Collect per invoice          PARTIAL
-   Payment history visible           Not shown inline                            FAIL
-I. Real-time updates                 React Query, live on page load              PASS
-```
+### Issue 1: Pharmacy POS query silently fails (0 data)
+The `pharmacy_pos_items` table has **no foreign key constraints**. The Supabase PostgREST join syntax `medicine:medicines(name, cost_price)` and `pos_transaction:pharmacy_pos_transactions!inner(...)` both fail with 400 errors, but the `try/catch` block swallows the error silently. Result: pharmacy medicine profit tab always empty.
 
-## Key Gaps
+**Fix**: Query `pharmacy_pos_items` directly (no joins), then separately fetch `medicines` cost prices by ID, and filter by transaction IDs from `pharmacy_pos_transactions`.
 
-1. **No department filter** — invoices lack a `source_type` column; must infer department from `invoice_items` (service_type_id, lab_order_id, medicine_inventory_id, bed_id) or from `notes` field
-2. **Insurance receivables hardcoded to 0** — `insuranceReceivable = 0` on line 92
-3. **Credit notes not deducted** from outstanding balances
-4. **No insurance claim aging tab** — claims aging exists in a separate reports page but not integrated into the AR view
-5. **No CFO dashboard view** with high-risk accounts, top defaulters
-6. **Payables page** only shows GRNs with status "posted" — misses "verified" GRNs
-7. **No configurable credit terms** — aging always calculated from invoice_date with fixed buckets
-8. **No write-off tracking** in AR
+### Issue 2: Expenses query silently fails (0 data)
+The `expenses` table also has **no foreign key constraints**. The join `profiles!expenses_created_by_fkey(full_name)` and `payment_method:payment_methods(name)` both fail. Caught silently.
 
-## Enhancement Plan
+**Fix**: Query `expenses` without joins. Fetch `profiles` and `payment_methods` in separate queries, then map by ID.
 
-### 1. Create unified Aging Report hook: `src/hooks/useAgingReport.ts`
+### Issue 3: GRN vendor join may fail
+The `goods_received_notes` table join `vendor:vendors(name)` depends on an FK. Need to verify — if no FK, same fix needed.
 
-Centralizes all aging logic for both AR and AP:
+### Issue 4: Default "This Month" shows no data if transactions are older
+The default period filter is `this_month`. If the user hasn't had new transactions this month, the report shows zeros. This isn't a bug but is confusing — we should default to `ytd` (Year to Date) instead.
 
-**AR Query** — fetch invoices with status `pending`/`partially_paid`, join `patient`, `invoice_items` (to detect department via service_type_id/lab_order_id/bed_id/medicine_inventory_id), and `credit_notes` (approved, same invoice_id). Calculate:
-- `outstanding = total_amount - paid_amount - SUM(approved credit_notes.total_amount)`
-- `days_outstanding` from invoice_date
-- `department` inferred from invoice_items: has bed_id → IPD, has lab_order_id → Lab, has medicine_inventory_id → Pharmacy, has service_type_id → check service_type category, fallback → OPD
+## Plan
 
-**Insurance AR Query** — fetch `insurance_claims` with status NOT in `paid`/`rejected`, join `insurance_companies`, `patients`. Calculate:
-- `outstanding = total_amount - (paid_amount || 0)`
-- `days_outstanding` from `submission_date` (not created_at)
-- Bucket into same aging categories
+### File: `src/hooks/useDepartmentPnL.ts`
 
-**AP Query** — reuse existing PayablesPage logic (GRNs with outstanding > 0)
+**Fix pharmacy POS query (section 6, ~line 268-314)**:
+1. First query `pharmacy_pos_transactions` filtered by org, date, branch — get IDs
+2. Then query `pharmacy_pos_items` filtered by `transaction_id IN (...)` — no joins
+3. Separately query `medicines` by collected `medicine_id` values to get `cost_price`
+4. Map everything together in JS
 
-**Aging buckets**: Current (0 days), 1-30, 31-60, 61-90, 90+
+**Fix expenses query (section 7, ~line 317-350)**:
+1. Query `expenses` without any joins — just the base columns
+2. Separately query `profiles` for `created_by` IDs to get `full_name`
+3. Separately query `payment_methods` for `payment_method_id` values to get `name`
+4. Map together in JS
 
-Returns: `{ arSummary, arInvoices[], insuranceClaims[], apSummary, apGrns[], topDefaulters[], departmentBreakdown[] }`
+**Fix GRN vendor query (section 8, ~line 352-410)**:
+1. Check if FK exists — if not, query `vendors` separately by collected vendor IDs
 
-### 2. Rebuild Receivables Page: `src/pages/app/accounts/ReceivablesPage.tsx`
+### File: `src/pages/app/accounts/DepartmentPnLPage.tsx`
 
-Complete rewrite with tabbed layout:
-
-**Summary Cards (6):**
-- Total AR Outstanding
-- Patient Receivables
-- Insurance Receivables (from claims)
-- Overdue (>30 days)
-- Credit Notes Applied
-- Top Defaulter Amount
-
-**Tabs:**
-
-**Tab 1: Patient Aging** — existing invoice table + new columns:
-- Department badge (OPD/IPD/Lab/Pharmacy)
-- Credit note adjustments shown
-- Aging bucket badge
-- Filter by department, aging bucket, date range
-- Drill-down: click row → invoice detail with payment history
-
-**Tab 2: Insurance Aging** — from insurance_claims:
-- Claim #, Insurance Company, Patient, Submission Date, Claim Amount, Approved, Paid, Outstanding, Status, Aging
-- Aging based on submission_date
-- Filter by insurer, status, aging bucket
-
-**Tab 3: Department Summary** — pivot table:
-- Rows: OPD, IPD, Lab, Pharmacy, Radiology
-- Columns: Current, 1-30, 31-60, 61-90, 90+, Total
-- Both count and amount
-
-**Tab 4: Top Defaulters** — grouped by patient/company:
-- Patient name, total invoices, total outstanding, oldest invoice, avg days outstanding
-- Sorted by outstanding amount desc
-
-**CFO Dashboard section** at top (collapsible):
-- Aging bucket bar chart (existing, keep)
-- Pie chart: department split
-- High-risk indicator: count & amount of 90+ days
-
-**Export**: Excel/CSV per tab with ReportExportButton
-
-### 3. Enhance Payables Page: `src/pages/app/accounts/PayablesPage.tsx`
-
-- Add aging bar chart (same as AR page)
-- Fix query: include GRNs with status `verified` OR `posted` (currently only `posted`)
-- Add vendor aging summary tab (grouped by vendor with bucket breakdown)
-
-### 4. Add sidebar links
-
-In `role-sidebars.ts`, under Receivables children:
-- "Outstanding" (existing)
-- "Insurance Aging" → same page, auto-selects insurance tab via query param
-
-### 5. Translations
-
-Add all new labels to `en.ts`, `ur.ts`, `ar.ts`:
-- `aging.title`, `aging.patientAging`, `aging.insuranceAging`, `aging.departmentSummary`, `aging.topDefaulters`
-- `aging.submissionDate`, `aging.claimNumber`, `aging.insurer`, `aging.creditApplied`, `aging.writeOff`
-- `aging.current`, `aging.bucket_1_30`, `aging.bucket_31_60`, `aging.bucket_61_90`, `aging.bucket_90_plus`
-- `aging.department`, `aging.highRisk`, `aging.avgDaysOutstanding`, `aging.oldestInvoice`
+**Change default period** (line 93):
+- Change `useState("this_month")` to `useState("ytd")` so the report starts with Year-to-Date data, showing all available transactions.
 
 ## Files to Change
-
-- **Create**: `src/hooks/useAgingReport.ts` — unified aging engine with AR, insurance, AP, department breakdown
-- **Rewrite**: `src/pages/app/accounts/ReceivablesPage.tsx` — 4-tab CFO-grade aging report
-- **Edit**: `src/pages/app/accounts/PayablesPage.tsx` — add aging chart, fix GRN status filter, add vendor summary
-- **Edit**: `src/config/role-sidebars.ts` — add Insurance Aging link under Receivables
-- **Edit**: `src/lib/i18n/translations/en.ts` — English labels
-- **Edit**: `src/lib/i18n/translations/ur.ts` — Urdu labels
-- **Edit**: `src/lib/i18n/translations/ar.ts` — Arabic labels
-
-No database migration needed — all required data exists in invoices, invoice_items, insurance_claims, credit_notes, goods_received_notes, vendor_payments tables.
+- `src/hooks/useDepartmentPnL.ts` — rewrite pharmacy POS, expenses, and GRN queries to avoid FK-dependent joins
+- `src/pages/app/accounts/DepartmentPnLPage.tsx` — change default period to `ytd`
 
