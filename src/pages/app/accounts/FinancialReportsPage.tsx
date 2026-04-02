@@ -69,6 +69,13 @@ export default function FinancialReportsPage() {
       color: "text-indigo-500",
     },
     {
+      title: "Department P&L",
+      description: "Department-wise profitability with pharmacy margins",
+      icon: BarChart3,
+      path: "/app/accounts/reports/department-pnl",
+      color: "text-teal-500",
+    },
+    {
       title: "Consolidated P&L",
       description: "Multi-branch profit & loss comparison",
       icon: Landmark,
