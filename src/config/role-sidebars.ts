@@ -1376,6 +1376,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "VAT Return", path: "/app/accounts/reports/vat-return", icon: "Percent" },
           { name: "Payroll Cost Allocation", path: "/app/accounts/reports/payroll-cost", icon: "Users" },
           { name: "AR Reconciliation", path: "/app/accounts/reports/ar-reconciliation", icon: "CheckSquare" },
+          { name: "Aging Report", path: "/app/accounts/receivables", icon: "Clock" },
           { name: "Department Revenue", path: "/app/reports/department-revenue", icon: "Building2" },
           { name: "Day-End Summary", path: "/app/reports/day-end-summary", icon: "Receipt" },
         ]
