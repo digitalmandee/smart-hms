@@ -73,6 +73,11 @@ export default function PaymentCollectionPage() {
   const [notes, setNotes] = useState("");
   const [recordedPayment, setRecordedPayment] = useState<PaymentWithMethod | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isSplitPayment, setIsSplitPayment] = useState(false);
+  const [splits, setSplits] = useState<PaymentSplit[]>([
+    { id: crypto.randomUUID(), amount: 0, paymentMethodId: "", referenceNumber: "" },
+    { id: crypto.randomUUID(), amount: 0, paymentMethodId: "", referenceNumber: "" },
+  ]);
 
   const organization = organizations?.find((o) => o.id === profile?.organization_id);
 
