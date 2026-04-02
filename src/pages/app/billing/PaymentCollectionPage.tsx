@@ -92,25 +92,72 @@ export default function PaymentCollectionPage() {
     }
   });
 
+  const splitsTotal = splits.reduce((s, sp) => s + (sp.amount || 0), 0);
+
+  const addSplit = () => {
+    setSplits(prev => [...prev, { id: crypto.randomUUID(), amount: 0, paymentMethodId: "", referenceNumber: "" }]);
+  };
+
+  const removeSplit = (splitId: string) => {
+    if (splits.length <= 2) return;
+    setSplits(prev => prev.filter(s => s.id !== splitId));
+  };
+
+  const updateSplit = (splitId: string, field: keyof PaymentSplit, value: any) => {
+    setSplits(prev => prev.map(s => s.id === splitId ? { ...s, [field]: value } : s));
+  };
+
   const handleSubmit = async () => {
-    if (!id || !paymentMethodId || amount <= 0) return;
+    if (!id) return;
 
-    // Pass billing session ID for audit trail
-    const result = await recordPaymentMutation.mutateAsync({
-      invoiceId: id,
-      amount,
-      paymentMethodId,
-      billingSessionId: session?.id,
-      referenceNumber: referenceNumber || undefined,
-      notes: notes || undefined,
-    });
+    if (isSplitPayment) {
+      // Validate splits
+      const validSplits = splits.filter(s => s.amount > 0 && s.paymentMethodId);
+      if (validSplits.length < 2) {
+        toast.error("Add at least 2 payment methods with amounts");
+        return;
+      }
+      if (Math.abs(splitsTotal - amount) > 0.01) {
+        toast.error(`Split amounts (${formatCurrency(splitsTotal)}) must equal payment amount (${formatCurrency(amount)})`);
+        return;
+      }
 
-    // Create payment object for receipt
-    setRecordedPayment({
-      ...result,
-      payment_method: { name: "Payment" } as any,
-      received_by_profile: { full_name: profile?.full_name || "Staff" },
-    });
+      // Record each split as a separate payment
+      let lastResult: any = null;
+      for (const split of validSplits) {
+        lastResult = await recordPaymentMutation.mutateAsync({
+          invoiceId: id,
+          amount: split.amount,
+          paymentMethodId: split.paymentMethodId,
+          billingSessionId: session?.id,
+          referenceNumber: split.referenceNumber || undefined,
+          notes: notes ? `${notes} (Split payment)` : "Split payment",
+        });
+      }
+
+      setRecordedPayment({
+        ...lastResult,
+        payment_method: { name: "Split Payment" } as any,
+        received_by_profile: { full_name: profile?.full_name || "Staff" },
+      });
+    } else {
+      if (!paymentMethodId || amount <= 0) return;
+
+      const result = await recordPaymentMutation.mutateAsync({
+        invoiceId: id,
+        amount,
+        paymentMethodId,
+        billingSessionId: session?.id,
+        referenceNumber: referenceNumber || undefined,
+        notes: notes || undefined,
+      });
+
+      setRecordedPayment({
+        ...result,
+        payment_method: { name: "Payment" } as any,
+        received_by_profile: { full_name: profile?.full_name || "Staff" },
+      });
+    }
     setShowSuccess(true);
   };
 
