@@ -35,44 +35,76 @@ function usePendingCharges(patientId: string | undefined) {
     queryFn: async () => {
       const charges: InvoiceItemInput[] = [];
 
-      // Unbilled lab orders
+      // Unbilled lab orders — get items with service_type prices
       const { data: labOrders } = await supabase
         .from("lab_orders")
-        .select("id, test_name, total_price")
+        .select("id, order_number")
         .eq("patient_id", patientId!)
         .is("invoice_id", null);
 
-      labOrders?.forEach((lo) => {
-        charges.push({
-          description: `Lab: ${lo.test_name || "Lab Test"}`,
-          quantity: 1,
-          unit_price: Number(lo.total_price) || 0,
-          discount_percent: 0,
-          category: "lab",
-        });
-      });
+      if (labOrders && labOrders.length > 0) {
+        const labOrderIds = labOrders.map((lo) => lo.id);
+        const { data: labItems } = await supabase
+          .from("lab_order_items")
+          .select("test_name, service_type_id, lab_order_id")
+          .in("lab_order_id", labOrderIds);
+
+        if (labItems && labItems.length > 0) {
+          const stIds = labItems.map((li) => li.service_type_id).filter(Boolean) as string[];
+          let priceMap: Record<string, number> = {};
+          if (stIds.length > 0) {
+            const { data: sTypes } = await supabase
+              .from("service_types")
+              .select("id, default_price")
+              .in("id", stIds);
+            sTypes?.forEach((st) => { priceMap[st.id] = Number(st.default_price) || 0; });
+          }
+          labItems.forEach((li) => {
+            const price = li.service_type_id ? (priceMap[li.service_type_id] || 0) : 0;
+            charges.push({
+              description: `Lab: ${li.test_name}`,
+              quantity: 1,
+              unit_price: price,
+              discount_percent: 0,
+              category: "lab",
+            });
+          });
+        }
+      }
 
       // Unbilled imaging orders
       const { data: imagingOrders } = await supabase
         .from("imaging_orders")
-        .select("id, study_type, total_price")
+        .select("id, procedure_name, procedure_id")
         .eq("patient_id", patientId!)
         .is("invoice_id", null);
 
-      imagingOrders?.forEach((io) => {
-        charges.push({
-          description: `Imaging: ${io.study_type || "Imaging Study"}`,
-          quantity: 1,
-          unit_price: Number(io.total_price) || 0,
-          discount_percent: 0,
-          category: "imaging",
+      if (imagingOrders && imagingOrders.length > 0) {
+        const procIds = imagingOrders.map((io) => io.procedure_id).filter(Boolean) as string[];
+        let imgPriceMap: Record<string, number> = {};
+        if (procIds.length > 0) {
+          const { data: sTypes } = await supabase
+            .from("service_types")
+            .select("id, default_price")
+            .in("id", procIds);
+          sTypes?.forEach((st) => { imgPriceMap[st.id] = Number(st.default_price) || 0; });
+        }
+        imagingOrders.forEach((io) => {
+          const price = io.procedure_id ? (imgPriceMap[io.procedure_id] || 0) : 0;
+          charges.push({
+            description: `Imaging: ${io.procedure_name || "Imaging Study"}`,
+            quantity: 1,
+            unit_price: price,
+            discount_percent: 0,
+            category: "imaging",
+          });
         });
-      });
+      }
 
       // Unpaid appointments without invoice
       const { data: appointments } = await supabase
         .from("appointments")
-        .select("id, appointment_type, doctor_id")
+        .select("id, appointment_type")
         .eq("patient_id", patientId!)
         .is("invoice_id", null)
         .neq("payment_status", "paid");
