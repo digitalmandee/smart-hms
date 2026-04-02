@@ -44,9 +44,9 @@ export default function ConsultationReport() {
         .from("consultations")
         .select(`
           id, diagnosis, chief_complaint, symptoms, follow_up_date, created_at,
-          patients!inner(id, first_name, last_name),
-          doctors!inner(id, profiles(full_name)),
-          branches!inner(id, name)
+          patients(id, first_name, last_name),
+          doctors(id, profiles(full_name)),
+          branches(id, name)
         `)
         .gte("created_at", dateFrom)
         .lte("created_at", dateTo + "T23:59:59")
