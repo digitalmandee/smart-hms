@@ -50,10 +50,30 @@ export function InvoiceItemsBuilder({
   disabled,
 }: InvoiceItemsBuilderProps) {
   const { formatCurrency: fc } = useCurrencyFormatter();
+  const { profile } = useAuth();
   const { data: serviceTypes } = useServiceTypes();
   const { data: categories } = useServiceCategories();
   const { data: beds } = useBeds();
   const { data: wards } = useWards();
+
+  // Fetch billing tax slabs
+  const { data: taxSlabs } = useQuery({
+    queryKey: ["billing-tax-slabs", profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) return [];
+      const { data, error } = await supabase
+        .from("billing_tax_slabs")
+        .select("*")
+        .eq("organization_id", profile.organization_id)
+        .eq("is_active", true)
+        .order("created_at");
+      if (error) throw error;
+      return data as { id: string; name: string; tax_rate: number; is_default: boolean; applies_to: string }[];
+    },
+    enabled: !!profile?.organization_id,
+  });
+
+  const defaultTaxSlab = taxSlabs?.find(s => s.is_default);
   
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [servicePickerOpen, setServicePickerOpen] = useState(false);
