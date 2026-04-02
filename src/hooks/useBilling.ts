@@ -64,6 +64,9 @@ export interface InvoiceItemInput {
   category?: string | null;
   // Doctor attribution for consultation fees (wallet earnings)
   doctor_id?: string | null;
+  // Tax per line item
+  tax_percent?: number;
+  tax_amount?: number;
 }
 
 // ========== INVOICES ==========
