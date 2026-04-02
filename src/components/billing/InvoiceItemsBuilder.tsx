@@ -217,10 +217,11 @@ export function InvoiceItemsBuilder({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[40%]">Description</TableHead>
+            <TableHead className="w-[35%]">Description</TableHead>
             <TableHead className="text-right">Qty</TableHead>
             <TableHead className="text-right">Price</TableHead>
             <TableHead className="text-right">Disc %</TableHead>
+            <TableHead className="text-right">Tax %</TableHead>
             <TableHead className="text-right">Total</TableHead>
             <TableHead className="w-10"></TableHead>
           </TableRow>
