@@ -244,9 +244,9 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
           `)
           .eq("pos_transaction.organization_id", profile.organization_id);
 
-        if (startDate) posQuery = posQuery.gte("pos_sale.sale_date", startDate);
-        if (endDate) posQuery = posQuery.lte("pos_sale.sale_date", endDate);
-        if (branchId) posQuery = posQuery.eq("pos_sale.branch_id", branchId);
+        if (startDate) posQuery = posQuery.gte("pos_transaction.transaction_date", startDate);
+        if (endDate) posQuery = posQuery.lte("pos_transaction.transaction_date", endDate);
+        if (branchId) posQuery = posQuery.eq("pos_transaction.branch_id", branchId);
 
         const { data: posItems } = await posQuery;
 
