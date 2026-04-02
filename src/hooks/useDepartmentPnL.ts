@@ -334,16 +334,12 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
         // POS data optional
       }
 
-      // 7. Expenses from expenses table
+      // 7. Expenses from expenses table (no FK joins — query separately)
       let expenseRecords: ExpenseRecord[] = [];
       try {
         let expQuery = supabase
           .from("expenses")
-          .select(`
-            id, created_at, expense_number, category, description, amount, paid_to,
-            created_by_profile:profiles!expenses_created_by_fkey(full_name),
-            payment_method:payment_methods(name)
-          `)
+          .select("id, created_at, expense_number, category, description, amount, paid_to, created_by, payment_method_id")
           .eq("organization_id", profile.organization_id);
 
         if (startDate) expQuery = expQuery.gte("created_at", startDate);
@@ -353,7 +349,33 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
         expQuery = expQuery.order("created_at", { ascending: false });
 
         const { data: expData } = await expQuery;
-        if (expData) {
+        if (expData && expData.length > 0) {
+          // Fetch profiles for created_by
+          const creatorIds = [...new Set(expData.map((e: any) => e.created_by).filter(Boolean))];
+          const profileLookup: Record<string, string> = {};
+          if (creatorIds.length > 0) {
+            const { data: profiles } = await supabase
+              .from("profiles")
+              .select("id, full_name")
+              .in("id", creatorIds);
+            for (const p of profiles || []) {
+              profileLookup[p.id] = p.full_name || "—";
+            }
+          }
+
+          // Fetch payment methods
+          const pmIds = [...new Set(expData.map((e: any) => e.payment_method_id).filter(Boolean))];
+          const pmLookup: Record<string, string> = {};
+          if (pmIds.length > 0) {
+            const { data: pms } = await supabase
+              .from("payment_methods")
+              .select("id, name")
+              .in("id", pmIds);
+            for (const pm of pms || []) {
+              pmLookup[pm.id] = pm.name || "Cash";
+            }
+          }
+
           expenseRecords = expData.map((e: any) => ({
             id: e.id,
             date: e.created_at?.slice(0, 10) || "",
@@ -362,8 +384,8 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
             description: e.description || "",
             amount: Number(e.amount) || 0,
             paid_to: e.paid_to || "—",
-            payment_method: e.payment_method?.name || "Cash",
-            created_by: e.created_by_profile?.full_name || "—",
+            payment_method: pmLookup[e.payment_method_id] || "Cash",
+            created_by: profileLookup[e.created_by] || "—",
           }));
         }
       } catch {
