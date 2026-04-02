@@ -219,6 +219,43 @@ export default function PayablesPage() {
         </Card>
       </div>
 
+      {/* Aging Bar Chart */}
+      {payables && payables.length > 0 && (() => {
+        const agingBuckets = [
+          { name: "Current", min: 0, max: 30, color: "#22c55e" },
+          { name: "31-60", min: 31, max: 60, color: "#eab308" },
+          { name: "61-90", min: 61, max: 90, color: "#f97316" },
+          { name: "90+", min: 91, max: Infinity, color: "#ef4444" },
+        ];
+        const agingData = agingBuckets.map((bucket) => {
+          const total = payables
+            .filter((grn: any) => {
+              const days = Math.floor((new Date().getTime() - new Date(grn.received_date).getTime()) / (1000 * 60 * 60 * 24));
+              return days >= bucket.min && days <= bucket.max;
+            })
+            .reduce((sum: number, grn: any) => sum + (grn.outstanding_amount || 0), 0);
+          return { name: bucket.name, amount: total, fill: bucket.color };
+        });
+        return (
+          <Card>
+            <CardHeader><CardTitle className="text-base">Payables Aging Summary</CardTitle></CardHeader>
+            <CardContent>
+              <div className="h-[200px]">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={agingData}>
+                    <XAxis dataKey="name" tick={{ fontSize: 12 }} />
+                    <YAxis tick={{ fontSize: 12 }} width={70} />
+                    <Tooltip formatter={(value: number) => formatCurrency(value)} />
+                    <Bar dataKey="amount" radius={[4, 4, 0, 0]}>
+                      {agingData.map((entry, idx) => <Cell key={idx} fill={entry.fill} />)}
+                    </Bar>
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            </CardContent>
+          </Card>
+        );
+      })()}
       {/* Filters */}
       <Card>
         <CardContent className="pt-6">
