@@ -1,76 +1,52 @@
 
-Fix the Department P&L page by correcting the broken journal query, restoring summary totals, and hardening the department mapping.
 
-What I confirmed
-- The page is not empty because of the cards UI.
-- The main data request is failing in the browser with:
-  `column journal_entries_1.journal_number does not exist`
-- In this project the journal table uses `entry_number`, not `journal_number`.
-- Because `useDepartmentPnL` throws on that failed query, the whole report returns no data, so the top cards, table, charts, and transactions all stay at zero/empty.
-- There is also a React warning from `ReportExportButton`, but that is separate from the zero-data issue.
+# Fix: Pharmacy POS Data + GRN Visibility in Department P&L
 
-Files to update
+## Issues Found
 
-1. `src/hooks/useDepartmentPnL.ts`
-- Change the journal line select from `journal_number` to `entry_number`
-- Rename the returned transaction field usage accordingly, or map `entry_number` into the existing `journal_number` UI field
-- Keep the lowercase category checks already added
-- Make the department mapping match actual account codes used in this project:
-  - Lab revenue is `4200` in seeded accounts, while newer trigger logic uses `4030`
-  - Support both `4200` and `4030` for Laboratory
-  - Keep existing mappings for OPD, IPD, Dialysis, Imaging, Emergency, Pharmacy
-- Review transaction description fallback after the field rename so exports and table rows still show proper references
+### Issue 1: Pharmacy POS query fails (400 error)
+The `useDepartmentPnL.ts` hook queries `pharmacy_pos_transactions` using `transaction_date` (line 243), but this column does not exist. The actual column is `created_at`. This causes the entire pharmacy medicine profit section to silently fail and return empty.
 
-2. `src/pages/app/accounts/DepartmentPnLPage.tsx`
-- No major layout rewrite needed; summary cards already exist
-- If needed, adjust the transaction table/export columns to keep showing “Journal #” while sourcing from `entry_number`
-- Preserve all 3-language labels already added
+### Issue 2: GRN/PO transactions not visible
+This is **by design** in the current P&L — GRN posting creates journal entries that hit `INV-001` (Asset) and `AP-001` (Liability). The P&L filter at line 148 only keeps `revenue` and `expense` category accounts, so asset/liability entries are excluded. This is correct accounting — inventory purchases are balance sheet items, not P&L items. However, the COGS entries from pharmacy sales (EXP-COGS-001) should appear when medicines are sold.
 
-3. `src/components/reports/ReportExportButton.tsx`
-- Fix the ref warning by ensuring the trigger child supports refs cleanly
-- Most likely solution: verify the button component is ref-forwarding correctly or wrap the trigger with a native element compatible with Radix `asChild`
-- This is not the cause of zero data, but should be cleaned up in the same pass
+The user likely expects to see procurement cost reflected. The proper flow is: GRN hits balance sheet (INV-001/AP-001), then when medicines are sold via POS, the COGS trigger posts to EXP-COGS-001 which IS a P&L expense. If COGS entries exist, they will show once Issue 1 is fixed.
 
-Implementation approach
-1. Repair the failing Supabase query in `useDepartmentPnL`
-2. Normalize journal reference handling to use `entry_number`
-3. Expand department revenue mapping so older and newer account codes both roll into the correct department
-4. Recheck totals logic so:
-   - top cards show revenue / COGS / expenses / net income
-   - department rows populate
-   - transactions tab lists journal lines
-   - charts render from populated departments
-5. Fix the export-button ref warning
+### Issue 3: Stale query with `journal_number`
+Network shows a 400 error for a `journal_number` reference. The hook code is already fixed to use `entry_number`, so this is likely a cached/stale query from an older build. No code change needed — it resolves on reload.
 
-Expected result after fix
-- Recent posted transactions will appear immediately
-- Top summary cards will show totals again
-- Department rows will no longer be all zeros
-- Transactions export/table will show journal references correctly
-- Older lab revenue accounts and newer lab revenue accounts will both appear under Laboratory
+## Fix
 
-Technical details
-```text
-Current failure:
-DepartmentPnLPage
-  -> useDepartmentPnL()
-     -> journal_entry_lines select journal_entries(... journal_number ...)
-     -> Supabase 400: column does not exist
-     -> hook throws
-     -> page renders no data / zeros
+### File: `src/hooks/useDepartmentPnL.ts`
 
-Required schema-aligned field:
-journal_entries.entry_number
+**Single change** — line 243: replace `transaction_date` with `created_at` in the pharmacy POS items query select and all filter references.
+
+```
+// Current (line 243):
+pos_transaction:pharmacy_pos_transactions!inner(transaction_date, organization_id, branch_id)
+
+// Fixed:
+pos_transaction:pharmacy_pos_transactions!inner(created_at, organization_id, branch_id)
 ```
 
-```text
-Department mapping should support at least:
-REV-001     -> OPD
-4010        -> IPD
-4020        -> Emergency
-4030/4200   -> Laboratory
-4040        -> Dialysis
-4050        -> Imaging/Radiology
-REV-PHARM*  -> Pharmacy
-EXP-COGS*   -> Pharmacy COGS
+Also update the date filter references on lines 247-248:
 ```
+// Current:
+posQuery.gte("pos_transaction.transaction_date", startDate)
+posQuery.lte("pos_transaction.transaction_date", endDate)
+
+// Fixed:
+posQuery.gte("pos_transaction.created_at", startDate)
+posQuery.lte("pos_transaction.created_at", endDate)
+```
+
+And the branch filter on line 249 stays the same.
+
+This single fix will:
+- Restore pharmacy medicine-level profit data (medicine name, qty sold, cost, revenue, margin)
+- Show pharmacy COGS in the department breakdown (already working from journal entries)
+- The GRN procurement entries correctly stay off the P&L (they are balance sheet entries) but their downstream effect (COGS when sold) will now be visible
+
+## Files to Change
+- `src/hooks/useDepartmentPnL.ts` — replace `transaction_date` with `created_at` (3 occurrences)
+
