@@ -3769,6 +3769,24 @@ export const en = {
   "aging.oldestInvoice": "Oldest Invoice",
   "aging.avgDaysOutstanding": "Avg Days",
 
+  // Consultation Report
+  "consultation.reportTitle": "Consultation Report",
+  "consultation.reportDescription": "Consultation details, diagnosis trends, and follow-up tracking",
+  "consultation.date": "Date",
+  "consultation.patient": "Patient",
+  "consultation.doctor": "Doctor",
+  "consultation.chiefComplaint": "Chief Complaint",
+  "consultation.diagnosis": "Diagnosis",
+  "consultation.symptoms": "Symptoms",
+  "consultation.followUp": "Follow Up",
+  "consultation.branch": "Branch",
+  "consultation.total": "Total Consultations",
+  "consultation.withDiagnosis": "With Diagnosis",
+  "consultation.withFollowUp": "With Follow-Up",
+  "consultation.uniqueDoctors": "Active Doctors",
+  "consultation.searchPlaceholder": "Search by patient, doctor, diagnosis...",
+  "consultation.noData": "No consultations found for the selected period",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

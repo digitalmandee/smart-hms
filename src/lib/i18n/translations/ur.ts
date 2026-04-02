@@ -3696,5 +3696,23 @@ export const ur: Record<TranslationKey, string> = {
   "aging.oldestInvoice": "پرانی انوائس",
   "aging.avgDaysOutstanding": "اوسط دن",
 
+  // Consultation Report
+  "consultation.reportTitle": "مشاورت رپورٹ",
+  "consultation.reportDescription": "مشاورت کی تفصیلات، تشخیص کے رجحانات، اور فالو اپ ٹریکنگ",
+  "consultation.date": "تاریخ",
+  "consultation.patient": "مریض",
+  "consultation.doctor": "ڈاکٹر",
+  "consultation.chiefComplaint": "بنیادی شکایت",
+  "consultation.diagnosis": "تشخیص",
+  "consultation.symptoms": "علامات",
+  "consultation.followUp": "فالو اپ",
+  "consultation.branch": "برانچ",
+  "consultation.total": "کل مشاورت",
+  "consultation.withDiagnosis": "تشخیص کے ساتھ",
+  "consultation.withFollowUp": "فالو اپ کے ساتھ",
+  "consultation.uniqueDoctors": "فعال ڈاکٹرز",
+  "consultation.searchPlaceholder": "مریض، ڈاکٹر، تشخیص سے تلاش کریں...",
+  "consultation.noData": "منتخب مدت کے لیے کوئی مشاورت نہیں ملی",
+
 };
 

@@ -3696,5 +3696,23 @@ export const ar: Record<TranslationKey, string> = {
   "aging.oldestInvoice": "أقدم فاتورة",
   "aging.avgDaysOutstanding": "متوسط الأيام",
 
+  // Consultation Report
+  "consultation.reportTitle": "تقرير الاستشارات",
+  "consultation.reportDescription": "تفاصيل الاستشارات واتجاهات التشخيص ومتابعة المواعيد",
+  "consultation.date": "التاريخ",
+  "consultation.patient": "المريض",
+  "consultation.doctor": "الطبيب",
+  "consultation.chiefComplaint": "الشكوى الرئيسية",
+  "consultation.diagnosis": "التشخيص",
+  "consultation.symptoms": "الأعراض",
+  "consultation.followUp": "المتابعة",
+  "consultation.branch": "الفرع",
+  "consultation.total": "إجمالي الاستشارات",
+  "consultation.withDiagnosis": "مع التشخيص",
+  "consultation.withFollowUp": "مع المتابعة",
+  "consultation.uniqueDoctors": "أطباء نشطون",
+  "consultation.searchPlaceholder": "البحث بالمريض أو الطبيب أو التشخيص...",
+  "consultation.noData": "لم يتم العثور على استشارات للفترة المحددة",
+
 };
 

@@ -21,6 +21,8 @@ import {
   Clock,
   UserCheck,
   Shield,
+  Building2,
+  ClipboardList,
 } from "lucide-react";
 
 interface ReportCard {
@@ -88,6 +90,22 @@ const clinicalReports: ReportCard[] = [
     path: "/app/emergency/reports",
     module: "Emergency",
     color: "bg-red-500",
+  },
+  {
+    title: "OPD Department Report",
+    description: "Department-wise OPD statistics, patient flow, and doctor performance",
+    icon: Building2,
+    path: "/app/reports/opd-departments",
+    module: "OPD",
+    color: "bg-sky-500",
+  },
+  {
+    title: "Consultation Report",
+    description: "Consultation details, diagnosis trends, follow-up tracking",
+    icon: ClipboardList,
+    path: "/app/reports/consultation-report",
+    module: "OPD",
+    color: "bg-fuchsia-500",
   },
 ];
 
@@ -182,6 +200,14 @@ const financialReports: ReportCard[] = [
     path: "/app/accounts/reports",
     module: "Accounts",
     color: "bg-teal-500",
+  },
+  {
+    title: "Day End Summary",
+    description: "End-of-day department-wise collections and cashier reconciliation",
+    icon: FileText,
+    path: "/app/reports/day-end-summary",
+    module: "Finance",
+    color: "bg-slate-500",
   },
 ];
 

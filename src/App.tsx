@@ -83,6 +83,7 @@ import OrganizationReportsPage from "./pages/app/reports/OrganizationReportsPage
 import BranchComparisonPage from "./pages/app/reports/BranchComparisonPage";
 import DayEndSummaryReport from "./pages/app/reports/DayEndSummaryReport";
 import OPDDepartmentReport from "./pages/app/reports/OPDDepartmentReport";
+const ConsultationReport = React.lazy(() => import("./pages/app/reports/ConsultationReport"));
 
 // AI pages
 import AIChatPage from "./pages/app/ai/AIChatPage";
@@ -891,6 +892,7 @@ function App() {
               <Route path="opd/consultations/:id" element={<ConsultationDetailPage />} />
               <Route path="opd/gynecology" element={<GynecologyDashboard />} />
               <Route path="opd/reports" element={<DoctorReportsPage />} />
+              <Route path="reports/consultation-report" element={<React.Suspense fallback={<div>Loading...</div>}><ConsultationReport /></React.Suspense>} />
               
               {/* AI Assistant routes */}
               <Route path="ai-chat" element={<AIChatPage />} />
