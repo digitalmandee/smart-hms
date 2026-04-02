@@ -1,60 +1,43 @@
 
 
-# Accounting Flow Audit — Current Status Report
+# P&L Report — CFO Answer + Organization Filter Fix
 
-## Overall Health
+## Where to See Everything (Already Exists)
 
-```text
-FLOW                     ACCOUNTS HIT                STATUS
-──────────────────────── ─────────────────────────── ──────
-Invoice → GL             DR AR-001, CR REV-001/4010  ✅ PASS (134 entries, balanced)
-Payment → GL             DR CASH-001, CR AR-001      ✅ PASS (101 entries, balanced)
-Patient Deposit → GL     DR Cash, CR DEP-001         ✅ PASS (10 entries)
-Expense → GL             DR 5500, CR 1000            ⚠️ PARTIAL (see below)
-GRN → GL                 DR INV-001, CR AP-001       ✅ PASS (5 entries, balanced)
-Vendor Payment → GL      DR AP-001, CR CASH-001      ✅ PASS (8 entries, balanced)
-POS Sales → GL           DR Cash, CR REV-PHARM       ✅ PASS (80 entries)
-Payroll → GL             DR EXP-SAL-001, CR CASH-001 ✅ PASS (1 entry)
-Account Balances         Calculated vs Stored        ✅ PASS (no mismatches)
-JE Balance (DR=CR)       All entries                 ✅ PASS (zero imbalance)
-No Duplicate JEs         reference_type+id unique    ✅ PASS (manual JEs excluded)
-```
+The system already has the comprehensive P&L report the CFO needs:
 
-## What Is Working Correctly
+**Path**: Accounts → Financial Reports → **Detailed P&L Report**
+(`/app/accounts/reports/detailed-pnl`)
 
-1. **Invoice Revenue Routing** — OPD invoices (INV-, EMR-) hit REV-001; IPD invoices hit 4010. 134 invoice JEs, all balanced.
-2. **Payment Processing** — All 101 payments correctly DR CASH-001, CR AR-001.
-3. **GRN Posting** — Latest GRN (GRN-20260402-0001) has branch_id, correct DR INV-001 / CR AP-001, Rs. 40,000 balanced.
-4. **Vendor Payments** — All 8 correctly DR AP-001, CR CASH-001.
-5. **Account Balance Integrity** — Zero mismatches between stored `current_balance` and calculated balance from journal lines. The recent recalculation migration fixed all double-counting.
-6. **Idempotency** — No duplicate JEs for any invoice, payment, GRN, or expense.
-7. **POS/Pharmacy** — 80 transactions correctly posting revenue and COGS.
+This report shows:
+- **Revenue**: All invoice-generated revenue (OPD, IPD, Lab, Pharmacy POS, Dialysis, Donations)
+- **Cost of Goods Sold**: Pharmacy COGS from POS sales
+- **Expenses**: Administrative expenses, salary expenses, shipping, stock write-offs, petty cash, etc.
+- **Gross Profit** and **Net Income**
+- **Drill-down**: Click any account to see every individual journal entry (date, reference, debit/credit)
+- **Charts**: Revenue vs Expenses bar chart + Expense breakdown pie chart
+- **Transactions tab**: Every single journal line in one searchable, sortable table
+- **Export**: PDF and Excel
 
-## Remaining Issues
+There is also a simpler P&L at `/app/accounts/reports/profit-loss` with period-over-period comparison.
 
-### ISSUE 1: Expense Category Routing Not Active (MEDIUM)
-The migration added category-based routing (petty_cash → EXP-PETTY-001, refund → EXP-REF-001, staff_advance → EXP-ADV-001), but all 13 expenses still hit account `5500` (Administrative Expenses). The existing expenses were created before the new trigger was deployed, so they used the old hardcoded routing. **New expenses going forward should route correctly.** No retroactive fix needed unless you want to re-route historical expenses.
+## Important Accounting Clarification for CFO
 
-### ISSUE 2: Expense Payment Method Routing Not Active (LOW)
-Two expenses used payment method `f4a44444` (which has no `ledger_account_id` set), but all credits went to `1000` (Cash). Payment methods f3/f4/f5 have NULL ledger accounts — they need to be linked to their proper GL accounts (Bank Transfer → bank account, etc.) for the expense trigger's payment method routing to work.
+**GRN does NOT hit P&L directly** — this is correct accounting:
+- GRN posts: DR Inventory Asset, CR Accounts Payable (both Balance Sheet accounts)
+- The P&L impact happens when goods are **sold** (POS sale triggers COGS: DR COGS Expense, CR Inventory) or **written off**
+- This is standard accrual accounting — purchasing inventory is not an expense until consumed
 
-### ISSUE 3: 8 Seed Invoices Missing JEs (LOW)
-Six INV-260116 invoices + two zero-amount IPD invoices (total Rs. 30,830) have no journal entries. These are seed/test data from January 2026, created before the trigger existed. The two IPD invoices are Rs. 0 so they are harmless. The six INV invoices total Rs. 30,830 in unposted revenue.
+## Bug to Fix
 
-### ISSUE 4: GRN-20260401-0001 Status "posted" But No JE (LOW)
-This GRN has status "posted" but zero total (0 quantity × cost), so no JE was needed. Not an issue.
+The basic `useProfitLoss` hook (used by `/app/accounts/reports/profit-loss`) is **missing the `organization_id` filter** on both its accounts query and journal lines query. The detailed P&L was fixed in the last migration, but the basic P&L was not.
 
-## Proposed Fixes
+### Changes
 
-### Fix 1: Link payment methods to GL accounts
-Update payment methods f3, f4, f5 to have proper `ledger_account_id` values so expenses paid by bank transfer/card correctly credit the right account.
+**File: `src/hooks/useFinancialReports.ts`**
 
-### Fix 2: Backfill seed invoice JEs (optional)
-Create journal entries for the 6 seed invoices (Rs. 30,830 total) so P&L is complete. Or ignore if this is test data.
+1. Add `.eq("organization_id", profile!.organization_id!)` to the accounts query at line 254 (before `.eq("is_active", true)`)
+2. Add `.eq("journal_entry.organization_id", profile!.organization_id!)` to the journal_entry_lines query at line 276 (after `.eq("journal_entry.is_posted", true)`)
 
-### Fix 3: No code changes needed
-All triggers are functioning correctly for new transactions. The expense category routing and payment method routing will work for any new expenses created going forward.
-
-## Files to Change
-- `supabase/migrations/new.sql` — update payment_methods ledger_account_id + optionally backfill seed invoice JEs
+This is a 2-line fix — no new files, no migration needed.
 
