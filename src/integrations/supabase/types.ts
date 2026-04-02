@@ -2064,6 +2064,47 @@ export type Database = {
           },
         ]
       }
+      billing_tax_slabs: {
+        Row: {
+          applies_to: string | null
+          created_at: string | null
+          id: string
+          is_active: boolean | null
+          is_default: boolean | null
+          name: string
+          organization_id: string
+          tax_rate: number
+        }
+        Insert: {
+          applies_to?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name: string
+          organization_id: string
+          tax_rate?: number
+        }
+        Update: {
+          applies_to?: string | null
+          created_at?: string | null
+          id?: string
+          is_active?: boolean | null
+          is_default?: boolean | null
+          name?: string
+          organization_id?: string
+          tax_rate?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "billing_tax_slabs_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       biometric_devices: {
         Row: {
           branch_id: string
@@ -12231,6 +12272,8 @@ export type Database = {
           medicine_inventory_id: string | null
           quantity: number | null
           service_type_id: string | null
+          tax_amount: number | null
+          tax_percent: number | null
           total_price: number | null
           unit_price: number | null
         }
@@ -12248,6 +12291,8 @@ export type Database = {
           medicine_inventory_id?: string | null
           quantity?: number | null
           service_type_id?: string | null
+          tax_amount?: number | null
+          tax_percent?: number | null
           total_price?: number | null
           unit_price?: number | null
         }
@@ -12265,6 +12310,8 @@ export type Database = {
           medicine_inventory_id?: string | null
           quantity?: number | null
           service_type_id?: string | null
+          tax_amount?: number | null
+          tax_percent?: number | null
           total_price?: number | null
           unit_price?: number | null
         }
