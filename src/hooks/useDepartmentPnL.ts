@@ -74,7 +74,7 @@ function mapAccountToDepartment(accountNumber: string, accountName: string): str
 }
 
 function classifyAccountType(accountNumber: string, category: string): "Revenue" | "COGS" | "Expense" {
-  if (category === "Revenue") return "Revenue";
+  if (category.toLowerCase() === "revenue") return "Revenue";
   const num = accountNumber.toUpperCase();
   if (num.startsWith("EXP-COGS")) return "COGS";
   return "Expense";
