@@ -233,6 +233,30 @@ export default function GRNDetailPage() {
         </CardContent>
       </Card>
 
+      {/* GL Entry Banner */}
+      {journalEntry && (grn.status === "verified" || grn.status === "posted") && (
+        <Card className="border-primary/30 bg-primary/5">
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <BookOpen className="h-5 w-5 text-primary" />
+                <div>
+                  <p className="font-semibold">{t("grn.gl_entry_posted")}</p>
+                  <p className="text-sm text-muted-foreground">
+                    {t("grn.gl_posted_desc")} — {journalEntry.entry_number}
+                  </p>
+                </div>
+              </div>
+              <Button variant="outline" size="sm" asChild>
+                <Link to={`/app/accounts/journal-entries/${journalEntry.id}`}>
+                  {t("grn.view_journal_entry")}
+                </Link>
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Linked Requisition Banner */}
       {(grn as any).requisition_id && (
         <Card className="border-indigo-200 bg-indigo-50 dark:border-indigo-800 dark:bg-indigo-950/30">
