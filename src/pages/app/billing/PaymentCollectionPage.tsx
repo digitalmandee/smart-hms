@@ -15,14 +15,22 @@ import { PaymentMethodSelector } from "@/components/billing/PaymentMethodSelecto
 import { PrintableReceipt } from "@/components/billing/PrintableReceipt";
 import { SessionRequiredGuard } from "@/components/billing/SessionRequiredGuard";
 import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
-import { ArrowLeft, CreditCard, Printer, CheckCircle, Wallet } from "lucide-react";
+import { ArrowLeft, CreditCard, Printer, CheckCircle, Wallet, Plus, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { usePrint } from "@/hooks/usePrint";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useDepositBalance } from "@/hooks/usePatientDeposits";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+
+interface PaymentSplit {
+  id: string;
+  amount: number;
+  paymentMethodId: string;
+  referenceNumber: string;
+}
 
 export default function PaymentCollectionPage() {
   const { id } = useParams();
