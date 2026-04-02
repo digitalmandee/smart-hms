@@ -55,7 +55,7 @@ function mapAccountToDepartment(accountNumber: string, accountName: string): str
   if (num === "REV-001") return "OPD";
   if (num === "4010") return "IPD";
   if (num === "4020") return "Emergency";
-  if (num === "4030") return "Laboratory";
+  if (num === "4030" || num === "4200") return "Laboratory";
   if (num === "4040") return "Dialysis";
   if (num === "4050") return "Imaging/Radiology";
   if (num.startsWith("REV-PHARM") || num.startsWith("REV-POS")) return "Pharmacy";
