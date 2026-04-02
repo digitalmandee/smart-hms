@@ -21,6 +21,8 @@ import {
   Clock,
   UserCheck,
   Shield,
+  Building2,
+  ClipboardList,
 } from "lucide-react";
 
 interface ReportCard {
