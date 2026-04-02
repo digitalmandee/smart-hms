@@ -141,6 +141,8 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Specializations", path: "/app/settings/specializations", icon: "Award" },
           { name: "Qualifications", path: "/app/settings/qualifications", icon: "GraduationCap" },
           { name: "Tax Settings", path: "/app/settings/tax", icon: "Percent" },
+          { name: "Billing Tax Slabs", path: "/app/settings/billing-tax-slabs", icon: "Layers" },
+          { name: "Employee Tax Slabs", path: "/app/hr/setup/tax-slabs", icon: "Calculator" },
           { name: "Receipt Templates", path: "/app/settings/receipts", icon: "FileText" },
         ]
       },
