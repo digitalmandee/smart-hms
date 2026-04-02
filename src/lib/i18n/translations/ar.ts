@@ -3656,7 +3656,7 @@ export const ar: Record<TranslationKey, string> = {
 
   // Aging Report
   "aging.title": "الذمم المدينة — تقرير التقادم",
-  "aging.subtitle": "تتبع الذمم المدينة بمستوى CFO مع تفصيل الأقسام والتأمين",
+  "aging.subtitle": "تتبع الذمم المدينة مع تفصيل الأقسام والتأمين",
   "aging.totalAROutstanding": "إجمالي الذمم المدينة المستحقة",
   "aging.patientReceivables": "ذمم المرضى",
   "aging.insuranceReceivables": "ذمم التأمين",

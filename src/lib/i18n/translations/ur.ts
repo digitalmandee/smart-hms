@@ -3656,7 +3656,7 @@ export const ur: Record<TranslationKey, string> = {
 
   // Aging Report
   "aging.title": "وصول یافتنی اکاؤنٹس — عمر رسیدگی رپورٹ",
-  "aging.subtitle": "CFO گریڈ وصول یافتنی ٹریکنگ محکمہ اور انشورنس بریک ڈاؤن کے ساتھ",
+  "aging.subtitle": "وصول یافتنی ٹریکنگ محکمہ اور انشورنس بریک ڈاؤن کے ساتھ",
   "aging.totalAROutstanding": "کل AR بقایا",
   "aging.patientReceivables": "مریض وصولیاں",
   "aging.insuranceReceivables": "انشورنس وصولیاں",

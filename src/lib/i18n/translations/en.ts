@@ -3729,7 +3729,7 @@ export const en = {
 
   // Aging Report
   "aging.title": "Accounts Receivable — Aging Report",
-  "aging.subtitle": "CFO-grade receivable tracking with department & insurance breakdown",
+  "aging.subtitle": "Receivable tracking with department & insurance breakdown",
   "aging.totalAROutstanding": "Total AR Outstanding",
   "aging.patientReceivables": "Patient Receivables",
   "aging.insuranceReceivables": "Insurance Receivables",

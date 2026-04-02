@@ -142,7 +142,7 @@ export default function ReceivablesPage() {
     <div className="space-y-6">
       <PageHeader
         title={t("aging.title" as any, "Accounts Receivable — Aging Report")}
-        description={t("aging.subtitle" as any, "CFO-grade receivable tracking with department & insurance breakdown")}
+        description={t("aging.subtitle" as any, "Receivable tracking with department & insurance breakdown")}
         breadcrumbs={[
           { label: t("nav.accounts" as any, "Accounts"), href: "/app/accounts" },
           { label: t("aging.title" as any, "Accounts Receivable") },
