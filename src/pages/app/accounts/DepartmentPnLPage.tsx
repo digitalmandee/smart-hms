@@ -153,7 +153,7 @@ export default function DepartmentPnLPage() {
     <div className="space-y-6">
       <PageHeader
         title={t("dept_pnl.title")}
-        subtitle={t("dept_pnl.subtitle")}
+        description={t("dept_pnl.subtitle")}
       />
 
       {/* Filters */}
