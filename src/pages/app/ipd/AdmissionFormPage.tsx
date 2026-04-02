@@ -698,6 +698,8 @@ export default function AdmissionFormPage() {
                     bedTypeRates={bedTypeRates}
                     expectedDischargeDate={form.watch("expected_discharge_date")}
                     admissionDate={form.watch("admission_date")}
+                    procedureCharge={procedures.find(p => p.id === form.watch("primary_procedure_id"))?.default_price || 0}
+                    procedureName={procedures.find(p => p.id === form.watch("primary_procedure_id"))?.name}
                     onSuggestedDepositChange={(amount) => {
                       // Only auto-fill if deposit is 0
                       if (!form.watch("deposit_amount")) {

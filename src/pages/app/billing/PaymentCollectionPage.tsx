@@ -15,14 +15,22 @@ import { PaymentMethodSelector } from "@/components/billing/PaymentMethodSelecto
 import { PrintableReceipt } from "@/components/billing/PrintableReceipt";
 import { SessionRequiredGuard } from "@/components/billing/SessionRequiredGuard";
 import { SessionStatusBanner } from "@/components/billing/SessionStatusBanner";
-import { ArrowLeft, CreditCard, Printer, CheckCircle, Wallet } from "lucide-react";
+import { ArrowLeft, CreditCard, Printer, CheckCircle, Wallet, Plus, Trash2 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
 import { usePrint } from "@/hooks/usePrint";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useDepositBalance } from "@/hooks/usePatientDeposits";
 import { supabase } from "@/integrations/supabase/client";
 import { useQuery } from "@tanstack/react-query";
 import { toast } from "sonner";
+
+interface PaymentSplit {
+  id: string;
+  amount: number;
+  paymentMethodId: string;
+  referenceNumber: string;
+}
 
 export default function PaymentCollectionPage() {
   const { id } = useParams();
@@ -65,6 +73,11 @@ export default function PaymentCollectionPage() {
   const [notes, setNotes] = useState("");
   const [recordedPayment, setRecordedPayment] = useState<PaymentWithMethod | null>(null);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [isSplitPayment, setIsSplitPayment] = useState(false);
+  const [splits, setSplits] = useState<PaymentSplit[]>([
+    { id: crypto.randomUUID(), amount: 0, paymentMethodId: "", referenceNumber: "" },
+    { id: crypto.randomUUID(), amount: 0, paymentMethodId: "", referenceNumber: "" },
+  ]);
 
   const organization = organizations?.find((o) => o.id === profile?.organization_id);
 
@@ -79,25 +92,72 @@ export default function PaymentCollectionPage() {
     }
   });
 
+  const splitsTotal = splits.reduce((s, sp) => s + (sp.amount || 0), 0);
+
+  const addSplit = () => {
+    setSplits(prev => [...prev, { id: crypto.randomUUID(), amount: 0, paymentMethodId: "", referenceNumber: "" }]);
+  };
+
+  const removeSplit = (splitId: string) => {
+    if (splits.length <= 2) return;
+    setSplits(prev => prev.filter(s => s.id !== splitId));
+  };
+
+  const updateSplit = (splitId: string, field: keyof PaymentSplit, value: any) => {
+    setSplits(prev => prev.map(s => s.id === splitId ? { ...s, [field]: value } : s));
+  };
+
   const handleSubmit = async () => {
-    if (!id || !paymentMethodId || amount <= 0) return;
+    if (!id) return;
 
-    // Pass billing session ID for audit trail
-    const result = await recordPaymentMutation.mutateAsync({
-      invoiceId: id,
-      amount,
-      paymentMethodId,
-      billingSessionId: session?.id,
-      referenceNumber: referenceNumber || undefined,
-      notes: notes || undefined,
-    });
+    if (isSplitPayment) {
+      // Validate splits
+      const validSplits = splits.filter(s => s.amount > 0 && s.paymentMethodId);
+      if (validSplits.length < 2) {
+        toast.error("Add at least 2 payment methods with amounts");
+        return;
+      }
+      if (Math.abs(splitsTotal - amount) > 0.01) {
+        toast.error(`Split amounts (${formatCurrency(splitsTotal)}) must equal payment amount (${formatCurrency(amount)})`);
+        return;
+      }
 
-    // Create payment object for receipt
-    setRecordedPayment({
-      ...result,
-      payment_method: { name: "Payment" } as any,
-      received_by_profile: { full_name: profile?.full_name || "Staff" },
-    });
+      // Record each split as a separate payment
+      let lastResult: any = null;
+      for (const split of validSplits) {
+        lastResult = await recordPaymentMutation.mutateAsync({
+          invoiceId: id,
+          amount: split.amount,
+          paymentMethodId: split.paymentMethodId,
+          billingSessionId: session?.id,
+          referenceNumber: split.referenceNumber || undefined,
+          notes: notes ? `${notes} (Split payment)` : "Split payment",
+        });
+      }
+
+      setRecordedPayment({
+        ...lastResult,
+        payment_method: { name: "Split Payment" } as any,
+        received_by_profile: { full_name: profile?.full_name || "Staff" },
+      });
+    } else {
+      if (!paymentMethodId || amount <= 0) return;
+
+      const result = await recordPaymentMutation.mutateAsync({
+        invoiceId: id,
+        amount,
+        paymentMethodId,
+        billingSessionId: session?.id,
+        referenceNumber: referenceNumber || undefined,
+        notes: notes || undefined,
+      });
+
+      setRecordedPayment({
+        ...result,
+        payment_method: { name: "Payment" } as any,
+        received_by_profile: { full_name: profile?.full_name || "Staff" },
+      });
+    }
     setShowSuccess(true);
   };
 
@@ -353,22 +413,93 @@ export default function PaymentCollectionPage() {
               </p>
             </div>
 
-            <div>
-              <Label>Payment Method *</Label>
-              <PaymentMethodSelector
-                value={paymentMethodId}
-                onValueChange={setPaymentMethodId}
+            {/* Split Payment Toggle */}
+            <div className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/50">
+              <Label htmlFor="split-toggle" className="cursor-pointer text-sm font-medium">
+                Split Payment
+              </Label>
+              <Switch
+                id="split-toggle"
+                checked={isSplitPayment}
+                onCheckedChange={setIsSplitPayment}
               />
             </div>
 
-            <div>
-              <Label>Reference Number (Optional)</Label>
-              <Input
-                placeholder="Transaction ID, Check number, etc."
-                value={referenceNumber}
-                onChange={(e) => setReferenceNumber(e.target.value)}
-              />
-            </div>
+            {!isSplitPayment ? (
+              <>
+                <div>
+                  <Label>Payment Method *</Label>
+                  <PaymentMethodSelector
+                    value={paymentMethodId}
+                    onValueChange={setPaymentMethodId}
+                  />
+                </div>
+
+                <div>
+                  <Label>Reference Number (Optional)</Label>
+                  <Input
+                    placeholder="Transaction ID, Check number, etc."
+                    value={referenceNumber}
+                    onChange={(e) => setReferenceNumber(e.target.value)}
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="space-y-3">
+                {splits.map((split, idx) => (
+                  <div key={split.id} className="p-3 border rounded-lg space-y-2 bg-muted/30">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Method {idx + 1}</span>
+                      {splits.length > 2 && (
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeSplit(split.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-xs">Amount</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={split.amount || ""}
+                          onChange={(e) => updateSplit(split.id, "amount", parseFloat(e.target.value) || 0)}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Method</Label>
+                        <PaymentMethodSelector
+                          value={split.paymentMethodId}
+                          onValueChange={(v) => updateSplit(split.id, "paymentMethodId", v)}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Reference (Optional)</Label>
+                      <Input
+                        placeholder="Ref #"
+                        value={split.referenceNumber}
+                        onChange={(e) => updateSplit(split.id, "referenceNumber", e.target.value)}
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                <Button variant="outline" size="sm" className="w-full" onClick={addSplit}>
+                  <Plus className="mr-2 h-3 w-3" />
+                  Add Method
+                </Button>
+
+                {/* Split summary */}
+                <div className={`text-sm text-right font-medium ${Math.abs(splitsTotal - amount) > 0.01 ? "text-destructive" : "text-success"}`}>
+                  Split Total: {formatCurrency(splitsTotal)} / {formatCurrency(amount)}
+                  {Math.abs(splitsTotal - amount) > 0.01 && (
+                    <p className="text-xs">Amounts must match</p>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div>
               <Label>Notes (Optional)</Label>
@@ -385,7 +516,9 @@ export default function PaymentCollectionPage() {
               size="lg"
               onClick={handleSubmit}
               disabled={
-                !paymentMethodId ||
+                (isSplitPayment
+                  ? splits.filter(s => s.amount > 0 && s.paymentMethodId).length < 2 || Math.abs(splitsTotal - amount) > 0.01
+                  : !paymentMethodId) ||
                 amount <= 0 ||
                 amount > balance ||
                 recordPaymentMutation.isPending

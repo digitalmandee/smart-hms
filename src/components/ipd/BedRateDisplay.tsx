@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bed, Banknote, Calendar, Calculator } from "lucide-react";
 import { formatCurrency } from "@/lib/currency";
-import { BedTypeRate, getBedDailyRate, calculateSuggestedDeposit } from "@/hooks/useIPDBedTypeRates";
+import { BedTypeRate, getBedDailyRate } from "@/hooks/useIPDBedTypeRates";
 import { differenceInDays } from "date-fns";
 
 interface BedRateDisplayProps {
@@ -12,6 +12,8 @@ interface BedRateDisplayProps {
   bedTypeRates?: BedTypeRate[];
   expectedDischargeDate?: Date | null;
   admissionDate?: Date;
+  procedureCharge?: number;
+  procedureName?: string;
   onSuggestedDepositChange?: (amount: number) => void;
 }
 
@@ -22,6 +24,8 @@ export function BedRateDisplay({
   bedTypeRates,
   expectedDischargeDate,
   admissionDate = new Date(),
+  procedureCharge = 0,
+  procedureName,
   onSuggestedDepositChange,
 }: BedRateDisplayProps) {
   const dailyRate = getBedDailyRate(bedType, bedTypeRates);
@@ -31,8 +35,9 @@ export function BedRateDisplay({
     : null;
 
   const estimatedRoomCost = expectedDays ? expectedDays * dailyRate : null;
-  const suggestedDeposit = expectedDays 
-    ? calculateSuggestedDeposit(expectedDays, dailyRate)
+  const totalEstimatedCost = (estimatedRoomCost || 0) + procedureCharge;
+  const suggestedDeposit = totalEstimatedCost > 0
+    ? Math.round(totalEstimatedCost * 0.6)
     : null;
 
   // Notify parent of suggested deposit
@@ -73,6 +78,19 @@ export function BedRateDisplay({
           </span>
         </div>
 
+        {/* Procedure Charge */}
+        {procedureCharge > 0 && (
+          <div className="flex items-center justify-between text-sm">
+            <div className="flex items-center gap-2">
+              <Calculator className="h-4 w-4 text-muted-foreground" />
+              <span>{procedureName || "Procedure"}:</span>
+            </div>
+            <span className="font-semibold">
+              {formatCurrency(procedureCharge)}
+            </span>
+          </div>
+        )}
+
         {/* Expected Stay & Estimated Cost */}
         {expectedDays && (
           <>
@@ -95,19 +113,30 @@ export function BedRateDisplay({
                 {formatCurrency(estimatedRoomCost!)}
               </span>
             </div>
-
-            {suggestedDeposit && (
-              <div className="flex items-center justify-between py-2 bg-primary/10 rounded-md px-3 -mx-1">
-                <span className="text-sm font-medium">Suggested Deposit (60%):</span>
-                <span className="font-bold text-primary">
-                  {formatCurrency(suggestedDeposit)}
-                </span>
-              </div>
-            )}
           </>
         )}
 
-        {!expectedDays && (
+        {/* Total & Suggested Deposit */}
+        {suggestedDeposit && suggestedDeposit > 0 && (
+          <>
+            {(procedureCharge > 0 && estimatedRoomCost) && (
+              <div className="flex items-center justify-between text-sm border-t border-dashed pt-2">
+                <span className="font-medium">Total Estimated:</span>
+                <span className="font-semibold">
+                  {formatCurrency(totalEstimatedCost)}
+                </span>
+              </div>
+            )}
+            <div className="flex items-center justify-between py-2 bg-primary/10 rounded-md px-3 -mx-1">
+              <span className="text-sm font-medium">Suggested Deposit (60%):</span>
+              <span className="font-bold text-primary">
+                {formatCurrency(suggestedDeposit)}
+              </span>
+            </div>
+          </>
+        )}
+
+        {!expectedDays && !procedureCharge && (
           <p className="text-xs text-muted-foreground italic">
             Set expected discharge date to see cost estimate
           </p>
