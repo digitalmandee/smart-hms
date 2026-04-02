@@ -450,14 +450,14 @@ export default function DepartmentPnLPage() {
                                         <Table>
                                           <TableHeader>
                                             <TableRow>
-                                              <TableHead className="text-xs">{t("dept_pnl.date")}</TableHead>
+                                              <TableHead className="text-xs">{t("dept_pnl.txn_date")}</TableHead>
                                               <TableHead className="text-xs">{t("dept_pnl.journal_number")}</TableHead>
-                                              <TableHead className="text-xs">{t("dept_pnl.description")}</TableHead>
+                                              <TableHead className="text-xs">{t("dept_pnl.txn_description")}</TableHead>
                                               <TableHead className="text-xs">{t("dept_pnl.account")}</TableHead>
-                                              <TableHead className="text-xs">{t("dept_pnl.type")}</TableHead>
+                                              <TableHead className="text-xs">{t("dept_pnl.txn_type")}</TableHead>
                                               <TableHead className="text-xs text-right">{t("dept_pnl.debit")}</TableHead>
                                               <TableHead className="text-xs text-right">{t("dept_pnl.credit")}</TableHead>
-                                              <TableHead className="text-xs text-right">{t("dept_pnl.net_amount")}</TableHead>
+                                              <TableHead className="text-xs text-right">{t("dept_pnl.net_profit")}</TableHead>
                                             </TableRow>
                                           </TableHeader>
                                           <TableBody>
