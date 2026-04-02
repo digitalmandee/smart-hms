@@ -13,7 +13,7 @@ import {
 } from "@/components/ui/table";
 import {
   ArrowLeft, Printer, Package, CheckCircle2, FileCheck, AlertCircle, RotateCcw,
-  ShieldCheck, ShieldX, ShieldAlert,
+  ShieldCheck, ShieldX, ShieldAlert, BookOpen,
 } from "lucide-react";
 
 import { useGRN, useVerifyGRN, usePostGRN } from "@/hooks/useGRN";
