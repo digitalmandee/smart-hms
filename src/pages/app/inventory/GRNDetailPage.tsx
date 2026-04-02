@@ -34,15 +34,31 @@ export default function GRNDetailPage() {
   const { id } = useParams();
   const { formatCurrency } = useCurrencyFormatter();
   const { profile } = useAuth();
-  const { data: organization } = useOrganization(profile?.organization_id);
   const { data: branding } = useOrganizationBranding();
   const [highlightedItem, setHighlightedItem] = useState<string | null>(null);
+  const { t } = useTranslation();
 
   const { data: grn, isLoading } = useGRN(id || "");
   const verifyMutation = useVerifyGRN();
   const postMutation = usePostGRN();
   const { printRef, handlePrint } = usePrint();
   const queryClient = useQueryClient();
+
+  // Fetch linked journal entry for GL display
+  const { data: journalEntry } = useQuery({
+    queryKey: ["grn-journal", id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("journal_entries")
+        .select("id, entry_number, entry_date, description")
+        .eq("reference_type", "grn")
+        .eq("reference_id", id!)
+        .maybeSingle();
+      if (error) throw error;
+      return data;
+    },
+    enabled: !!id && !!grn && (grn.status === "verified" || grn.status === "posted"),
+  });
 
   const qcMutation = useMutation({
     mutationFn: async ({ itemId, status }: { itemId: string; status: string }) => {
