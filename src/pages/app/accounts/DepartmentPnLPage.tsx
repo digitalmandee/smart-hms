@@ -145,6 +145,9 @@ export default function DepartmentPnLPage() {
   const filteredTransactions = useMemo(() => {
     if (!data?.transactions) return [];
     let txns = data.transactions;
+    if (txnDeptFilter !== "all") {
+      txns = txns.filter((t) => t.department === txnDeptFilter);
+    }
     if (txnTypeFilter !== "all") {
       txns = txns.filter((t) => t.type === txnTypeFilter);
     }
@@ -159,7 +162,12 @@ export default function DepartmentPnLPage() {
       );
     }
     return txns;
-  }, [data?.transactions, txnSearch, txnTypeFilter]);
+  }, [data?.transactions, txnSearch, txnTypeFilter, txnDeptFilter]);
+
+  const departmentNames = useMemo(() => {
+    if (!data?.departments) return [];
+    return data.departments.map((d) => d.department);
+  }, [data?.departments]);
 
   const deptExportColumns = [
     { key: "department", header: t("dept_pnl.department") },
