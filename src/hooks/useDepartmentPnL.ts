@@ -199,9 +199,9 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
         const dept = mapAccountToDepartment(acct.account_number, acct.name);
         ensureDept(dept);
 
-        if (category === "Revenue") {
+        if (category.toLowerCase() === "revenue") {
           deptData[dept].revenue += netAmount;
-        } else if (category === "Expense") {
+        } else if (category.toLowerCase() === "expense") {
           const num = acct.account_number.toUpperCase();
           if (num.startsWith("EXP-COGS")) {
             deptData[dept].cogs += netAmount;
