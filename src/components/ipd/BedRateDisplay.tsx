@@ -2,7 +2,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Bed, Banknote, Calendar, Calculator } from "lucide-react";
 import { formatCurrency } from "@/lib/currency";
-import { BedTypeRate, getBedDailyRate, calculateSuggestedDeposit } from "@/hooks/useIPDBedTypeRates";
+import { BedTypeRate, getBedDailyRate } from "@/hooks/useIPDBedTypeRates";
 import { differenceInDays } from "date-fns";
 
 interface BedRateDisplayProps {
