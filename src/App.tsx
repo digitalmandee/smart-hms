@@ -83,6 +83,7 @@ import OrganizationReportsPage from "./pages/app/reports/OrganizationReportsPage
 import BranchComparisonPage from "./pages/app/reports/BranchComparisonPage";
 import DayEndSummaryReport from "./pages/app/reports/DayEndSummaryReport";
 import OPDDepartmentReport from "./pages/app/reports/OPDDepartmentReport";
+const ConsultationReport = React.lazy(() => import("./pages/app/reports/ConsultationReport"));
 
 // AI pages
 import AIChatPage from "./pages/app/ai/AIChatPage";
