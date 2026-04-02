@@ -48,7 +48,7 @@ export function PatientBalanceCard({ patientId }: PatientBalanceCardProps) {
           <CardContent>
             <p className="text-2xl font-bold text-emerald-600">{formatCurrency(depositData.balance)}</p>
             <p className="text-xs text-muted-foreground mt-1">
-              Available credit that can be applied to invoices
+              Available credit — apply during payment collection. Invoice total stays unchanged.
             </p>
           </CardContent>
         </Card>

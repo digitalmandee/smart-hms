@@ -11,11 +11,12 @@ import { InvoiceItemsBuilder } from "@/components/billing/InvoiceItemsBuilder";
 import { InvoiceTotals } from "@/components/billing/InvoiceTotals";
 import { PatientBalanceCard } from "@/components/billing/PatientBalanceCard";
 import { useCreateInvoice, useInvoice, useUpdateInvoice, InvoiceItemInput } from "@/hooks/useBilling";
-
 import { useSurgery, useUpdateSurgeryInvoice } from "@/hooks/useOT";
 import { useAuth } from "@/contexts/AuthContext";
-import { ArrowLeft, Save, FileText, Scissors } from "lucide-react";
+import { ArrowLeft, Save, FileText, Scissors, ClipboardList } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { supabase } from "@/integrations/supabase/client";
+import { useQuery } from "@tanstack/react-query";
 
 interface Patient {
   id: string;
@@ -27,6 +28,102 @@ interface Patient {
   gender: string | null;
 }
 
+function usePendingCharges(patientId: string | undefined) {
+  return useQuery({
+    queryKey: ["pending-charges", patientId],
+    enabled: !!patientId,
+    queryFn: async () => {
+      const charges: InvoiceItemInput[] = [];
+
+      // Unbilled lab orders — get items with service_type prices
+      const { data: labOrders } = await supabase
+        .from("lab_orders")
+        .select("id, order_number")
+        .eq("patient_id", patientId!)
+        .is("invoice_id", null);
+
+      if (labOrders && labOrders.length > 0) {
+        const labOrderIds = labOrders.map((lo) => lo.id);
+        const { data: labItems } = await supabase
+          .from("lab_order_items")
+          .select("test_name, service_type_id, lab_order_id")
+          .in("lab_order_id", labOrderIds);
+
+        if (labItems && labItems.length > 0) {
+          const stIds = labItems.map((li) => li.service_type_id).filter(Boolean) as string[];
+          let priceMap: Record<string, number> = {};
+          if (stIds.length > 0) {
+            const { data: sTypes } = await supabase
+              .from("service_types")
+              .select("id, default_price")
+              .in("id", stIds);
+            sTypes?.forEach((st) => { priceMap[st.id] = Number(st.default_price) || 0; });
+          }
+          labItems.forEach((li) => {
+            const price = li.service_type_id ? (priceMap[li.service_type_id] || 0) : 0;
+            charges.push({
+              description: `Lab: ${li.test_name}`,
+              quantity: 1,
+              unit_price: price,
+              discount_percent: 0,
+              category: "lab",
+            });
+          });
+        }
+      }
+
+      // Unbilled imaging orders
+      const { data: imagingOrders } = await supabase
+        .from("imaging_orders")
+        .select("id, procedure_name, procedure_id")
+        .eq("patient_id", patientId!)
+        .is("invoice_id", null);
+
+      if (imagingOrders && imagingOrders.length > 0) {
+        const procIds = imagingOrders.map((io) => io.procedure_id).filter(Boolean) as string[];
+        let imgPriceMap: Record<string, number> = {};
+        if (procIds.length > 0) {
+          const { data: sTypes } = await supabase
+            .from("service_types")
+            .select("id, default_price")
+            .in("id", procIds);
+          sTypes?.forEach((st) => { imgPriceMap[st.id] = Number(st.default_price) || 0; });
+        }
+        imagingOrders.forEach((io) => {
+          const price = io.procedure_id ? (imgPriceMap[io.procedure_id] || 0) : 0;
+          charges.push({
+            description: `Imaging: ${io.procedure_name || "Imaging Study"}`,
+            quantity: 1,
+            unit_price: price,
+            discount_percent: 0,
+            category: "imaging",
+          });
+        });
+      }
+
+      // Unpaid appointments without invoice
+      const { data: appointments } = await supabase
+        .from("appointments")
+        .select("id, appointment_type")
+        .eq("patient_id", patientId!)
+        .is("invoice_id", null)
+        .neq("payment_status", "paid");
+
+      appointments?.forEach((apt) => {
+        charges.push({
+          description: `Consultation: ${apt.appointment_type || "General"}`,
+          quantity: 1,
+          unit_price: 0,
+          discount_percent: 0,
+          category: "consultation",
+        });
+      });
+
+      return charges.filter((c) => c.unit_price > 0);
+    },
+  });
+}
+
 export default function InvoiceFormPage() {
   const navigate = useNavigate();
   const { id } = useParams();
@@ -35,7 +132,7 @@ export default function InvoiceFormPage() {
 
   const isEdit = !!id;
   const surgeryId = searchParams.get("surgeryId");
-
+  const urlPatientId = searchParams.get("patientId");
 
   const { data: existingInvoice, isLoading } = useInvoice(id);
   const { data: surgery, isLoading: surgeryLoading } = useSurgery(surgeryId || "");
@@ -49,6 +146,33 @@ export default function InvoiceFormPage() {
   const [taxAmount, setTaxAmount] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
   const [surgeryInitialized, setSurgeryInitialized] = useState(false);
+  const [pendingChargesLoaded, setPendingChargesLoaded] = useState(false);
+
+  const { data: pendingCharges } = usePendingCharges(selectedPatient?.id);
+
+  // Auto-load patient from URL param
+  useEffect(() => {
+    if (urlPatientId && !isEdit && !selectedPatient) {
+      supabase
+        .from("patients")
+        .select("id, first_name, last_name, patient_number, phone, date_of_birth, gender")
+        .eq("id", urlPatientId)
+        .single()
+        .then(({ data }) => {
+          if (data) {
+            setSelectedPatient({
+              id: data.id,
+              first_name: data.first_name,
+              last_name: data.last_name,
+              patient_number: data.patient_number,
+              phone: data.phone,
+              date_of_birth: data.date_of_birth,
+              gender: data.gender,
+            });
+          }
+        });
+    }
+  }, [urlPatientId, isEdit, selectedPatient]);
 
   // Initialize from existing invoice (edit mode)
   useEffect(() => {
@@ -81,7 +205,6 @@ export default function InvoiceFormPage() {
   // Initialize from surgery context (new invoice for surgery)
   useEffect(() => {
     if (surgery && surgeryId && !isEdit && !surgeryInitialized) {
-      // Set patient from surgery
       if (surgery.patient) {
         setSelectedPatient({
           id: surgery.patient.id,
@@ -94,7 +217,6 @@ export default function InvoiceFormPage() {
         });
       }
 
-      // Add surgery procedure as initial item
       const procedureItem: InvoiceItemInput = {
         description: `Surgery: ${surgery.procedure_name}`,
         quantity: 1,
@@ -103,13 +225,17 @@ export default function InvoiceFormPage() {
         category: "procedure",
       };
       setItems([procedureItem]);
-
-      // Set notes with surgery reference
       setNotes(`Surgery: ${surgery.surgery_number} - ${surgery.procedure_name}`);
-
       setSurgeryInitialized(true);
     }
   }, [surgery, surgeryId, isEdit, surgeryInitialized]);
+
+  const handleLoadPendingCharges = () => {
+    if (pendingCharges && pendingCharges.length > 0) {
+      setItems((prev) => [...prev, ...pendingCharges]);
+      setPendingChargesLoaded(true);
+    }
+  };
 
   const subtotal = items.reduce((sum, item) => {
     return sum + item.quantity * item.unit_price * (1 - (item.discount_percent || 0) / 100);
@@ -142,7 +268,6 @@ export default function InvoiceFormPage() {
         status,
       });
 
-      // Link invoice to surgery if this was created from surgery context
       if (surgeryId && invoice.id) {
         await updateSurgeryInvoiceMutation.mutateAsync({
           surgeryId,
@@ -211,6 +336,20 @@ export default function InvoiceFormPage() {
         </Card>
       )}
 
+      {/* Pending Charges Banner */}
+      {!isEdit && !pendingChargesLoaded && pendingCharges && pendingCharges.length > 0 && (
+        <Alert className="border-primary/30 bg-primary/5">
+          <ClipboardList className="h-4 w-4" />
+          <AlertTitle>{pendingCharges.length} pending charge(s) found</AlertTitle>
+          <AlertDescription className="flex items-center justify-between">
+            <span>This patient has unbilled lab, imaging or consultation charges.</span>
+            <Button size="sm" variant="outline" onClick={handleLoadPendingCharges}>
+              Load Charges
+            </Button>
+          </AlertDescription>
+        </Alert>
+      )}
+
       <div className="grid gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2 space-y-6">
           {/* Patient Selection */}
@@ -220,7 +359,10 @@ export default function InvoiceFormPage() {
             </CardHeader>
             <CardContent>
               <PatientSearch
-                onSelect={(patient) => setSelectedPatient(patient)}
+                onSelect={(patient) => {
+                  setSelectedPatient(patient);
+                  setPendingChargesLoaded(false);
+                }}
                 selectedPatient={selectedPatient}
               />
             </CardContent>
