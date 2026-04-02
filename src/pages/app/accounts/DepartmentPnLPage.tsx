@@ -15,7 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   BarChart3, TrendingUp, TrendingDown, DollarSign,
-  Download, FileText, Pill, Building2,
+  Download, Pill, Building2,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
