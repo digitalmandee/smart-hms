@@ -392,15 +392,12 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
         // optional
       }
 
-      // 8. GRN records
+      // 8. GRN records (no FK join — query vendors separately)
       let grnRecords: GRNRecord[] = [];
       try {
         let grnQuery = supabase
           .from("goods_received_notes")
-          .select(`
-            id, grn_number, invoice_amount, received_date, status,
-            vendor:vendors(name)
-          `)
+          .select("id, grn_number, invoice_amount, received_date, status, vendor_id")
           .eq("organization_id", profile.organization_id);
 
         if (startDate) grnQuery = grnQuery.gte("received_date", startDate);
@@ -412,6 +409,19 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
         const { data: grnData } = await grnQuery;
 
         if (grnData && grnData.length > 0) {
+          // Fetch vendor names
+          const vendorIds = [...new Set(grnData.map((g: any) => g.vendor_id).filter(Boolean))];
+          const vendorLookup: Record<string, string> = {};
+          if (vendorIds.length > 0) {
+            const { data: vendors } = await supabase
+              .from("vendors")
+              .select("id, name")
+              .in("id", vendorIds);
+            for (const v of vendors || []) {
+              vendorLookup[v.id] = v.name || "—";
+            }
+          }
+
           // Fetch vendor payments for these GRNs
           const grnIds = grnData.map((g: any) => g.id);
           const { data: payments } = await supabase
@@ -438,7 +448,7 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
             return {
               id: g.id,
               grn_number: g.grn_number || "",
-              vendor_name: g.vendor?.name || "—",
+              vendor_name: vendorLookup[g.vendor_id] || "—",
               invoice_amount: invoiceAmt,
               received_date: g.received_date || "",
               status: g.status || "",

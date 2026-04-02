@@ -90,7 +90,7 @@ export default function DepartmentPnLPage() {
   const { formatCurrency } = useCurrencyFormatter();
   const { profile } = useAuth();
 
-  const [preset, setPreset] = useState("this_month");
+  const [preset, setPreset] = useState("ytd");
   const [customStart, setCustomStart] = useState("");
   const [customEnd, setCustomEnd] = useState("");
   const [branchId, setBranchId] = useState<string>("");
