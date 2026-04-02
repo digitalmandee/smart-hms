@@ -275,6 +275,7 @@ export function useProfitLoss(startDate?: string, endDate?: string) {
             )
           `)
           .eq("journal_entry.is_posted", true)
+          .eq("journal_entry.organization_id", profile!.organization_id!)
           .gte("journal_entry.entry_date", startDate)
           .lte("journal_entry.entry_date", endDate);
 
