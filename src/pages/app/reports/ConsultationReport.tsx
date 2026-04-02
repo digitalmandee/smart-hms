@@ -75,7 +75,7 @@ export default function ConsultationReport() {
   });
 
   // Fetch doctors for filter
-  const { data: doctors = [] } = useQuery({
+  const { data: doctors = [] } = useQuery<{id: string; name: string}[]>({
     queryKey: ["doctors-list", orgId],
     queryFn: async () => {
       if (!orgId) return [];
