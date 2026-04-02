@@ -97,6 +97,7 @@ export default function DepartmentPnLPage() {
   const [expandedDept, setExpandedDept] = useState<string | null>(null);
   const [txnSearch, setTxnSearch] = useState("");
   const [txnTypeFilter, setTxnTypeFilter] = useState<string>("all");
+  const [txnDeptFilter, setTxnDeptFilter] = useState<string>("all");
 
   const dates = useMemo(() => {
     if (preset === "custom" && customStart && customEnd) {
