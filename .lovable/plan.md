@@ -1,43 +1,109 @@
 
 
-# P&L Report — CFO Answer + Organization Filter Fix
+# Department-Wise P&L Report + Pharmacy Profit Visibility
 
-## Where to See Everything (Already Exists)
+## What Exists Today
 
-The system already has the comprehensive P&L report the CFO needs:
+| Report | What It Shows | Gap |
+|--------|--------------|-----|
+| Detailed P&L | Revenue, COGS, Expenses, Net Income (GL-based) | No department breakdown |
+| Department Revenue | Revenue by OPD/IPD/Lab/Pharmacy | Revenue only — no expenses or profit |
+| Cost Center P&L | P&L by cost center | Requires `cost_center_id` on journal lines (mostly empty) |
+| Pharmacy Medicine List | Cost price, selling price, margin per medicine | Not connected to P&L |
 
-**Path**: Accounts → Financial Reports → **Detailed P&L Report**
-(`/app/accounts/reports/detailed-pnl`)
+## What the CFO Needs
 
-This report shows:
-- **Revenue**: All invoice-generated revenue (OPD, IPD, Lab, Pharmacy POS, Dialysis, Donations)
-- **Cost of Goods Sold**: Pharmacy COGS from POS sales
-- **Expenses**: Administrative expenses, salary expenses, shipping, stock write-offs, petty cash, etc.
-- **Gross Profit** and **Net Income**
-- **Drill-down**: Click any account to see every individual journal entry (date, reference, debit/credit)
-- **Charts**: Revenue vs Expenses bar chart + Expense breakdown pie chart
-- **Transactions tab**: Every single journal line in one searchable, sortable table
+A single **Department-Wise P&L** report showing per department:
+- Revenue (from invoice prefix routing: OPD, IPD, Lab, Pharmacy, etc.)
+- Expenses (allocated by journal entry reference or account mapping)
+- COGS (Pharmacy specifically)
+- Gross Profit and Net Profit per department
+- Pharmacy cost/selling/margin breakdown
+
+## Plan
+
+### 1. New page: Department P&L Report (`/app/accounts/reports/department-pnl`)
+
+A new comprehensive report page with:
+- **Date range picker** with presets (This Month, Last Month, YTD, etc.)
+- **Branch filter**
+- **Summary cards**: Total Revenue, Total Expenses, Net Income
+- **Department table** showing per-department: Revenue, COGS, Expenses, Gross Profit, Net Profit, Margin %
+- **Department detail drill-down**: Click a department row to see individual transactions
+- **Charts tab**: Stacked bar chart (Revenue vs Expenses by department), Pie chart (profit contribution)
+- **Pharmacy section**: Shows top medicines by profit, cost vs selling price, margin %
 - **Export**: PDF and Excel
 
-There is also a simpler P&L at `/app/accounts/reports/profit-loss` with period-over-period comparison.
+### 2. New hook: `useDepartmentPnL`
 
-## Important Accounting Clarification for CFO
+Queries journal entries grouped by department. Department mapping strategy:
 
-**GRN does NOT hit P&L directly** — this is correct accounting:
-- GRN posts: DR Inventory Asset, CR Accounts Payable (both Balance Sheet accounts)
-- The P&L impact happens when goods are **sold** (POS sale triggers COGS: DR COGS Expense, CR Inventory) or **written off**
-- This is standard accrual accounting — purchasing inventory is not an expense until consumed
+**Revenue** — Already routed by invoice prefix in the trigger:
+- `REV-001` → OPD
+- `4010` → IPD  
+- `4030` → Laboratory
+- `4040` → Dialysis
+- `REV-PHARM` / Pharmacy revenue accounts → Pharmacy
 
-## Bug to Fix
+**COGS** — `EXP-COGS-001` → Pharmacy (only pharmacy has COGS currently)
 
-The basic `useProfitLoss` hook (used by `/app/accounts/reports/profit-loss`) is **missing the `organization_id` filter** on both its accounts query and journal lines query. The detailed P&L was fixed in the last migration, but the basic P&L was not.
+**Expenses** — Map by reference_type + journal description:
+- Salary/Payroll → allocated proportionally or shown as "General"
+- Administrative expenses → "General/Admin"
+- Stock write-offs → "Pharmacy"
+- Shipping → "Pharmacy"
 
-### Changes
+The hook will:
+1. Fetch all revenue accounts with their journal lines in the date range
+2. Map each revenue account to a department by account_number
+3. Fetch all expense accounts with journal lines
+4. Map expenses to departments where possible (COGS→Pharmacy, write-offs→Pharmacy)
+5. Unallocated expenses go to "General/Admin" bucket
+6. Calculate per-department: Revenue, COGS, Gross Profit, Operating Expenses, Net Profit
 
-**File: `src/hooks/useFinancialReports.ts`**
+### 3. Pharmacy Profit Section
 
-1. Add `.eq("organization_id", profile!.organization_id!)` to the accounts query at line 254 (before `.eq("is_active", true)`)
-2. Add `.eq("journal_entry.organization_id", profile!.organization_id!)` to the journal_entry_lines query at line 276 (after `.eq("journal_entry.is_posted", true)`)
+Query `pharmacy_pos_items` joined with `medicines` to show:
+- Top 10 medicines by profit (selling_price - cost_price) × quantity sold
+- Overall pharmacy margin percentage
+- Cost vs Revenue comparison
 
-This is a 2-line fix — no new files, no migration needed.
+### 4. Navigation + Translations
+
+- Add "Department P&L" to the sidebar under Financial Reports
+- Add translations in en.ts, ur.ts, ar.ts for all new labels
+
+## Technical Details
+
+### Department mapping (account_number → department)
+
+```text
+ACCOUNT              DEPARTMENT
+REV-001              OPD
+4010                 IPD
+4020                 Emergency
+4030                 Laboratory
+4040                 Dialysis
+4050                 Imaging/Radiology
+REV-PHARM*           Pharmacy
+EXP-COGS*            Pharmacy
+EXP-WO*              Pharmacy (write-offs)
+EXP-SHIP*            Pharmacy (shipping)
+EXP-SAL*             General (payroll)
+5500, EXP-PETTY*     General (admin)
+All others           General
+```
+
+### Files to create/modify
+
+- **New**: `src/pages/app/accounts/DepartmentPnLPage.tsx` — main report page
+- **New**: `src/hooks/useDepartmentPnL.ts` — data hook with department mapping
+- **Edit**: `src/App.tsx` — add route
+- **Edit**: `src/config/role-sidebars.ts` — add sidebar link
+- **Edit**: `src/pages/app/accounts/FinancialReportsPage.tsx` — add card
+- **Edit**: `src/lib/i18n/translations/en.ts` — English labels
+- **Edit**: `src/lib/i18n/translations/ur.ts` — Urdu labels
+- **Edit**: `src/lib/i18n/translations/ar.ts` — Arabic labels
+
+No database migration needed — all data already exists in journal_entries/journal_entry_lines with the right account mappings.
 
