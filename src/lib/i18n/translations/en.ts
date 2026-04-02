@@ -3814,6 +3814,12 @@ export const en = {
   "billing_tax.tax_col": "Tax %",
   "billing_tax.tax_amount_col": "Tax Amt",
 
+  // GRN GL Integration
+  "grn.gl_entry_posted": "GL Entry Posted",
+  "grn.view_journal_entry": "View Journal Entry",
+  "grn.gl_posted_desc": "Journal entry auto-posted: DR Inventory Asset / CR Accounts Payable",
+  "grn.gl_total_value": "GL Value",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;
