@@ -1,49 +1,37 @@
 
 
-# Add Missing Reports to Reports Hub
+# Make Department P&L Revenue Figures Clickable with Transaction Drill-Down
 
 ## Problem
-The Reports Hub page (`ReportsHubPage.tsx`) is missing several existing report pages that already have routes:
+Department rows in the P&L table are clickable (cursor changes, `expandedDept` state toggles) but nothing actually expands — the state is unused. Clicking "OPD Revenue 3,232,155" should show the underlying journal transactions that make up that figure.
 
-1. **OPD Department Report** — exists at `/app/reports/opd-departments` but not in hub
-2. **Day End Summary Report** — exists at `/app/reports/day-end-summary` but not in hub
-3. **Consultation Report** — no dedicated report page exists yet (consultation data only visible in OPD History)
+## Solution
+When a department row is clicked, render an expanded detail row below it showing all journal transactions for that department, filtered from the existing `data.transactions` array. This lets users verify exactly where each revenue/expense figure comes from.
 
 ## Changes
 
-### 1. Add missing reports to `src/pages/app/reports/ReportsHubPage.tsx`
+### File: `src/pages/app/accounts/DepartmentPnLPage.tsx`
 
-Add to **clinicalReports** array:
-- **OPD Department Report** — path: `/app/reports/opd-departments`, icon: Building2, module: "OPD"
-- **Consultation Report** — path: `/app/opd/consultations/report`, icon: Stethoscope, module: "OPD" (new page)
+**After each department `<TableRow>` (around line 428)**, add a conditional expanded row:
 
-Add to **financialReports** array:
-- **Day End Summary** — path: `/app/reports/day-end-summary`, icon: FileText, module: "Finance"
+When `expandedDept === dept.department`:
+- Render a new `<TableRow>` with a single `<TableCell colSpan={7}>`
+- Inside, show a sub-table of all transactions from `data.transactions` filtered by `t.department === dept.department`
+- Sub-table columns: Date, Journal #, Description, Account, Type (Revenue/COGS/Expense badge), Debit, Credit, Net Amount
+- Include a count badge showing number of transactions
+- Add subtle background styling (`bg-muted/30`) to distinguish from parent rows
+- Group subtotals at the bottom: total revenue, total COGS, total expenses for that department
 
-Update the quick stats count (it auto-calculates from array lengths).
+This uses the **existing** `data.transactions` array — no new queries needed. The transactions are already fetched and tagged with department names.
 
-### 2. Create new Consultation Report page: `src/pages/app/reports/ConsultationReport.tsx`
+### Translation files (`en.ts`, `ur.ts`, `ar.ts`)
 
-A dedicated report showing consultation data with:
-- **Filters**: date range, doctor, department, branch
-- **Summary cards**: total consultations, completed, avg per doctor, top diagnosis
-- **Table**: date, patient, doctor, diagnosis, symptoms, follow-up status
-- **Export**: CSV/print support using existing `ReportExportButton`
-- Data sourced from `consultations` table joined with `patients`, `doctors`, `appointments`
+Add keys:
+- `dept_pnl.drill_down_title`: "Transaction Details" / "تفاصیل لین دین" / "تفاصيل المعاملات"
+- `dept_pnl.click_to_expand`: "Click row to see transactions" / equivalent
 
-### 3. Add route in `src/App.tsx`
-
-Add route: `<Route path="opd/consultations/report" element={<ConsultationReport />} />`
-
-### 4. Add translations in `en.ts`, `ur.ts`, `ar.ts`
-
-New keys for consultation report labels: title, description, column headers.
-
-## Files to Change
-- `src/pages/app/reports/ReportsHubPage.tsx` — add 3 missing report cards
-- `src/pages/app/reports/ConsultationReport.tsx` — new consultation report page
-- `src/App.tsx` — add consultation report route
-- `src/lib/i18n/translations/en.ts` — English labels
-- `src/lib/i18n/translations/ur.ts` — Urdu labels
-- `src/lib/i18n/translations/ar.ts` — Arabic labels
+## Technical Detail
+- Filter: `data.transactions.filter(t => t.department === dept.department)`
+- The `DepartmentTransaction` interface already has: date, journal_number, description, department, account_name, type, debit, credit, net_amount
+- No new hooks or queries needed — purely UI rendering of existing data
 
