@@ -3475,7 +3475,7 @@ export const ur: Record<TranslationKey, string> = {
   "demo.section.reports": "رپورٹس اور تعمیل",
   "demo.step.accountsDashboard": "اکاؤنٹس ڈیش بورڈ",
   "demo.step.accountsDashboard.desc": "KPIs، آمدنی کے رجحانات، AR ایجنگ کا جائزہ",
-  "demo.step.accountsDashboard.talk": "دکھائیں کہ ڈیش بورڈ CFO سطح کا سنیپ شاٹ کیسے دیتا ہے",
+  "demo.step.accountsDashboard.talk": "دکھائیں کہ ڈیش بورڈ مالیاتی سنیپ شاٹ کیسے دیتا ہے",
   "demo.step.chartOfAccounts": "چارٹ آف اکاؤنٹس",
   "demo.step.chartOfAccounts.desc": "تمام اکاؤنٹس کا 4 سطحی درجہ بندی ٹری",
   "demo.step.chartOfAccounts.talk": "درجہ بندی دکھائیں: اثاثے ← موجودہ اثاثے ← نقد و بینک ← چھوٹا خرچ",
