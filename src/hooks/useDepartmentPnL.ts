@@ -240,9 +240,9 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
           .select(`
             quantity, unit_price, total_price,
             medicine:medicines(name, cost_price),
-            pos_sale:pharmacy_pos_sales!inner(sale_date, organization_id, branch_id)
+            pos_transaction:pharmacy_pos_transactions!inner(transaction_date, organization_id, branch_id)
           `)
-          .eq("pos_sale.organization_id", profile.organization_id);
+          .eq("pos_transaction.organization_id", profile.organization_id);
 
         if (startDate) posQuery = posQuery.gte("pos_sale.sale_date", startDate);
         if (endDate) posQuery = posQuery.lte("pos_sale.sale_date", endDate);
