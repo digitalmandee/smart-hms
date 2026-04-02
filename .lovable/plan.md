@@ -1,50 +1,49 @@
 
 
-# Fix: Invoice Form — Auto-Load Patient & Pending Procedure Charges
+# Add Missing Reports to Reports Hub
 
 ## Problem
-When navigating to `/app/billing/invoices/new?patientId=xxx`, the form:
-1. Does NOT auto-select the patient from the URL parameter
-2. Does NOT load pending unbilled charges (lab orders, imaging orders, consultations)
-3. Shows "Available Deposit" which is confusing — user thinks deposit reduces the invoice total
+The Reports Hub page (`ReportsHubPage.tsx`) is missing several existing report pages that already have routes:
 
-The invoice should always be for the **full procedure amount**. Deposits stay separate. If patient pays less, the balance remains unpaid on the invoice.
+1. **OPD Department Report** — exists at `/app/reports/opd-departments` but not in hub
+2. **Day End Summary Report** — exists at `/app/reports/day-end-summary` but not in hub
+3. **Consultation Report** — no dedicated report page exists yet (consultation data only visible in OPD History)
 
 ## Changes
 
-### File: `src/pages/app/billing/InvoiceFormPage.tsx`
+### 1. Add missing reports to `src/pages/app/reports/ReportsHubPage.tsx`
 
-**1. Read `patientId` from URL and auto-select patient**
-- Extract `patientId` from `searchParams`
-- Fetch patient data from Supabase when `patientId` is present
-- Auto-set `selectedPatient` state
+Add to **clinicalReports** array:
+- **OPD Department Report** — path: `/app/reports/opd-departments`, icon: Building2, module: "OPD"
+- **Consultation Report** — path: `/app/opd/consultations/report`, icon: Stethoscope, module: "OPD" (new page)
 
-**2. Auto-load pending unbilled charges for selected patient**
-- Add a query to fetch unbilled lab orders (`invoice_id IS NULL`) for the patient
-- Add a query to fetch unbilled imaging orders (`invoice_id IS NULL`) for the patient
-- Add a query to fetch unpaid appointments (consultation fees) for the patient
-- When patient is selected and has pending charges, auto-populate the `items` array with those charges
-- Show an info banner: "X pending charges found for this patient" with a button to load them
+Add to **financialReports** array:
+- **Day End Summary** — path: `/app/reports/day-end-summary`, icon: FileText, module: "Finance"
 
-**3. Clarify deposit display in PatientBalanceCard**
-- Update the "Available Deposit" card description to say: "Available credit — will NOT be auto-deducted from this invoice. Can be applied during payment collection."
+Update the quick stats count (it auto-calculates from array lengths).
 
-### File: `src/components/billing/PatientBalanceCard.tsx`
-- Change deposit description text from "Available credit that can be applied to invoices" to "Available credit — apply during payment collection. Invoice total stays unchanged."
+### 2. Create new Consultation Report page: `src/pages/app/reports/ConsultationReport.tsx`
 
-### Translation files (en.ts, ur.ts, ar.ts)
-- Add keys: `billing.depositNote`, `billing.pendingChargesFound`, `billing.loadPendingCharges`
+A dedicated report showing consultation data with:
+- **Filters**: date range, doctor, department, branch
+- **Summary cards**: total consultations, completed, avg per doctor, top diagnosis
+- **Table**: date, patient, doctor, diagnosis, symptoms, follow-up status
+- **Export**: CSV/print support using existing `ReportExportButton`
+- Data sourced from `consultations` table joined with `patients`, `doctors`, `appointments`
 
-## Technical Detail
-- Pending charges query: fetch from `lab_orders` (where `invoice_id IS NULL`, `patient_id = X`), `imaging_orders` (same), and `appointments` (where `payment_status != 'paid'`, `invoice_id IS NULL`)
-- Each charge maps to an invoice item with description, quantity=1, unit_price from service_type default_price
-- User can still add/remove items manually before submitting
-- Invoice is always created with `paid_amount: 0` — no deposit auto-deduction
+### 3. Add route in `src/App.tsx`
+
+Add route: `<Route path="opd/consultations/report" element={<ConsultationReport />} />`
+
+### 4. Add translations in `en.ts`, `ur.ts`, `ar.ts`
+
+New keys for consultation report labels: title, description, column headers.
 
 ## Files to Change
-- `src/pages/app/billing/InvoiceFormPage.tsx` — read patientId param, auto-load pending charges
-- `src/components/billing/PatientBalanceCard.tsx` — clarify deposit description
-- `src/lib/i18n/translations/en.ts` — new labels
-- `src/lib/i18n/translations/ur.ts` — new labels
-- `src/lib/i18n/translations/ar.ts` — new labels
+- `src/pages/app/reports/ReportsHubPage.tsx` — add 3 missing report cards
+- `src/pages/app/reports/ConsultationReport.tsx` — new consultation report page
+- `src/App.tsx` — add consultation report route
+- `src/lib/i18n/translations/en.ts` — English labels
+- `src/lib/i18n/translations/ur.ts` — Urdu labels
+- `src/lib/i18n/translations/ar.ts` — Arabic labels
 
