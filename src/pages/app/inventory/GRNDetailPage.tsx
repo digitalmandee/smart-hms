@@ -27,7 +27,7 @@ import { useOrganization } from "@/hooks/useOrganizations";
 import { supabase } from "@/integrations/supabase/client";
 import { cn } from "@/lib/utils";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
-import { useTranslation } from "@/hooks/useTranslation";
+import { useTranslation } from "@/lib/i18n";
 
 export default function GRNDetailPage() {
   const navigate = useNavigate();
