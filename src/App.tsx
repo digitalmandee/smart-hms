@@ -892,6 +892,7 @@ function App() {
               <Route path="opd/consultations/:id" element={<ConsultationDetailPage />} />
               <Route path="opd/gynecology" element={<GynecologyDashboard />} />
               <Route path="opd/reports" element={<DoctorReportsPage />} />
+              <Route path="reports/consultation-report" element={<React.Suspense fallback={<div>Loading...</div>}><ConsultationReport /></React.Suspense>} />
               
               {/* AI Assistant routes */}
               <Route path="ai-chat" element={<AIChatPage />} />

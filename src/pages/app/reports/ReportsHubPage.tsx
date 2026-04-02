@@ -201,6 +201,14 @@ const financialReports: ReportCard[] = [
     module: "Accounts",
     color: "bg-teal-500",
   },
+  {
+    title: "Day End Summary",
+    description: "End-of-day department-wise collections and cashier reconciliation",
+    icon: FileText,
+    path: "/app/reports/day-end-summary",
+    module: "Finance",
+    color: "bg-slate-500",
+  },
 ];
 
 const hrReports: ReportCard[] = [
