@@ -1,37 +1,67 @@
 
 
-# Make Department P&L Revenue Figures Clickable with Transaction Drill-Down
+# Tax Slabs — HR Income Tax + Billing Sales Tax
 
-## Problem
-Department rows in the P&L table are clickable (cursor changes, `expandedDept` state toggles) but nothing actually expands — the state is unused. Clicking "OPD Revenue 3,232,155" should show the underlying journal transactions that make up that figure.
+## Current State
 
-## Solution
-When a department row is clicked, render an expanded detail row below it showing all journal transactions for that department, filtered from the existing `data.transactions` array. This lets users verify exactly where each revenue/expense figure comes from.
+### HR Income Tax Slabs — Already Built ✅
+- Table `tax_slabs` exists with: fiscal_year, min_income, max_income, fixed_tax, tax_percentage
+- Page at `/app/hr/setup/tax-slabs` with full CRUD
+- Used in payroll processing
 
-## Changes
+### Billing Sales Tax Slabs — Missing ❌
+- `invoice_items` has no `tax_percent` or `tax_amount` column
+- `invoices` has a `tax_amount` column but it's manually set, not derived from line items
+- Tax Settings page only stores a single default rate in `organization_settings`
+- No way to assign different tax rates to different service categories (e.g., Medicines 0%, Consultation 17%, Lab 5%)
 
-### File: `src/pages/app/accounts/DepartmentPnLPage.tsx`
+## Plan
 
-**After each department `<TableRow>` (around line 428)**, add a conditional expanded row:
+### 1. New Database Table: `billing_tax_slabs`
 
-When `expandedDept === dept.department`:
-- Render a new `<TableRow>` with a single `<TableCell colSpan={7}>`
-- Inside, show a sub-table of all transactions from `data.transactions` filtered by `t.department === dept.department`
-- Sub-table columns: Date, Journal #, Description, Account, Type (Revenue/COGS/Expense badge), Debit, Credit, Net Amount
-- Include a count badge showing number of transactions
-- Add subtle background styling (`bg-muted/30`) to distinguish from parent rows
-- Group subtotals at the bottom: total revenue, total COGS, total expenses for that department
+```sql
+CREATE TABLE public.billing_tax_slabs (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
+  name TEXT NOT NULL,            -- e.g., "Standard Rate", "Zero Rated", "Reduced Rate"
+  tax_rate NUMERIC(5,2) NOT NULL DEFAULT 0,
+  applies_to TEXT DEFAULT 'all', -- 'all', 'services', 'medicines', 'lab', 'custom'
+  is_default BOOLEAN DEFAULT false,
+  is_active BOOLEAN DEFAULT true,
+  created_at TIMESTAMPTZ DEFAULT now()
+);
+```
 
-This uses the **existing** `data.transactions` array — no new queries needed. The transactions are already fetched and tagged with department names.
+Add `tax_percent` and `tax_amount` columns to `invoice_items`:
+```sql
+ALTER TABLE invoice_items 
+  ADD COLUMN tax_percent NUMERIC(5,2) DEFAULT 0,
+  ADD COLUMN tax_amount NUMERIC(12,2) DEFAULT 0;
+```
 
-### Translation files (`en.ts`, `ur.ts`, `ar.ts`)
+### 2. New Page: Billing Tax Slabs Setup
+- Route: `/app/settings/billing-tax-slabs`
+- CRUD interface to create tax categories (Zero Rated, Standard 17%, Reduced 5%, etc.)
+- Mark one as default
+- Link from Tax Settings page
 
-Add keys:
-- `dept_pnl.drill_down_title`: "Transaction Details" / "تفاصیل لین دین" / "تفاصيل المعاملات"
-- `dept_pnl.click_to_expand`: "Click row to see transactions" / equivalent
+### 3. Update Tax Settings Page
+- Add a section showing billing tax slabs with "Manage Tax Slabs" button
+- Keep existing default rate as fallback
 
-## Technical Detail
-- Filter: `data.transactions.filter(t => t.department === dept.department)`
-- The `DepartmentTransaction` interface already has: date, journal_number, description, department, account_name, type, debit, credit, net_amount
-- No new hooks or queries needed — purely UI rendering of existing data
+### 4. Update Invoice Form
+- When adding invoice line items, auto-apply the default tax slab rate
+- Allow overriding tax rate per line item via dropdown of active slabs
+- Recalculate `tax_amount` per line and invoice total tax
+
+### 5. Translations (en, ur, ar)
+- New keys for billing tax slab labels, column headers, form fields
+
+## Files to Change
+- **New migration** — `billing_tax_slabs` table + `invoice_items` tax columns
+- **New file**: `src/pages/app/settings/BillingTaxSlabsPage.tsx` — CRUD page
+- **`src/pages/app/settings/TaxSettingsPage.tsx`** — add link to billing tax slabs
+- **`src/App.tsx`** — add route for billing tax slabs
+- **Invoice form components** — add tax slab selector per line item
+- **`en.ts`, `ur.ts`, `ar.ts`** — translation keys
 
