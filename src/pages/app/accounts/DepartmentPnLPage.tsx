@@ -404,29 +404,96 @@ export default function DepartmentPnLPage() {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
-                      {data?.departments.map((dept) => (
-                        <TableRow
-                          key={dept.department}
-                          className="cursor-pointer hover:bg-muted/50"
-                          onClick={() =>
-                            setExpandedDept(expandedDept === dept.department ? null : dept.department)
-                          }
-                        >
-                          <TableCell className="font-medium">{dept.department}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(dept.revenue)}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(dept.cogs)}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(dept.grossProfit)}</TableCell>
-                          <TableCell className="text-right">{formatCurrency(dept.expenses)}</TableCell>
-                          <TableCell className={cn("text-right font-semibold", dept.netProfit >= 0 ? "text-green-600" : "text-red-600")}>
-                            {formatCurrency(dept.netProfit)}
-                          </TableCell>
-                          <TableCell className="text-right">
-                            <Badge variant={dept.marginPercent >= 0 ? "default" : "destructive"}>
-                              {dept.marginPercent.toFixed(1)}%
-                            </Badge>
-                          </TableCell>
-                        </TableRow>
-                      ))}
+                      {data?.departments.map((dept) => {
+                        const isExpanded = expandedDept === dept.department;
+                        const deptTxns = isExpanded
+                          ? data.transactions.filter((t) => t.department === dept.department)
+                          : [];
+                        return (
+                          <>{/* dept row */}
+                            <TableRow
+                              key={dept.department}
+                              className="cursor-pointer hover:bg-muted/50"
+                              onClick={() =>
+                                setExpandedDept(isExpanded ? null : dept.department)
+                              }
+                            >
+                              <TableCell className="font-medium flex items-center gap-2">
+                                <span className={cn("transition-transform text-xs", isExpanded && "rotate-90")}>▶</span>
+                                {dept.department}
+                              </TableCell>
+                              <TableCell className="text-right">{formatCurrency(dept.revenue)}</TableCell>
+                              <TableCell className="text-right">{formatCurrency(dept.cogs)}</TableCell>
+                              <TableCell className="text-right">{formatCurrency(dept.grossProfit)}</TableCell>
+                              <TableCell className="text-right">{formatCurrency(dept.expenses)}</TableCell>
+                              <TableCell className={cn("text-right font-semibold", dept.netProfit >= 0 ? "text-green-600" : "text-red-600")}>
+                                {formatCurrency(dept.netProfit)}
+                              </TableCell>
+                              <TableCell className="text-right">
+                                <Badge variant={dept.marginPercent >= 0 ? "default" : "destructive"}>
+                                  {dept.marginPercent.toFixed(1)}%
+                                </Badge>
+                              </TableCell>
+                            </TableRow>
+                            {isExpanded && (
+                              <TableRow key={`${dept.department}-detail`}>
+                                <TableCell colSpan={7} className="p-0">
+                                  <div className="bg-muted/30 p-4 border-y">
+                                    <div className="flex items-center gap-2 mb-3">
+                                      <h4 className="font-medium text-sm">{t("dept_pnl.transactions")}</h4>
+                                      <Badge variant="secondary" className="text-xs">{deptTxns.length}</Badge>
+                                    </div>
+                                    {deptTxns.length === 0 ? (
+                                      <p className="text-sm text-muted-foreground py-4 text-center">{t("dept_pnl.no_data")}</p>
+                                    ) : (
+                                      <div className="rounded-md border bg-card overflow-auto max-h-[400px]">
+                                        <Table>
+                                          <TableHeader>
+                                            <TableRow>
+                                              <TableHead className="text-xs">{t("dept_pnl.txn_date")}</TableHead>
+                                              <TableHead className="text-xs">{t("dept_pnl.journal_number")}</TableHead>
+                                              <TableHead className="text-xs">{t("dept_pnl.txn_description")}</TableHead>
+                                              <TableHead className="text-xs">{t("dept_pnl.account")}</TableHead>
+                                              <TableHead className="text-xs">{t("dept_pnl.txn_type")}</TableHead>
+                                              <TableHead className="text-xs text-right">{t("dept_pnl.debit")}</TableHead>
+                                              <TableHead className="text-xs text-right">{t("dept_pnl.credit")}</TableHead>
+                                              <TableHead className="text-xs text-right">{t("dept_pnl.net_profit")}</TableHead>
+                                            </TableRow>
+                                          </TableHeader>
+                                          <TableBody>
+                                            {deptTxns.map((txn, idx) => (
+                                              <TableRow key={idx} className="text-xs">
+                                                <TableCell>{txn.date}</TableCell>
+                                                <TableCell className="font-mono">{txn.journal_number}</TableCell>
+                                                <TableCell className="max-w-[200px] truncate">{txn.description}</TableCell>
+                                                <TableCell>{txn.account_name}</TableCell>
+                                                <TableCell>
+                                                  <Badge variant={txn.type === "Revenue" ? "default" : txn.type === "COGS" ? "secondary" : "outline"} className="text-[10px]">
+                                                    {txn.type}
+                                                  </Badge>
+                                                </TableCell>
+                                                <TableCell className="text-right">{formatCurrency(txn.debit)}</TableCell>
+                                                <TableCell className="text-right">{formatCurrency(txn.credit)}</TableCell>
+                                                <TableCell className="text-right font-medium">{formatCurrency(txn.net_amount)}</TableCell>
+                                              </TableRow>
+                                            ))}
+                                            <TableRow className="bg-muted/50 font-semibold text-xs border-t-2">
+                                              <TableCell colSpan={5} className="text-right">{t("dept_pnl.total")}</TableCell>
+                                              <TableCell className="text-right">{formatCurrency(deptTxns.reduce((s, t) => s + t.debit, 0))}</TableCell>
+                                              <TableCell className="text-right">{formatCurrency(deptTxns.reduce((s, t) => s + t.credit, 0))}</TableCell>
+                                              <TableCell className="text-right">{formatCurrency(deptTxns.reduce((s, t) => s + t.net_amount, 0))}</TableCell>
+                                            </TableRow>
+                                          </TableBody>
+                                        </Table>
+                                      </div>
+                                    )}
+                                  </div>
+                                </TableCell>
+                              </TableRow>
+                            )}
+                          </>
+                        );
+                      })}
                       {data && (
                         <TableRow className="bg-muted/50 font-bold border-t-2">
                           <TableCell>{t("dept_pnl.total")}</TableCell>
