@@ -55,7 +55,7 @@ function mapAccountToDepartment(accountNumber: string, accountName: string): str
   if (num === "REV-001") return "OPD";
   if (num === "4010") return "IPD";
   if (num === "4020") return "Emergency";
-  if (num === "4030") return "Laboratory";
+  if (num === "4030" || num === "4200") return "Laboratory";
   if (num === "4040") return "Dialysis";
   if (num === "4050") return "Imaging/Radiology";
   if (num.startsWith("REV-PHARM") || num.startsWith("REV-POS")) return "Pharmacy";
@@ -106,7 +106,7 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
         .from("journal_entry_lines")
         .select(`
           account_id, debit_amount, credit_amount, description,
-          journal_entry:journal_entries!inner(entry_date, is_posted, organization_id, branch_id, journal_number, description)
+          journal_entry:journal_entries!inner(entry_date, is_posted, organization_id, branch_id, entry_number, description)
         `)
         .eq("journal_entry.is_posted", true)
         .eq("journal_entry.organization_id", profile.organization_id);
@@ -162,7 +162,7 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
 
         transactions.push({
           date: je?.entry_date || "",
-          journal_number: je?.journal_number || "",
+          journal_number: je?.entry_number || "",
           description: (line.description || je?.description || "").toString(),
           department: mapAccountToDepartment(acct.account_number, acct.name),
           account_name: acct.name,
