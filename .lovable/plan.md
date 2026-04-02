@@ -1,67 +1,44 @@
 
 
-# Tax Slabs — HR Income Tax + Billing Sales Tax
+# Add Default Salary Components
 
-## Current State
+## Problem
+The Salary Components page is empty — no earning or deduction components exist in the database yet. The page UI and CRUD functionality are fully built, but need initial data.
 
-### HR Income Tax Slabs — Already Built ✅
-- Table `tax_slabs` exists with: fiscal_year, min_income, max_income, fixed_tax, tax_percentage
-- Page at `/app/hr/setup/tax-slabs` with full CRUD
-- Used in payroll processing
+## Solution
+Insert a comprehensive set of default salary components into the `salary_components` table covering standard earning and deduction types used in healthcare/hospital payroll.
 
-### Billing Sales Tax Slabs — Missing ❌
-- `invoice_items` has no `tax_percent` or `tax_amount` column
-- `invoices` has a `tax_amount` column but it's manually set, not derived from line items
-- Tax Settings page only stores a single default rate in `organization_settings`
-- No way to assign different tax rates to different service categories (e.g., Medicines 0%, Consultation 17%, Lab 5%)
+### Default Earnings (component_type = 'earning')
+| Name | Code | Calc Type | Default Value | Taxable |
+|------|------|-----------|--------------|---------|
+| Basic Salary | BASIC | fixed | 0 | Yes |
+| House Rent Allowance | HRA | percentage | 40 | Yes |
+| Transport Allowance | TRANSPORT | fixed | 3000 | No |
+| Medical Allowance | MEDICAL | fixed | 2500 | No |
+| Overtime | OT | fixed | 0 | Yes |
+| Special Allowance | SPECIAL | fixed | 0 | Yes |
+| Performance Bonus | PERF_BONUS | fixed | 0 | Yes |
+| Night Shift Allowance | NIGHT_SHIFT | fixed | 1500 | No |
+| On-Call Allowance | ON_CALL | fixed | 2000 | No |
+| Education Allowance | EDUCATION | fixed | 0 | No |
 
-## Plan
+### Default Deductions (component_type = 'deduction')
+| Name | Code | Calc Type | Default Value | Taxable |
+|------|------|-----------|--------------|---------|
+| Income Tax | TAX | percentage | 0 | No |
+| Provident Fund | PF | percentage | 8.33 | No |
+| EOBI / Social Insurance | EOBI | fixed | 250 | No |
+| Professional Tax | PROF_TAX | fixed | 200 | No |
+| Loan Deduction | LOAN | fixed | 0 | No |
+| Advance Salary | ADV_SAL | fixed | 0 | No |
+| Late Deduction | LATE_DED | fixed | 0 | No |
+| Absent Deduction | ABSENT_DED | fixed | 0 | No |
 
-### 1. New Database Table: `billing_tax_slabs`
-
-```sql
-CREATE TABLE public.billing_tax_slabs (
-  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
-  organization_id UUID REFERENCES organizations(id) ON DELETE CASCADE NOT NULL,
-  name TEXT NOT NULL,            -- e.g., "Standard Rate", "Zero Rated", "Reduced Rate"
-  tax_rate NUMERIC(5,2) NOT NULL DEFAULT 0,
-  applies_to TEXT DEFAULT 'all', -- 'all', 'services', 'medicines', 'lab', 'custom'
-  is_default BOOLEAN DEFAULT false,
-  is_active BOOLEAN DEFAULT true,
-  created_at TIMESTAMPTZ DEFAULT now()
-);
-```
-
-Add `tax_percent` and `tax_amount` columns to `invoice_items`:
-```sql
-ALTER TABLE invoice_items 
-  ADD COLUMN tax_percent NUMERIC(5,2) DEFAULT 0,
-  ADD COLUMN tax_amount NUMERIC(12,2) DEFAULT 0;
-```
-
-### 2. New Page: Billing Tax Slabs Setup
-- Route: `/app/settings/billing-tax-slabs`
-- CRUD interface to create tax categories (Zero Rated, Standard 17%, Reduced 5%, etc.)
-- Mark one as default
-- Link from Tax Settings page
-
-### 3. Update Tax Settings Page
-- Add a section showing billing tax slabs with "Manage Tax Slabs" button
-- Keep existing default rate as fallback
-
-### 4. Update Invoice Form
-- When adding invoice line items, auto-apply the default tax slab rate
-- Allow overriding tax rate per line item via dropdown of active slabs
-- Recalculate `tax_amount` per line and invoice total tax
-
-### 5. Translations (en, ur, ar)
-- New keys for billing tax slab labels, column headers, form fields
+## Implementation
+- Use the Supabase insert tool to add ~18 rows to `salary_components` table
+- Each row includes: name, code, component_type, calculation_type, default_value, is_taxable, is_active, sort_order, description
+- No schema changes needed — the table already exists with all required columns
 
 ## Files to Change
-- **New migration** — `billing_tax_slabs` table + `invoice_items` tax columns
-- **New file**: `src/pages/app/settings/BillingTaxSlabsPage.tsx` — CRUD page
-- **`src/pages/app/settings/TaxSettingsPage.tsx`** — add link to billing tax slabs
-- **`src/App.tsx`** — add route for billing tax slabs
-- **Invoice form components** — add tax slab selector per line item
-- **`en.ts`, `ur.ts`, `ar.ts`** — translation keys
+- No code changes — data insertion only via Supabase insert tool
 
