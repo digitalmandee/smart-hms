@@ -1,64 +1,29 @@
 
 
-# Department P&L — Detailed Master Report with Transaction Drill-Down & PDF/Excel Export
+# Fix: Department P&L Shows All Zeros
 
-## Problem
-Current Department P&L only shows summary aggregates (totals per department). The CFO needs to see **every individual transaction** — each expense, each sale — mapped to its department, with a proper downloadable PDF report.
+## Root Cause
 
-## Plan
+Three bugs found:
 
-### 1. Enhance `useDepartmentPnL` hook to return individual transactions
+1. **Case mismatch (main issue)**: The `account_types` table stores categories as lowercase (`revenue`, `expense`), but the hook compares against capitalized strings (`Revenue`, `Expense`). Every journal line is filtered out at line 148, resulting in all zeros.
 
-Add a new `transactions` array to the return data containing every journal entry line mapped to a department:
+2. **Wrong pharmacy table name**: The hook queries `pharmacy_pos_sales` but the actual table is `pharmacy_pos_transactions`. This causes a 400 error (visible in network logs).
 
-```typescript
-interface DepartmentTransaction {
-  date: string;
-  journal_number: string;
-  description: string;
-  department: string;
-  account_name: string;
-  account_number: string;
-  type: "Revenue" | "COGS" | "Expense";
-  debit: number;
-  credit: number;
-  net_amount: number;
-}
-```
+3. Summary cards already exist in the page — they just show Rs 0 because of bug #1.
 
-In the existing query (step 2), also fetch `journal_entry.journal_number, journal_entry.description, journal_entry.entry_date` and the line's `description`. Build the transactions list alongside the aggregation loop (step 4), pushing each qualifying Revenue/Expense line into the array.
+## Fix
 
-**File**: `src/hooks/useDepartmentPnL.ts`
+### File: `src/hooks/useDepartmentPnL.ts`
 
-### 2. Add "Transactions" tab to DepartmentPnLPage
+**Fix 1 — Case-insensitive category comparison** (lines 148, 202, 204):
+- Change `acct.category !== "Revenue"` to `acct.category.toLowerCase() !== "revenue"`
+- Same for `"Expense"` checks
+- Also fix `classifyAccountType` function (line 77) to use lowercase comparison
 
-Add a 4th tab showing a searchable, sortable table of all individual transactions:
-- Columns: Date, Journal #, Description, Department, Account, Type (Revenue/COGS/Expense), Debit, Credit, Net
-- Search filter across description/account/department
-- Type filter dropdown (All / Revenue / COGS / Expense)
-- Color-coded type badges
+**Fix 2 — Correct pharmacy table name** (line 243):
+- Change `pharmacy_pos_sales` to `pharmacy_pos_transactions`
+- Update the field references: check if `sale_date` and `organization_id` columns exist on `pharmacy_pos_transactions`
 
-**File**: `src/pages/app/accounts/DepartmentPnLPage.tsx`
-
-### 3. Replace basic CSV export with `ReportExportButton`
-
-Replace the manual CSV export button with the existing `ReportExportButton` component that provides CSV + PDF + Print. Configure it with:
-- Department summary columns for the main export
-- PDF options with organization branding, date range, filters
-- Summary totals row
-
-Also add a separate export button on the Transactions tab for exporting the full transaction detail.
-
-**File**: `src/pages/app/accounts/DepartmentPnLPage.tsx`
-
-### 4. Translations
-
-Add new keys for: `dept_pnl.transactions`, `dept_pnl.journal_number`, `dept_pnl.description`, `dept_pnl.type`, `dept_pnl.debit`, `dept_pnl.credit`, `dept_pnl.search_transactions`, `dept_pnl.filter_type`
-
-**Files**: `src/lib/i18n/translations/en.ts`, `ur.ts`, `ar.ts`
-
-## Files to Change
-- `src/hooks/useDepartmentPnL.ts` — add transactions array to query results
-- `src/pages/app/accounts/DepartmentPnLPage.tsx` — add Transactions tab, replace CSV with ReportExportButton
-- `src/lib/i18n/translations/en.ts`, `ur.ts`, `ar.ts` — new labels
+No other files need changes. The summary cards, charts, department table, and transactions tab will all populate correctly once the category filter stops rejecting every line.
 
