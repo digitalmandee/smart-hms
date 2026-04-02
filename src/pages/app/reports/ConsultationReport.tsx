@@ -40,14 +40,14 @@ export default function ConsultationReport() {
     queryKey: ["consultation-report", orgId, dateFrom, dateTo],
     queryFn: async () => {
       if (!orgId) return [];
-      const { data, error } = await supabase
+      const { data, error } = await (supabase
         .from("consultations")
         .select(`
           id, diagnosis, chief_complaint, symptoms, follow_up_date, created_at,
           patients(id, first_name, last_name),
           doctors(id, profiles(full_name)),
           branches(id, name)
-        `)
+        `) as any)
         .gte("created_at", dateFrom)
         .lte("created_at", dateTo + "T23:59:59")
         .order("created_at", { ascending: false });
