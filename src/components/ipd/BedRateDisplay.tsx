@@ -12,6 +12,8 @@ interface BedRateDisplayProps {
   bedTypeRates?: BedTypeRate[];
   expectedDischargeDate?: Date | null;
   admissionDate?: Date;
+  procedureCharge?: number;
+  procedureName?: string;
   onSuggestedDepositChange?: (amount: number) => void;
 }
 
