@@ -14,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   BarChart3, TrendingUp, TrendingDown, DollarSign,
-  Pill, Building2, List, Search,
+  Pill, Building2, List, Search, Receipt, Package, Users,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -39,6 +39,14 @@ const COLORS = [
   "hsl(180, 60%, 45%)",
   "hsl(330, 70%, 55%)",
 ];
+
+const EXPENSE_CATEGORY_LABELS: Record<string, string> = {
+  petty_cash: "Petty Cash",
+  refund: "Refund",
+  staff_advance: "Staff Advance",
+  misc: "Miscellaneous",
+  other: "Other",
+};
 
 function getDatePreset(preset: string): { start: string; end: string } {
   const now = new Date();
@@ -103,7 +111,6 @@ export default function DepartmentPnLPage() {
     branchId || undefined
   );
 
-  // Fetch branches for filter
   const { data: branches } = useQuery({
     queryKey: ["branches-filter", profile?.organization_id],
     queryFn: async () => {
@@ -134,7 +141,6 @@ export default function DepartmentPnLPage() {
       .map((d) => ({ name: d.department, value: d.revenue }));
   }, [data]);
 
-  // Filtered transactions
   const filteredTransactions = useMemo(() => {
     if (!data?.transactions) return [];
     let txns = data.transactions;
@@ -154,7 +160,6 @@ export default function DepartmentPnLPage() {
     return txns;
   }, [data?.transactions, txnSearch, txnTypeFilter]);
 
-  // Export columns for department summary
   const deptExportColumns = [
     { key: "department", header: t("dept_pnl.department") },
     { key: "revenue", header: t("dept_pnl.revenue"), format: (v: any) => formatCurrency(v), align: "right" as const },
@@ -165,7 +170,6 @@ export default function DepartmentPnLPage() {
     { key: "marginPercent", header: t("dept_pnl.margin"), format: (v: any) => `${Number(v).toFixed(1)}%`, align: "right" as const },
   ];
 
-  // Export columns for transactions
   const txnExportColumns = [
     { key: "date", header: t("dept_pnl.txn_date") },
     { key: "journal_number", header: t("dept_pnl.journal_number") },
@@ -176,6 +180,36 @@ export default function DepartmentPnLPage() {
     { key: "debit", header: t("dept_pnl.debit"), format: (v: any) => formatCurrency(v), align: "right" as const },
     { key: "credit", header: t("dept_pnl.credit"), format: (v: any) => formatCurrency(v), align: "right" as const },
     { key: "net_amount", header: t("dept_pnl.net_profit"), format: (v: any) => formatCurrency(v), align: "right" as const },
+  ];
+
+  const expenseExportColumns = [
+    { key: "date", header: t("dept_pnl.txn_date") },
+    { key: "expense_number", header: t("dept_pnl.expense_number") },
+    { key: "category", header: t("dept_pnl.category") },
+    { key: "description", header: t("dept_pnl.txn_description") },
+    { key: "paid_to", header: t("dept_pnl.paid_to") },
+    { key: "amount", header: t("common.amount"), format: (v: any) => formatCurrency(v), align: "right" as const },
+    { key: "payment_method", header: t("dept_pnl.payment_method") },
+    { key: "created_by", header: t("common.created_by") },
+  ];
+
+  const grnExportColumns = [
+    { key: "received_date", header: t("dept_pnl.txn_date") },
+    { key: "grn_number", header: t("dept_pnl.grn_number") },
+    { key: "vendor_name", header: t("dept_pnl.vendor_name") },
+    { key: "invoice_amount", header: t("dept_pnl.invoice_amount"), format: (v: any) => formatCurrency(v), align: "right" as const },
+    { key: "total_paid", header: t("dept_pnl.paid_amount"), format: (v: any) => formatCurrency(v), align: "right" as const },
+    { key: "balance_due", header: t("dept_pnl.outstanding"), format: (v: any) => formatCurrency(v), align: "right" as const },
+    { key: "payment_status", header: t("dept_pnl.payment_status") },
+  ];
+
+  const vendorExportColumns = [
+    { key: "vendor_name", header: t("dept_pnl.vendor_name") },
+    { key: "vendor_code", header: t("dept_pnl.vendor_code") },
+    { key: "total_grn_value", header: t("dept_pnl.total_grn_value"), format: (v: any) => formatCurrency(v), align: "right" as const },
+    { key: "total_paid", header: t("dept_pnl.total_paid"), format: (v: any) => formatCurrency(v), align: "right" as const },
+    { key: "outstanding_balance", header: t("dept_pnl.outstanding"), format: (v: any) => formatCurrency(v), align: "right" as const },
+    { key: "last_payment_date", header: t("dept_pnl.last_payment") },
   ];
 
   const pdfDateRange = {
@@ -273,13 +307,13 @@ export default function DepartmentPnLPage() {
 
       {/* Summary Cards */}
       {isLoading ? (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          {[1, 2, 3, 4].map((i) => (
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+          {[1, 2, 3, 4, 5, 6].map((i) => (
             <Card key={i}><CardContent className="pt-6"><Skeleton className="h-16" /></CardContent></Card>
           ))}
         </div>
       ) : data ? (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-6 gap-4">
           <SummaryCard
             title={t("dept_pnl.total_revenue")}
             value={formatCurrency(data.totals.revenue)}
@@ -308,17 +342,38 @@ export default function DepartmentPnLPage() {
               data.totals.netProfit >= 0 ? "border-l-emerald-500" : "border-l-red-500"
             )}
           />
+          <SummaryCard
+            title={t("dept_pnl.total_procurement")}
+            value={formatCurrency(data.totals.totalProcurement)}
+            icon={<Package className="h-5 w-5" />}
+            className="border-l-4 border-l-blue-500"
+          />
+          <SummaryCard
+            title={t("dept_pnl.vendor_payable")}
+            value={formatCurrency(data.totals.totalVendorPayable)}
+            icon={<Users className="h-5 w-5" />}
+            className="border-l-4 border-l-purple-500"
+          />
         </div>
       ) : null}
 
-      {/* Tabs: Table / Charts / Pharmacy / Transactions */}
+      {/* Tabs */}
       <Tabs defaultValue="table">
-        <TabsList>
+        <TabsList className="flex-wrap">
           <TabsTrigger value="table">
             <Building2 className="h-4 w-4 mr-1" /> {t("dept_pnl.by_department")}
           </TabsTrigger>
           <TabsTrigger value="transactions">
             <List className="h-4 w-4 mr-1" /> {t("dept_pnl.transactions")}
+          </TabsTrigger>
+          <TabsTrigger value="expenses">
+            <Receipt className="h-4 w-4 mr-1" /> {t("dept_pnl.expenses_tab")}
+          </TabsTrigger>
+          <TabsTrigger value="procurement">
+            <Package className="h-4 w-4 mr-1" /> {t("dept_pnl.procurement")}
+          </TabsTrigger>
+          <TabsTrigger value="vendor_payables">
+            <Users className="h-4 w-4 mr-1" /> {t("dept_pnl.vendor_payables")}
           </TabsTrigger>
           <TabsTrigger value="charts">
             <BarChart3 className="h-4 w-4 mr-1" /> {t("dept_pnl.charts")}
@@ -372,7 +427,6 @@ export default function DepartmentPnLPage() {
                           </TableCell>
                         </TableRow>
                       ))}
-                      {/* Totals */}
                       {data && (
                         <TableRow className="bg-muted/50 font-bold border-t-2">
                           <TableCell>{t("dept_pnl.total")}</TableCell>
@@ -430,7 +484,6 @@ export default function DepartmentPnLPage() {
               </div>
             </CardHeader>
             <CardContent>
-              {/* Search + Filter */}
               <div className="flex flex-wrap gap-3 mb-4">
                 <div className="relative flex-1 min-w-[200px]">
                   <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
@@ -501,6 +554,258 @@ export default function DepartmentPnLPage() {
                           </TableCell>
                         </TableRow>
                       ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="py-12 text-center text-muted-foreground">
+                  {t("dept_pnl.no_data")}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Expenses Tab */}
+        <TabsContent value="expenses">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Receipt className="h-5 w-5" /> {t("dept_pnl.expenses_tab")}
+                  <Badge variant="secondary" className="ml-2">{data?.expenseRecords?.length || 0}</Badge>
+                </CardTitle>
+                <ReportExportButton
+                  data={data?.expenseRecords || []}
+                  filename={`expenses-${dates.start}-to-${dates.end}`}
+                  columns={expenseExportColumns}
+                  title={t("dept_pnl.expenses_tab")}
+                  pdfOptions={{
+                    title: `${t("dept_pnl.title")} — ${t("dept_pnl.expenses_tab")}`,
+                    subtitle: t("dept_pnl.subtitle"),
+                    dateRange: pdfDateRange,
+                    orientation: "landscape",
+                  }}
+                  isLoading={isLoading}
+                />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-64" />
+              ) : data?.expenseRecords && data.expenseRecords.length > 0 ? (
+                <div className="rounded-md border overflow-auto max-h-[600px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("dept_pnl.txn_date")}</TableHead>
+                        <TableHead>{t("dept_pnl.expense_number")}</TableHead>
+                        <TableHead>{t("dept_pnl.category")}</TableHead>
+                        <TableHead>{t("dept_pnl.txn_description")}</TableHead>
+                        <TableHead>{t("dept_pnl.paid_to")}</TableHead>
+                        <TableHead className="text-right">{t("common.amount")}</TableHead>
+                        <TableHead>{t("dept_pnl.payment_method")}</TableHead>
+                        <TableHead>{t("common.created_by")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {data.expenseRecords.map((exp) => (
+                        <TableRow key={exp.id}>
+                          <TableCell className="whitespace-nowrap">{exp.date}</TableCell>
+                          <TableCell className="font-mono text-xs">{exp.expense_number}</TableCell>
+                          <TableCell>
+                            <Badge variant="outline">
+                              {EXPENSE_CATEGORY_LABELS[exp.category] || exp.category}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="max-w-[200px] truncate" title={exp.description}>
+                            {exp.description || "—"}
+                          </TableCell>
+                          <TableCell>{exp.paid_to}</TableCell>
+                          <TableCell className="text-right font-semibold text-red-600">
+                            {formatCurrency(exp.amount)}
+                          </TableCell>
+                          <TableCell>{exp.payment_method}</TableCell>
+                          <TableCell>{exp.created_by}</TableCell>
+                        </TableRow>
+                      ))}
+                      {/* Total row */}
+                      <TableRow className="bg-muted/50 font-bold border-t-2">
+                        <TableCell colSpan={5}>{t("dept_pnl.total")}</TableCell>
+                        <TableCell className="text-right text-red-600">
+                          {formatCurrency(data.totals.totalExpensesRecorded)}
+                        </TableCell>
+                        <TableCell colSpan={2} />
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="py-12 text-center text-muted-foreground">
+                  {t("dept_pnl.no_data")}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Procurement (GRN) Tab */}
+        <TabsContent value="procurement">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Package className="h-5 w-5" /> {t("dept_pnl.procurement")}
+                  <Badge variant="secondary" className="ml-2">{data?.grnRecords?.length || 0}</Badge>
+                </CardTitle>
+                <ReportExportButton
+                  data={data?.grnRecords || []}
+                  filename={`procurement-grn-${dates.start}-to-${dates.end}`}
+                  columns={grnExportColumns}
+                  title={t("dept_pnl.procurement")}
+                  pdfOptions={{
+                    title: `${t("dept_pnl.title")} — ${t("dept_pnl.procurement")}`,
+                    subtitle: t("dept_pnl.subtitle"),
+                    dateRange: pdfDateRange,
+                    orientation: "landscape",
+                  }}
+                  isLoading={isLoading}
+                />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-64" />
+              ) : data?.grnRecords && data.grnRecords.length > 0 ? (
+                <div className="rounded-md border overflow-auto max-h-[600px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("dept_pnl.txn_date")}</TableHead>
+                        <TableHead>{t("dept_pnl.grn_number")}</TableHead>
+                        <TableHead>{t("dept_pnl.vendor_name")}</TableHead>
+                        <TableHead className="text-right">{t("dept_pnl.invoice_amount")}</TableHead>
+                        <TableHead className="text-right">{t("dept_pnl.paid_amount")}</TableHead>
+                        <TableHead className="text-right">{t("dept_pnl.outstanding")}</TableHead>
+                        <TableHead>{t("dept_pnl.payment_status")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {data.grnRecords.map((grn) => (
+                        <TableRow key={grn.id}>
+                          <TableCell className="whitespace-nowrap">{grn.received_date}</TableCell>
+                          <TableCell className="font-mono text-xs">{grn.grn_number}</TableCell>
+                          <TableCell>{grn.vendor_name}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(grn.invoice_amount)}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(grn.total_paid)}</TableCell>
+                          <TableCell className="text-right font-semibold">
+                            {formatCurrency(grn.balance_due)}
+                          </TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={grn.payment_status === "Paid" ? "default" : "destructive"}
+                              className={cn(
+                                grn.payment_status === "Paid" && "bg-green-100 text-green-800 hover:bg-green-100",
+                                grn.payment_status === "Partial" && "bg-orange-100 text-orange-800 hover:bg-orange-100",
+                                grn.payment_status === "Credit Payable" && "bg-red-100 text-red-800 hover:bg-red-100"
+                              )}
+                            >
+                              {grn.payment_status}
+                            </Badge>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                      {/* Total row */}
+                      <TableRow className="bg-muted/50 font-bold border-t-2">
+                        <TableCell colSpan={3}>{t("dept_pnl.total")}</TableCell>
+                        <TableCell className="text-right">{formatCurrency(data.totals.totalProcurement)}</TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(data.grnRecords.reduce((s, g) => s + g.total_paid, 0))}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(data.grnRecords.reduce((s, g) => s + g.balance_due, 0))}
+                        </TableCell>
+                        <TableCell />
+                      </TableRow>
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="py-12 text-center text-muted-foreground">
+                  {t("dept_pnl.no_data")}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Vendor Payables Tab */}
+        <TabsContent value="vendor_payables">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <Users className="h-5 w-5" /> {t("dept_pnl.vendor_payables")}
+                  <Badge variant="secondary" className="ml-2">{data?.vendorPayables?.length || 0}</Badge>
+                </CardTitle>
+                <ReportExportButton
+                  data={data?.vendorPayables || []}
+                  filename={`vendor-payables-${dates.start}-to-${dates.end}`}
+                  columns={vendorExportColumns}
+                  title={t("dept_pnl.vendor_payables")}
+                  pdfOptions={{
+                    title: `${t("dept_pnl.title")} — ${t("dept_pnl.vendor_payables")}`,
+                    subtitle: t("dept_pnl.subtitle"),
+                    dateRange: pdfDateRange,
+                    orientation: "landscape",
+                  }}
+                  isLoading={isLoading}
+                />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {isLoading ? (
+                <Skeleton className="h-64" />
+              ) : data?.vendorPayables && data.vendorPayables.length > 0 ? (
+                <div className="rounded-md border overflow-auto max-h-[600px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("dept_pnl.vendor_name")}</TableHead>
+                        <TableHead>{t("dept_pnl.vendor_code")}</TableHead>
+                        <TableHead className="text-right">{t("dept_pnl.total_grn_value")}</TableHead>
+                        <TableHead className="text-right">{t("dept_pnl.total_paid")}</TableHead>
+                        <TableHead className="text-right">{t("dept_pnl.outstanding")}</TableHead>
+                        <TableHead>{t("dept_pnl.last_payment")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {data.vendorPayables.map((v) => (
+                        <TableRow key={v.vendor_name}>
+                          <TableCell className="font-medium">{v.vendor_name}</TableCell>
+                          <TableCell className="font-mono text-xs">{v.vendor_code || "—"}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(v.total_grn_value)}</TableCell>
+                          <TableCell className="text-right">{formatCurrency(v.total_paid)}</TableCell>
+                          <TableCell className="text-right font-semibold text-red-600">
+                            {formatCurrency(v.outstanding_balance)}
+                          </TableCell>
+                          <TableCell>{v.last_payment_date || "—"}</TableCell>
+                        </TableRow>
+                      ))}
+                      {/* Total row */}
+                      <TableRow className="bg-muted/50 font-bold border-t-2">
+                        <TableCell colSpan={2}>{t("dept_pnl.total")}</TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(data.vendorPayables.reduce((s, v) => s + v.total_grn_value, 0))}
+                        </TableCell>
+                        <TableCell className="text-right">
+                          {formatCurrency(data.vendorPayables.reduce((s, v) => s + v.total_paid, 0))}
+                        </TableCell>
+                        <TableCell className="text-right text-red-600">
+                          {formatCurrency(data.totals.totalVendorPayable)}
+                        </TableCell>
+                        <TableCell />
+                      </TableRow>
                     </TableBody>
                   </Table>
                 </div>
