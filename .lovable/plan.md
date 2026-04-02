@@ -1,50 +1,56 @@
 
 
-# Fix: Department P&L Report — Data Not Showing & Filters Not Working
+# Split Payment GL Routing — Audit Result
 
-## Root Causes Found
+## Current Status: Working Correctly ✅
 
-### Issue 1: Pharmacy POS query silently fails (0 data)
-The `pharmacy_pos_items` table has **no foreign key constraints**. The Supabase PostgREST join syntax `medicine:medicines(name, cost_price)` and `pos_transaction:pharmacy_pos_transactions!inner(...)` both fail with 400 errors, but the `try/catch` block swallows the error silently. Result: pharmacy medicine profit tab always empty.
+The `post_payment_to_journal` trigger already routes each payment to the correct GL account based on payment method:
 
-**Fix**: Query `pharmacy_pos_items` directly (no joins), then separately fetch `medicines` cost prices by ID, and filter by transaction IDs from `pharmacy_pos_transactions`.
+```text
+PAYMENT METHOD    LEDGER ACCOUNT         GL CODE    STATUS
+────────────────  ─────────────────────  ─────────  ──────
+Cash              Cash in Hand           CASH-001   ✅ Correct
+Bank Transfer     Bank Account-Current   1010       ✅ Correct
+Credit Card       Bank Account-Current   1010       ✅ Correct
+EasyPaisa         Bank Account-Current   1010       ✅ Correct
+JazzCash          Cash in Hand           CASH-001   ⚠️ Should be Bank?
+```
 
-### Issue 2: Expenses query silently fails (0 data)
-The `expenses` table also has **no foreign key constraints**. The join `profiles!expenses_created_by_fkey(full_name)` and `payment_method:payment_methods(name)` both fail. Caught silently.
+**How it works**: Each split payment is recorded as a separate row in the `payments` table. The database trigger `post_payment_to_journal` fires per row, looks up `payment_methods.ledger_account_id`, and creates a journal entry:
+- **DR**: The payment method's linked account (Cash or Bank)
+- **CR**: AR-001 (Accounts Receivable)
 
-**Fix**: Query `expenses` without joins. Fetch `profiles` and `payment_methods` in separate queries, then map by ID.
+So a split payment of Rs. 5,000 Cash + Rs. 10,000 Bank Transfer creates two journal entries — one hitting CASH-001 and one hitting 1010.
 
-### Issue 3: GRN vendor join may fail
-The `goods_received_notes` table join `vendor:vendors(name)` depends on an FK. Need to verify — if no FK, same fix needed.
+## One Fix Needed
 
-### Issue 4: Default "This Month" shows no data if transactions are older
-The default period filter is `this_month`. If the user hasn't had new transactions this month, the report shows zeros. This isn't a bug but is confusing — we should default to `ytd` (Year to Date) instead.
+**JazzCash** is currently mapped to `CASH-001` (Cash in Hand) instead of `1010` (Bank Account - Current). Since JazzCash is a digital wallet, it should hit the bank account like EasyPaisa does.
 
-## Plan
+### Migration
 
-### File: `src/hooks/useDepartmentPnL.ts`
+Update `payment_methods.ledger_account_id` for JazzCash rows to point to the Bank Account for each organization:
 
-**Fix pharmacy POS query (section 6, ~line 268-314)**:
-1. First query `pharmacy_pos_transactions` filtered by org, date, branch — get IDs
-2. Then query `pharmacy_pos_items` filtered by `transaction_id IN (...)` — no joins
-3. Separately query `medicines` by collected `medicine_id` values to get `cost_price`
-4. Map everything together in JS
+```sql
+-- Org b1: JazzCash → Bank Account - Current
+UPDATE payment_methods 
+SET ledger_account_id = '280997ad-4971-4e03-a032-cae3077106b0'
+WHERE id = 'f2a22222-2222-2222-2222-222222222222';
 
-**Fix expenses query (section 7, ~line 317-350)**:
-1. Query `expenses` without any joins — just the base columns
-2. Separately query `profiles` for `created_by` IDs to get `full_name`
-3. Separately query `payment_methods` for `payment_method_id` values to get `name`
-4. Map together in JS
+-- Org b2: JazzCash → Bank Account - Current  
+UPDATE payment_methods 
+SET ledger_account_id = '84791e97-9491-437c-9b1f-3e142e780ef2'
+WHERE id = 'f7a77777-7777-7777-7777-777777777777';
+```
 
-**Fix GRN vendor query (section 8, ~line 352-410)**:
-1. Check if FK exists — if not, query `vendors` separately by collected vendor IDs
+Wait — Org b2's bank account is `6ace12c8` (code 1010), but JazzCash currently points to `84791e97` (CASH-001). Let me correct:
 
-### File: `src/pages/app/accounts/DepartmentPnLPage.tsx`
+```sql
+UPDATE payment_methods 
+SET ledger_account_id = '6ace12c8-15d0-4778-b38d-1ef4ff83fffd'
+WHERE id = 'f7a77777-7777-7777-7777-777777777777';
+```
 
-**Change default period** (line 93):
-- Change `useState("this_month")` to `useState("ytd")` so the report starts with Year-to-Date data, showing all available transactions.
-
-## Files to Change
-- `src/hooks/useDepartmentPnL.ts` — rewrite pharmacy POS, expenses, and GRN queries to avoid FK-dependent joins
-- `src/pages/app/accounts/DepartmentPnLPage.tsx` — change default period to `ytd`
+### Files to Change
+- **Migration only** — one SQL migration to fix JazzCash ledger mapping
+- No code changes needed — the trigger and split payment logic are already correct
 
