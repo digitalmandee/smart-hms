@@ -78,6 +78,7 @@ import BranchModulesPage from "./pages/app/settings/BranchModulesPage";
 import BillingSettingsPage from "./pages/app/settings/BillingSettingsPage";
 import TaxSettingsPage from "./pages/app/settings/TaxSettingsPage";
 import ReceiptTemplatesPage from "./pages/app/settings/ReceiptTemplatesPage";
+const BillingTaxSlabsPage = React.lazy(() => import("./pages/app/settings/BillingTaxSlabsPage"));
 import OrgAdminDashboardPage from "./pages/app/OrgAdminDashboardPage";
 import OrganizationReportsPage from "./pages/app/reports/OrganizationReportsPage";
 import BranchComparisonPage from "./pages/app/reports/BranchComparisonPage";
