@@ -525,9 +525,26 @@ export default function DepartmentPnLPage() {
                                     </div>
 
                                     {/* Transaction Detail Table */}
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <h4 className="font-medium text-sm">{t("dept_pnl.transactions")}</h4>
-                                      <Badge variant="secondary" className="text-xs">{deptTxns.length}</Badge>
+                                    <div className="flex items-center justify-between gap-2 mb-2">
+                                      <div className="flex items-center gap-2">
+                                        <h4 className="font-medium text-sm">{t("dept_pnl.transactions")}</h4>
+                                        <Badge variant="secondary" className="text-xs">{deptTxns.length}</Badge>
+                                      </div>
+                                      {deptTxns.length > 0 && (
+                                        <ReportExportButton
+                                          data={deptTxns}
+                                          filename={`${dept.department}-transactions-${dates.start}-to-${dates.end}`}
+                                          columns={txnExportColumns}
+                                          title={`${dept.department} — ${t("dept_pnl.transactions")}`}
+                                          pdfOptions={{
+                                            title: `${dept.department} — ${t("dept_pnl.transactions")}`,
+                                            subtitle: `${dates.start} → ${dates.end}`,
+                                            dateRange: pdfDateRange,
+                                            orientation: "landscape",
+                                          }}
+                                          isLoading={false}
+                                        />
+                                      )}
                                     </div>
                                     {deptTxns.length === 0 ? (
                                       <p className="text-sm text-muted-foreground py-4 text-center">{t("dept_pnl.no_data")}</p>
