@@ -413,22 +413,93 @@ export default function PaymentCollectionPage() {
               </p>
             </div>
 
-            <div>
-              <Label>Payment Method *</Label>
-              <PaymentMethodSelector
-                value={paymentMethodId}
-                onValueChange={setPaymentMethodId}
+            {/* Split Payment Toggle */}
+            <div className="flex items-center justify-between py-2 px-3 rounded-md bg-muted/50">
+              <Label htmlFor="split-toggle" className="cursor-pointer text-sm font-medium">
+                Split Payment
+              </Label>
+              <Switch
+                id="split-toggle"
+                checked={isSplitPayment}
+                onCheckedChange={setIsSplitPayment}
               />
             </div>
 
-            <div>
-              <Label>Reference Number (Optional)</Label>
-              <Input
-                placeholder="Transaction ID, Check number, etc."
-                value={referenceNumber}
-                onChange={(e) => setReferenceNumber(e.target.value)}
-              />
-            </div>
+            {!isSplitPayment ? (
+              <>
+                <div>
+                  <Label>Payment Method *</Label>
+                  <PaymentMethodSelector
+                    value={paymentMethodId}
+                    onValueChange={setPaymentMethodId}
+                  />
+                </div>
+
+                <div>
+                  <Label>Reference Number (Optional)</Label>
+                  <Input
+                    placeholder="Transaction ID, Check number, etc."
+                    value={referenceNumber}
+                    onChange={(e) => setReferenceNumber(e.target.value)}
+                  />
+                </div>
+              </>
+            ) : (
+              <div className="space-y-3">
+                {splits.map((split, idx) => (
+                  <div key={split.id} className="p-3 border rounded-lg space-y-2 bg-muted/30">
+                    <div className="flex items-center justify-between">
+                      <span className="text-sm font-medium">Method {idx + 1}</span>
+                      {splits.length > 2 && (
+                        <Button variant="ghost" size="icon" className="h-6 w-6" onClick={() => removeSplit(split.id)}>
+                          <Trash2 className="h-3 w-3" />
+                        </Button>
+                      )}
+                    </div>
+                    <div className="grid grid-cols-2 gap-2">
+                      <div>
+                        <Label className="text-xs">Amount</Label>
+                        <Input
+                          type="number"
+                          min="0"
+                          step="0.01"
+                          value={split.amount || ""}
+                          onChange={(e) => updateSplit(split.id, "amount", parseFloat(e.target.value) || 0)}
+                        />
+                      </div>
+                      <div>
+                        <Label className="text-xs">Method</Label>
+                        <PaymentMethodSelector
+                          value={split.paymentMethodId}
+                          onValueChange={(v) => updateSplit(split.id, "paymentMethodId", v)}
+                        />
+                      </div>
+                    </div>
+                    <div>
+                      <Label className="text-xs">Reference (Optional)</Label>
+                      <Input
+                        placeholder="Ref #"
+                        value={split.referenceNumber}
+                        onChange={(e) => updateSplit(split.id, "referenceNumber", e.target.value)}
+                      />
+                    </div>
+                  </div>
+                ))}
+
+                <Button variant="outline" size="sm" className="w-full" onClick={addSplit}>
+                  <Plus className="mr-2 h-3 w-3" />
+                  Add Method
+                </Button>
+
+                {/* Split summary */}
+                <div className={`text-sm text-right font-medium ${Math.abs(splitsTotal - amount) > 0.01 ? "text-destructive" : "text-success"}`}>
+                  Split Total: {formatCurrency(splitsTotal)} / {formatCurrency(amount)}
+                  {Math.abs(splitsTotal - amount) > 0.01 && (
+                    <p className="text-xs">Amounts must match</p>
+                  )}
+                </div>
+              </div>
+            )}
 
             <div>
               <Label>Notes (Optional)</Label>
@@ -445,7 +516,9 @@ export default function PaymentCollectionPage() {
               size="lg"
               onClick={handleSubmit}
               disabled={
-                !paymentMethodId ||
+                (isSplitPayment
+                  ? splits.filter(s => s.amount > 0 && s.paymentMethodId).length < 2 || Math.abs(splitsTotal - amount) > 0.01
+                  : !paymentMethodId) ||
                 amount <= 0 ||
                 amount > balance ||
                 recordPaymentMutation.isPending
