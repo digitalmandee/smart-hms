@@ -251,6 +251,7 @@ export function useProfitLoss(startDate?: string, endDate?: string) {
             is_debit_normal
           )
         `)
+        .eq("organization_id", profile!.organization_id!)
         .eq("is_active", true)
         .eq("is_header", false)
         .order("account_number");
