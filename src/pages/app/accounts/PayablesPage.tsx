@@ -40,7 +40,7 @@ export default function PayablesPage() {
   const { data: payables, isLoading, refetch } = useQuery({
     queryKey: ["payables-grn", profile?.organization_id],
     queryFn: async () => {
-      // Fetch posted GRNs
+      // Fetch posted + verified GRNs
       const { data: grns, error: grnError } = await supabase
         .from("goods_received_notes")
         .select(`
@@ -53,7 +53,7 @@ export default function PayablesPage() {
           vendor:vendors(id, name, contact_person, phone),
           purchase_order:purchase_orders(po_number)
         `)
-        .eq("status", "posted")
+        .in("status", ["posted", "verified"])
         .order("received_date", { ascending: false });
       
       if (grnError) throw grnError;
