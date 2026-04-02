@@ -1,109 +1,47 @@
 
 
-# Department-Wise P&L Report + Pharmacy Profit Visibility
+# Fix: Deposit Includes Procedure Charges + Split Payment in Invoice Collection
 
-## What Exists Today
+## Issues
 
-| Report | What It Shows | Gap |
-|--------|--------------|-----|
-| Detailed P&L | Revenue, COGS, Expenses, Net Income (GL-based) | No department breakdown |
-| Department Revenue | Revenue by OPD/IPD/Lab/Pharmacy | Revenue only — no expenses or profit |
-| Cost Center P&L | P&L by cost center | Requires `cost_center_id` on journal lines (mostly empty) |
-| Pharmacy Medicine List | Cost price, selling price, margin per medicine | Not connected to P&L |
+1. **Deposit ignores procedure charges** — `BedRateDisplay` calculates suggested deposit as 60% of room cost only. The selected procedure charge is not factored in, so the deposit is under-calculated.
 
-## What the CFO Needs
-
-A single **Department-Wise P&L** report showing per department:
-- Revenue (from invoice prefix routing: OPD, IPD, Lab, Pharmacy, etc.)
-- Expenses (allocated by journal entry reference or account mapping)
-- COGS (Pharmacy specifically)
-- Gross Profit and Net Profit per department
-- Pharmacy cost/selling/margin breakdown
+2. **No split payment on invoice payment page** — The `PaymentCollectionPage.tsx` only supports a single payment method. The split payment UI exists in `AdmissionPaymentDialog` but not in the invoice payment flow.
 
 ## Plan
 
-### 1. New page: Department P&L Report (`/app/accounts/reports/department-pnl`)
+### Fix 1: Include procedure charges in deposit calculation
 
-A new comprehensive report page with:
-- **Date range picker** with presets (This Month, Last Month, YTD, etc.)
-- **Branch filter**
-- **Summary cards**: Total Revenue, Total Expenses, Net Income
-- **Department table** showing per-department: Revenue, COGS, Expenses, Gross Profit, Net Profit, Margin %
-- **Department detail drill-down**: Click a department row to see individual transactions
-- **Charts tab**: Stacked bar chart (Revenue vs Expenses by department), Pie chart (profit contribution)
-- **Pharmacy section**: Shows top medicines by profit, cost vs selling price, margin %
-- **Export**: PDF and Excel
+**File: `src/pages/app/ipd/AdmissionFormPage.tsx`**
 
-### 2. New hook: `useDepartmentPnL`
+- When procedure is selected or bed/discharge date changes, calculate total estimated cost = procedure charge + room cost
+- Update the `onSuggestedDepositChange` callback from `BedRateDisplay` to add procedure charges on top
+- Also show the combined breakdown: "Procedure: Rs X + Room: Rs Y = Total: Rs Z → Suggested Deposit (60%): Rs D"
 
-Queries journal entries grouped by department. Department mapping strategy:
+Approach: After `BedRateDisplay` calls `onSuggestedDepositChange(roomDeposit)`, intercept and add procedure charge. Better approach — pass procedure charge into `BedRateDisplay` so it can calculate the combined deposit.
 
-**Revenue** — Already routed by invoice prefix in the trigger:
-- `REV-001` → OPD
-- `4010` → IPD  
-- `4030` → Laboratory
-- `4040` → Dialysis
-- `REV-PHARM` / Pharmacy revenue accounts → Pharmacy
+**File: `src/components/ipd/BedRateDisplay.tsx`**
 
-**COGS** — `EXP-COGS-001` → Pharmacy (only pharmacy has COGS currently)
+- Add `procedureCharge?: number` prop
+- Include it in `suggestedDeposit` calculation: `suggestedDeposit = (estimatedRoomCost + procedureCharge) * 0.6`
+- Show procedure charge in the display breakdown
 
-**Expenses** — Map by reference_type + journal description:
-- Salary/Payroll → allocated proportionally or shown as "General"
-- Administrative expenses → "General/Admin"
-- Stock write-offs → "Pharmacy"
-- Shipping → "Pharmacy"
+### Fix 2: Add split payment to invoice PaymentCollectionPage
 
-The hook will:
-1. Fetch all revenue accounts with their journal lines in the date range
-2. Map each revenue account to a department by account_number
-3. Fetch all expense accounts with journal lines
-4. Map expenses to departments where possible (COGS→Pharmacy, write-offs→Pharmacy)
-5. Unallocated expenses go to "General/Admin" bucket
-6. Calculate per-department: Revenue, COGS, Gross Profit, Operating Expenses, Net Profit
+**File: `src/pages/app/billing/PaymentCollectionPage.tsx`**
 
-### 3. Pharmacy Profit Section
+- Add the same split payment UI pattern from `AdmissionPaymentDialog`:
+  - Toggle switch for "Split Payment"
+  - Multiple payment method rows with amount + method + reference
+  - Validation that splits sum equals total
+- When split is enabled, record multiple payments (one per split) or record the primary and note the rest
 
-Query `pharmacy_pos_items` joined with `medicines` to show:
-- Top 10 medicines by profit (selling_price - cost_price) × quantity sold
-- Overall pharmacy margin percentage
-- Cost vs Revenue comparison
+Since the `useRecordPayment` hook records a single payment, for split we'll call it multiple times (once per split), each with its own method and amount. This keeps GL entries accurate per payment method.
 
-### 4. Navigation + Translations
+### Files to change
 
-- Add "Department P&L" to the sidebar under Financial Reports
-- Add translations in en.ts, ur.ts, ar.ts for all new labels
-
-## Technical Details
-
-### Department mapping (account_number → department)
-
-```text
-ACCOUNT              DEPARTMENT
-REV-001              OPD
-4010                 IPD
-4020                 Emergency
-4030                 Laboratory
-4040                 Dialysis
-4050                 Imaging/Radiology
-REV-PHARM*           Pharmacy
-EXP-COGS*            Pharmacy
-EXP-WO*              Pharmacy (write-offs)
-EXP-SHIP*            Pharmacy (shipping)
-EXP-SAL*             General (payroll)
-5500, EXP-PETTY*     General (admin)
-All others           General
-```
-
-### Files to create/modify
-
-- **New**: `src/pages/app/accounts/DepartmentPnLPage.tsx` — main report page
-- **New**: `src/hooks/useDepartmentPnL.ts` — data hook with department mapping
-- **Edit**: `src/App.tsx` — add route
-- **Edit**: `src/config/role-sidebars.ts` — add sidebar link
-- **Edit**: `src/pages/app/accounts/FinancialReportsPage.tsx` — add card
-- **Edit**: `src/lib/i18n/translations/en.ts` — English labels
-- **Edit**: `src/lib/i18n/translations/ur.ts` — Urdu labels
-- **Edit**: `src/lib/i18n/translations/ar.ts` — Arabic labels
-
-No database migration needed — all data already exists in journal_entries/journal_entry_lines with the right account mappings.
+- **Edit**: `src/components/ipd/BedRateDisplay.tsx` — add `procedureCharge` prop, include in deposit calc and display
+- **Edit**: `src/pages/app/ipd/AdmissionFormPage.tsx` — pass procedure charge to BedRateDisplay
+- **Edit**: `src/pages/app/billing/PaymentCollectionPage.tsx` — add split payment toggle + UI + multi-payment recording
+- **Edit**: `src/lib/i18n/translations/en.ts`, `ur.ts`, `ar.ts` — new labels for split payment
 
