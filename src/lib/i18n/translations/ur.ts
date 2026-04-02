@@ -3623,6 +3623,16 @@ export const ur: Record<TranslationKey, string> = {
   "dept_pnl.total_cost": "کل لاگت",
   "dept_pnl.profit": "منافع",
   "dept_pnl.no_pharmacy_data": "اس مدت کے لیے فارمیسی فروخت کا ڈیٹا نہیں",
+  "dept_pnl.transactions": "تمام لین دین",
+  "dept_pnl.txn_date": "تاریخ",
+  "dept_pnl.journal_number": "جرنل نمبر",
+  "dept_pnl.txn_description": "تفصیل",
+  "dept_pnl.account": "اکاؤنٹ",
+  "dept_pnl.txn_type": "قسم",
+  "dept_pnl.debit": "ڈیبٹ",
+  "dept_pnl.credit": "کریڈٹ",
+  "dept_pnl.search_transactions": "لین دین تلاش کریں...",
+  "dept_pnl.filter_type": "قسم کے لحاظ سے فلٹر",
 
 };
 

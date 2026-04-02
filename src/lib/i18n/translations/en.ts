@@ -3696,6 +3696,16 @@ export const en = {
   "dept_pnl.total_cost": "Total Cost",
   "dept_pnl.profit": "Profit",
   "dept_pnl.no_pharmacy_data": "No pharmacy sales data for this period",
+  "dept_pnl.transactions": "All Transactions",
+  "dept_pnl.txn_date": "Date",
+  "dept_pnl.journal_number": "Journal #",
+  "dept_pnl.txn_description": "Description",
+  "dept_pnl.account": "Account",
+  "dept_pnl.txn_type": "Type",
+  "dept_pnl.debit": "Debit",
+  "dept_pnl.credit": "Credit",
+  "dept_pnl.search_transactions": "Search transactions...",
+  "dept_pnl.filter_type": "Filter by Type",
 
 } as const;
 

@@ -1,7 +1,6 @@
 import { useState, useMemo } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import {
@@ -15,7 +14,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
   BarChart3, TrendingUp, TrendingDown, DollarSign,
-  Download, Pill, Building2,
+  Pill, Building2, List, Search,
 } from "lucide-react";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
@@ -28,6 +27,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
+import { ReportExportButton } from "@/components/reports/ReportExportButton";
 
 const COLORS = [
   "hsl(var(--primary))",
@@ -87,6 +87,8 @@ export default function DepartmentPnLPage() {
   const [customEnd, setCustomEnd] = useState("");
   const [branchId, setBranchId] = useState<string>("");
   const [expandedDept, setExpandedDept] = useState<string | null>(null);
+  const [txnSearch, setTxnSearch] = useState("");
+  const [txnTypeFilter, setTxnTypeFilter] = useState<string>("all");
 
   const dates = useMemo(() => {
     if (preset === "custom" && customStart && customEnd) {
@@ -132,21 +134,53 @@ export default function DepartmentPnLPage() {
       .map((d) => ({ name: d.department, value: d.revenue }));
   }, [data]);
 
-  const handleExportCSV = () => {
-    if (!data?.departments) return;
-    const headers = ["Department", "Revenue", "COGS", "Gross Profit", "Expenses", "Net Profit", "Margin %"];
-    const rows = data.departments.map((d) =>
-      [d.department, d.revenue, d.cogs, d.grossProfit, d.expenses, d.netProfit, d.marginPercent.toFixed(1)].join(",")
-    );
-    const totalRow = ["TOTAL", data.totals.revenue, data.totals.cogs, data.totals.grossProfit, data.totals.expenses, data.totals.netProfit, ""].join(",");
-    const csv = [headers.join(","), ...rows, totalRow].join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `department-pnl-${dates.start}-to-${dates.end}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
+  // Filtered transactions
+  const filteredTransactions = useMemo(() => {
+    if (!data?.transactions) return [];
+    let txns = data.transactions;
+    if (txnTypeFilter !== "all") {
+      txns = txns.filter((t) => t.type === txnTypeFilter);
+    }
+    if (txnSearch.trim()) {
+      const q = txnSearch.toLowerCase();
+      txns = txns.filter(
+        (t) =>
+          t.description.toLowerCase().includes(q) ||
+          t.account_name.toLowerCase().includes(q) ||
+          t.department.toLowerCase().includes(q) ||
+          t.journal_number.toLowerCase().includes(q)
+      );
+    }
+    return txns;
+  }, [data?.transactions, txnSearch, txnTypeFilter]);
+
+  // Export columns for department summary
+  const deptExportColumns = [
+    { key: "department", header: t("dept_pnl.department") },
+    { key: "revenue", header: t("dept_pnl.revenue"), format: (v: any) => formatCurrency(v), align: "right" as const },
+    { key: "cogs", header: t("dept_pnl.cogs"), format: (v: any) => formatCurrency(v), align: "right" as const },
+    { key: "grossProfit", header: t("dept_pnl.gross_profit"), format: (v: any) => formatCurrency(v), align: "right" as const },
+    { key: "expenses", header: t("dept_pnl.expenses"), format: (v: any) => formatCurrency(v), align: "right" as const },
+    { key: "netProfit", header: t("dept_pnl.net_profit"), format: (v: any) => formatCurrency(v), align: "right" as const },
+    { key: "marginPercent", header: t("dept_pnl.margin"), format: (v: any) => `${Number(v).toFixed(1)}%`, align: "right" as const },
+  ];
+
+  // Export columns for transactions
+  const txnExportColumns = [
+    { key: "date", header: t("dept_pnl.txn_date") },
+    { key: "journal_number", header: t("dept_pnl.journal_number") },
+    { key: "description", header: t("dept_pnl.txn_description") },
+    { key: "department", header: t("dept_pnl.department") },
+    { key: "account_name", header: t("dept_pnl.account") },
+    { key: "type", header: t("dept_pnl.txn_type") },
+    { key: "debit", header: t("dept_pnl.debit"), format: (v: any) => formatCurrency(v), align: "right" as const },
+    { key: "credit", header: t("dept_pnl.credit"), format: (v: any) => formatCurrency(v), align: "right" as const },
+    { key: "net_amount", header: t("dept_pnl.net_profit"), format: (v: any) => formatCurrency(v), align: "right" as const },
+  ];
+
+  const pdfDateRange = {
+    from: new Date(dates.start),
+    to: new Date(dates.end),
   };
 
   return (
@@ -211,9 +245,28 @@ export default function DepartmentPnLPage() {
               </div>
             )}
 
-            <Button variant="outline" size="sm" onClick={handleExportCSV} disabled={!data}>
-              <Download className="h-4 w-4 mr-1" /> {t("common.export")}
-            </Button>
+            <ReportExportButton
+              data={data?.departments || []}
+              filename={`department-pnl-${dates.start}-to-${dates.end}`}
+              columns={deptExportColumns}
+              title={t("dept_pnl.title")}
+              pdfOptions={{
+                title: t("dept_pnl.title"),
+                subtitle: t("dept_pnl.subtitle"),
+                dateRange: pdfDateRange,
+                orientation: "landscape",
+              }}
+              summaryRow={{
+                department: t("dept_pnl.total"),
+                revenue: data?.totals.revenue || 0,
+                cogs: data?.totals.cogs || 0,
+                grossProfit: data?.totals.grossProfit || 0,
+                expenses: data?.totals.expenses || 0,
+                netProfit: data?.totals.netProfit || 0,
+                marginPercent: data?.totals.revenue ? ((data.totals.netProfit / data.totals.revenue) * 100) : 0,
+              }}
+              isLoading={isLoading}
+            />
           </div>
         </CardContent>
       </Card>
@@ -258,11 +311,14 @@ export default function DepartmentPnLPage() {
         </div>
       ) : null}
 
-      {/* Tabs: Table / Charts / Pharmacy */}
+      {/* Tabs: Table / Charts / Pharmacy / Transactions */}
       <Tabs defaultValue="table">
         <TabsList>
           <TabsTrigger value="table">
             <Building2 className="h-4 w-4 mr-1" /> {t("dept_pnl.by_department")}
+          </TabsTrigger>
+          <TabsTrigger value="transactions">
+            <List className="h-4 w-4 mr-1" /> {t("dept_pnl.transactions")}
           </TabsTrigger>
           <TabsTrigger value="charts">
             <BarChart3 className="h-4 w-4 mr-1" /> {t("dept_pnl.charts")}
@@ -343,6 +399,114 @@ export default function DepartmentPnLPage() {
                       )}
                     </TableBody>
                   </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Transactions Detail */}
+        <TabsContent value="transactions">
+          <Card>
+            <CardHeader>
+              <div className="flex flex-wrap items-center justify-between gap-4">
+                <CardTitle className="text-base flex items-center gap-2">
+                  <List className="h-5 w-5" /> {t("dept_pnl.transactions")}
+                  <Badge variant="secondary" className="ml-2">{filteredTransactions.length}</Badge>
+                </CardTitle>
+                <ReportExportButton
+                  data={filteredTransactions}
+                  filename={`dept-pnl-transactions-${dates.start}-to-${dates.end}`}
+                  columns={txnExportColumns}
+                  title={t("dept_pnl.transactions")}
+                  pdfOptions={{
+                    title: `${t("dept_pnl.title")} — ${t("dept_pnl.transactions")}`,
+                    subtitle: t("dept_pnl.subtitle"),
+                    dateRange: pdfDateRange,
+                    orientation: "landscape",
+                  }}
+                  isLoading={isLoading}
+                />
+              </div>
+            </CardHeader>
+            <CardContent>
+              {/* Search + Filter */}
+              <div className="flex flex-wrap gap-3 mb-4">
+                <div className="relative flex-1 min-w-[200px]">
+                  <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input
+                    placeholder={t("dept_pnl.search_transactions")}
+                    value={txnSearch}
+                    onChange={(e) => setTxnSearch(e.target.value)}
+                    className="pl-9"
+                  />
+                </div>
+                <Select value={txnTypeFilter} onValueChange={setTxnTypeFilter}>
+                  <SelectTrigger className="w-[160px]">
+                    <SelectValue placeholder={t("dept_pnl.filter_type")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("common.all")}</SelectItem>
+                    <SelectItem value="Revenue">{t("dept_pnl.revenue")}</SelectItem>
+                    <SelectItem value="COGS">{t("dept_pnl.cogs")}</SelectItem>
+                    <SelectItem value="Expense">{t("dept_pnl.expenses")}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              {isLoading ? (
+                <Skeleton className="h-64" />
+              ) : filteredTransactions.length > 0 ? (
+                <div className="rounded-md border overflow-auto max-h-[600px]">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>{t("dept_pnl.txn_date")}</TableHead>
+                        <TableHead>{t("dept_pnl.journal_number")}</TableHead>
+                        <TableHead>{t("dept_pnl.txn_description")}</TableHead>
+                        <TableHead>{t("dept_pnl.department")}</TableHead>
+                        <TableHead>{t("dept_pnl.account")}</TableHead>
+                        <TableHead>{t("dept_pnl.txn_type")}</TableHead>
+                        <TableHead className="text-right">{t("dept_pnl.debit")}</TableHead>
+                        <TableHead className="text-right">{t("dept_pnl.credit")}</TableHead>
+                        <TableHead className="text-right">{t("dept_pnl.net_profit")}</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {filteredTransactions.map((txn, idx) => (
+                        <TableRow key={`${txn.journal_number}-${idx}`}>
+                          <TableCell className="whitespace-nowrap">{txn.date}</TableCell>
+                          <TableCell className="font-mono text-xs">{txn.journal_number}</TableCell>
+                          <TableCell className="max-w-[200px] truncate" title={txn.description}>
+                            {txn.description || "—"}
+                          </TableCell>
+                          <TableCell>{txn.department}</TableCell>
+                          <TableCell className="text-xs">{txn.account_name}</TableCell>
+                          <TableCell>
+                            <Badge
+                              variant={txn.type === "Revenue" ? "default" : "destructive"}
+                              className={cn(
+                                txn.type === "Revenue" && "bg-green-100 text-green-800 hover:bg-green-100",
+                                txn.type === "COGS" && "bg-orange-100 text-orange-800 hover:bg-orange-100",
+                                txn.type === "Expense" && "bg-red-100 text-red-800 hover:bg-red-100"
+                              )}
+                            >
+                              {txn.type}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-right">{txn.debit > 0 ? formatCurrency(txn.debit) : "—"}</TableCell>
+                          <TableCell className="text-right">{txn.credit > 0 ? formatCurrency(txn.credit) : "—"}</TableCell>
+                          <TableCell className={cn("text-right font-semibold", txn.net_amount >= 0 ? "text-green-600" : "text-red-600")}>
+                            {formatCurrency(txn.net_amount)}
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
+              ) : (
+                <div className="py-12 text-center text-muted-foreground">
+                  {t("dept_pnl.no_data")}
                 </div>
               )}
             </CardContent>

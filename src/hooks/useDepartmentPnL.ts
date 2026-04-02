@@ -23,6 +23,19 @@ export interface PharmacyMedicineProfit {
   margin_percent: number;
 }
 
+export interface DepartmentTransaction {
+  date: string;
+  journal_number: string;
+  description: string;
+  department: string;
+  account_name: string;
+  account_number: string;
+  type: "Revenue" | "COGS" | "Expense";
+  debit: number;
+  credit: number;
+  net_amount: number;
+}
+
 export interface DepartmentPnLData {
   departments: DepartmentPnLRow[];
   totals: {
@@ -33,6 +46,7 @@ export interface DepartmentPnLData {
     netProfit: number;
   };
   pharmacyMedicines: PharmacyMedicineProfit[];
+  transactions: DepartmentTransaction[];
 }
 
 // Map account_number to department
@@ -49,7 +63,6 @@ function mapAccountToDepartment(accountNumber: string, accountName: string): str
   if (num.startsWith("EXP-WO") || num.startsWith("EXP-SHIP")) return "Pharmacy";
   if (num.startsWith("EXP-SAL") || num === "5500") return "General/Admin";
   if (num.startsWith("EXP-PETTY") || num.startsWith("EXP-ADM")) return "General/Admin";
-  // Check name for clues
   const nameLower = accountName.toLowerCase();
   if (nameLower.includes("pharmacy") || nameLower.includes("cogs")) return "Pharmacy";
   if (nameLower.includes("laboratory") || nameLower.includes("lab ")) return "Laboratory";
@@ -58,6 +71,13 @@ function mapAccountToDepartment(accountNumber: string, accountName: string): str
   if (nameLower.includes("dialysis")) return "Dialysis";
   if (nameLower.includes("emergency")) return "Emergency";
   return "General/Admin";
+}
+
+function classifyAccountType(accountNumber: string, category: string): "Revenue" | "COGS" | "Expense" {
+  if (category === "Revenue") return "Revenue";
+  const num = accountNumber.toUpperCase();
+  if (num.startsWith("EXP-COGS")) return "COGS";
+  return "Expense";
 }
 
 export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?: string) {
@@ -81,12 +101,12 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
 
       if (accErr) throw accErr;
 
-      // 2. Get journal entry lines with date filter
+      // 2. Get journal entry lines with date filter — include journal details for transactions
       let query = supabase
         .from("journal_entry_lines")
         .select(`
-          account_id, debit_amount, credit_amount,
-          journal_entry:journal_entries!inner(entry_date, is_posted, organization_id, branch_id)
+          account_id, debit_amount, credit_amount, description,
+          journal_entry:journal_entries!inner(entry_date, is_posted, organization_id, branch_id, journal_number, description)
         `)
         .eq("journal_entry.is_posted", true)
         .eq("journal_entry.organization_id", profile.organization_id);
@@ -98,15 +118,64 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
       const { data: lines, error: linesErr } = await query;
       if (linesErr) throw linesErr;
 
-      // 3. Aggregate per account
+      // Build account lookup
+      const accountMap: Record<string, {
+        name: string;
+        account_number: string;
+        category: string;
+        is_debit_normal: boolean;
+      }> = {};
+      for (const acct of accounts || []) {
+        const acctType = acct.account_type as any;
+        if (!acctType) continue;
+        accountMap[acct.id] = {
+          name: acct.name,
+          account_number: acct.account_number,
+          category: acctType.category,
+          is_debit_normal: acctType.is_debit_normal,
+        };
+      }
+
+      // 3. Aggregate per account + build transactions
       const accountTotals: Record<string, { debit: number; credit: number }> = {};
+      const transactions: DepartmentTransaction[] = [];
+
       for (const line of lines || []) {
+        const acct = accountMap[line.account_id];
+        if (!acct) continue;
+        
+        // Only include Revenue and Expense categories
+        if (acct.category !== "Revenue" && acct.category !== "Expense") continue;
+
+        // Aggregate
         if (!accountTotals[line.account_id]) {
           accountTotals[line.account_id] = { debit: 0, credit: 0 };
         }
         accountTotals[line.account_id].debit += Number(line.debit_amount) || 0;
         accountTotals[line.account_id].credit += Number(line.credit_amount) || 0;
+
+        // Build transaction row
+        const je = line.journal_entry as any;
+        const debit = Number(line.debit_amount) || 0;
+        const credit = Number(line.credit_amount) || 0;
+        const netAmount = acct.is_debit_normal ? debit - credit : credit - debit;
+
+        transactions.push({
+          date: je?.entry_date || "",
+          journal_number: je?.journal_number || "",
+          description: (line.description || je?.description || "").toString(),
+          department: mapAccountToDepartment(acct.account_number, acct.name),
+          account_name: acct.name,
+          account_number: acct.account_number,
+          type: classifyAccountType(acct.account_number, acct.category),
+          debit,
+          credit,
+          net_amount: netAmount,
+        });
       }
+
+      // Sort transactions by date descending
+      transactions.sort((a, b) => b.date.localeCompare(a.date));
 
       // 4. Build department buckets
       const deptData: Record<string, { revenue: number; cogs: number; expenses: number }> = {};
@@ -133,7 +202,6 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
         if (category === "Revenue") {
           deptData[dept].revenue += netAmount;
         } else if (category === "Expense") {
-          // Separate COGS from other expenses
           const num = acct.account_number.toUpperCase();
           if (num.startsWith("EXP-COGS")) {
             deptData[dept].cogs += netAmount;
@@ -221,7 +289,7 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
         // POS data optional
       }
 
-      return { departments, totals, pharmacyMedicines };
+      return { departments, totals, pharmacyMedicines, transactions };
     },
     enabled: !!profile?.organization_id,
   });
