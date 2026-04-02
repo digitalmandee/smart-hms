@@ -264,8 +264,28 @@ export function InvoiceItemsBuilder({
                 <TableCell className="text-right">{item.quantity}</TableCell>
                 <TableCell className="text-right">{fc(item.unit_price)}</TableCell>
                 <TableCell className="text-right">{item.discount_percent || 0}%</TableCell>
+                <TableCell className="text-right">
+                  {!disabled && taxSlabs && taxSlabs.length > 0 ? (
+                    <select
+                      className="w-20 text-right bg-transparent border rounded px-1 py-0.5 text-sm"
+                      value={item.tax_percent || 0}
+                      onChange={(e) => {
+                        const updated = [...items];
+                        updated[index] = { ...updated[index], tax_percent: parseFloat(e.target.value) || 0 };
+                        onChange(updated);
+                      }}
+                    >
+                      <option value="0">0%</option>
+                      {taxSlabs.map(slab => (
+                        <option key={slab.id} value={slab.tax_rate}>{slab.tax_rate}%</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span>{item.tax_percent || 0}%</span>
+                  )}
+                </TableCell>
                 <TableCell className="text-right font-medium">
-                  {fc(calculateItemTotal(item))}
+                  {fc(calculateItemTotal(item) * (1 + (item.tax_percent || 0) / 100))}
                 </TableCell>
                 <TableCell>
                   <Button
