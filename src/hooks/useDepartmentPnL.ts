@@ -74,7 +74,7 @@ function mapAccountToDepartment(accountNumber: string, accountName: string): str
 }
 
 function classifyAccountType(accountNumber: string, category: string): "Revenue" | "COGS" | "Expense" {
-  if (category === "Revenue") return "Revenue";
+  if (category.toLowerCase() === "revenue") return "Revenue";
   const num = accountNumber.toUpperCase();
   if (num.startsWith("EXP-COGS")) return "COGS";
   return "Expense";
@@ -145,7 +145,7 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
         if (!acct) continue;
         
         // Only include Revenue and Expense categories
-        if (acct.category !== "Revenue" && acct.category !== "Expense") continue;
+        if (acct.category.toLowerCase() !== "revenue" && acct.category.toLowerCase() !== "expense") continue;
 
         // Aggregate
         if (!accountTotals[line.account_id]) {
@@ -199,9 +199,9 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
         const dept = mapAccountToDepartment(acct.account_number, acct.name);
         ensureDept(dept);
 
-        if (category === "Revenue") {
+        if (category.toLowerCase() === "revenue") {
           deptData[dept].revenue += netAmount;
-        } else if (category === "Expense") {
+        } else if (category.toLowerCase() === "expense") {
           const num = acct.account_number.toUpperCase();
           if (num.startsWith("EXP-COGS")) {
             deptData[dept].cogs += netAmount;
@@ -240,13 +240,13 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
           .select(`
             quantity, unit_price, total_price,
             medicine:medicines(name, cost_price),
-            pos_sale:pharmacy_pos_sales!inner(sale_date, organization_id, branch_id)
+            pos_transaction:pharmacy_pos_transactions!inner(transaction_date, organization_id, branch_id)
           `)
-          .eq("pos_sale.organization_id", profile.organization_id);
+          .eq("pos_transaction.organization_id", profile.organization_id);
 
-        if (startDate) posQuery = posQuery.gte("pos_sale.sale_date", startDate);
-        if (endDate) posQuery = posQuery.lte("pos_sale.sale_date", endDate);
-        if (branchId) posQuery = posQuery.eq("pos_sale.branch_id", branchId);
+        if (startDate) posQuery = posQuery.gte("pos_transaction.transaction_date", startDate);
+        if (endDate) posQuery = posQuery.lte("pos_transaction.transaction_date", endDate);
+        if (branchId) posQuery = posQuery.eq("pos_transaction.branch_id", branchId);
 
         const { data: posItems } = await posQuery;
 
