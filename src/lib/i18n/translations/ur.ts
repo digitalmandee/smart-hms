@@ -3714,5 +3714,32 @@ export const ur: Record<TranslationKey, string> = {
   "consultation.searchPlaceholder": "مریض، ڈاکٹر، تشخیص سے تلاش کریں...",
   "consultation.noData": "منتخب مدت کے لیے کوئی مشاورت نہیں ملی",
 
+  // Billing Tax Slabs
+  "billing_tax.title": "بلنگ ٹیکس سلیب",
+  "billing_tax.description": "مختلف بلنگ زمروں کے لیے ٹیکس شرحیں منظم کریں",
+  "billing_tax.add_slab": "ٹیکس سلیب شامل کریں",
+  "billing_tax.edit_slab": "ٹیکس سلیب میں ترمیم",
+  "billing_tax.tax_categories": "ٹیکس زمرے",
+  "billing_tax.tax_categories_desc": "خدمات، ادویات، لیب ٹیسٹ وغیرہ کے لیے مختلف ٹیکس شرحیں متعین کریں",
+  "billing_tax.no_slabs": "ابھی کوئی ٹیکس سلیب ترتیب نہیں دیا گیا۔ اپنا پہلا ٹیکس زمرہ شامل کریں۔",
+  "billing_tax.rate": "ٹیکس شرح",
+  "billing_tax.applies_to": "لاگو ہوتا ہے",
+  "billing_tax.all_categories": "تمام زمرے",
+  "billing_tax.services": "خدمات",
+  "billing_tax.medicines": "ادویات",
+  "billing_tax.lab": "لیب",
+  "billing_tax.custom": "حسب ضرورت",
+  "billing_tax.set_default": "بطور ڈیفالٹ مقرر کریں",
+  "billing_tax.default": "ڈیفالٹ",
+  "billing_tax.active": "فعال",
+  "billing_tax.inactive": "غیر فعال",
+  "billing_tax.saved": "ٹیکس سلیب محفوظ ہو گیا",
+  "billing_tax.saved_desc": "ٹیکس سلیب کامیابی سے محفوظ ہو گیا۔",
+  "billing_tax.save_error": "ٹیکس سلیب محفوظ کرنے میں ناکامی۔",
+  "billing_tax.deleted": "ٹیکس سلیب حذف ہو گیا",
+  "billing_tax.slab_form_desc": "ٹیکس شرح اور زمرہ ترتیب دیں۔",
+  "billing_tax.tax_col": "ٹیکس %",
+  "billing_tax.tax_amount_col": "ٹیکس رقم",
+
 };
 

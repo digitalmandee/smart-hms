@@ -3787,6 +3787,33 @@ export const en = {
   "consultation.searchPlaceholder": "Search by patient, doctor, diagnosis...",
   "consultation.noData": "No consultations found for the selected period",
 
+  // Billing Tax Slabs
+  "billing_tax.title": "Billing Tax Slabs",
+  "billing_tax.description": "Manage tax rates for different billing categories",
+  "billing_tax.add_slab": "Add Tax Slab",
+  "billing_tax.edit_slab": "Edit Tax Slab",
+  "billing_tax.tax_categories": "Tax Categories",
+  "billing_tax.tax_categories_desc": "Define different tax rates for services, medicines, lab tests, etc.",
+  "billing_tax.no_slabs": "No tax slabs configured yet. Add your first tax category.",
+  "billing_tax.rate": "Tax Rate",
+  "billing_tax.applies_to": "Applies To",
+  "billing_tax.all_categories": "All Categories",
+  "billing_tax.services": "Services",
+  "billing_tax.medicines": "Medicines",
+  "billing_tax.lab": "Lab",
+  "billing_tax.custom": "Custom",
+  "billing_tax.set_default": "Set as Default",
+  "billing_tax.default": "Default",
+  "billing_tax.active": "Active",
+  "billing_tax.inactive": "Inactive",
+  "billing_tax.saved": "Tax Slab Saved",
+  "billing_tax.saved_desc": "Tax slab has been saved successfully.",
+  "billing_tax.save_error": "Failed to save tax slab.",
+  "billing_tax.deleted": "Tax Slab Deleted",
+  "billing_tax.slab_form_desc": "Configure the tax rate and category it applies to.",
+  "billing_tax.tax_col": "Tax %",
+  "billing_tax.tax_amount_col": "Tax Amt",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

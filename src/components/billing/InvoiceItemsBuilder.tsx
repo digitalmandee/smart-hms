@@ -1,5 +1,8 @@
 import { useState, useMemo } from "react";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -47,10 +50,30 @@ export function InvoiceItemsBuilder({
   disabled,
 }: InvoiceItemsBuilderProps) {
   const { formatCurrency: fc } = useCurrencyFormatter();
+  const { profile } = useAuth();
   const { data: serviceTypes } = useServiceTypes();
   const { data: categories } = useServiceCategories();
   const { data: beds } = useBeds();
   const { data: wards } = useWards();
+
+  // Fetch billing tax slabs
+  const { data: taxSlabs } = useQuery({
+    queryKey: ["billing-tax-slabs", profile?.organization_id],
+    queryFn: async () => {
+      if (!profile?.organization_id) return [];
+      const { data, error } = await supabase
+        .from("billing_tax_slabs")
+        .select("*")
+        .eq("organization_id", profile.organization_id)
+        .eq("is_active", true)
+        .order("created_at");
+      if (error) throw error;
+      return data as { id: string; name: string; tax_rate: number; is_default: boolean; applies_to: string }[];
+    },
+    enabled: !!profile?.organization_id,
+  });
+
+  const defaultTaxSlab = taxSlabs?.find(s => s.is_default);
   
   const [categoryFilter, setCategoryFilter] = useState<string>("all");
   const [servicePickerOpen, setServicePickerOpen] = useState(false);
@@ -89,7 +112,8 @@ export function InvoiceItemsBuilder({
 
   const handleAddItem = () => {
     if (!newItem.description || newItem.unit_price <= 0) return;
-    onChange([...items, newItem]);
+    const itemWithTax = { ...newItem, tax_percent: newItem.tax_percent ?? (defaultTaxSlab?.tax_rate || 0) };
+    onChange([...items, itemWithTax]);
     setNewItem({
       description: "",
       quantity: 1,
@@ -194,10 +218,11 @@ export function InvoiceItemsBuilder({
       <Table>
         <TableHeader>
           <TableRow>
-            <TableHead className="w-[40%]">Description</TableHead>
+            <TableHead className="w-[35%]">Description</TableHead>
             <TableHead className="text-right">Qty</TableHead>
             <TableHead className="text-right">Price</TableHead>
             <TableHead className="text-right">Disc %</TableHead>
+            <TableHead className="text-right">Tax %</TableHead>
             <TableHead className="text-right">Total</TableHead>
             <TableHead className="w-10"></TableHead>
           </TableRow>
@@ -240,8 +265,28 @@ export function InvoiceItemsBuilder({
                 <TableCell className="text-right">{item.quantity}</TableCell>
                 <TableCell className="text-right">{fc(item.unit_price)}</TableCell>
                 <TableCell className="text-right">{item.discount_percent || 0}%</TableCell>
+                <TableCell className="text-right">
+                  {!disabled && taxSlabs && taxSlabs.length > 0 ? (
+                    <select
+                      className="w-20 text-right bg-transparent border rounded px-1 py-0.5 text-sm"
+                      value={item.tax_percent || 0}
+                      onChange={(e) => {
+                        const updated = [...items];
+                        updated[index] = { ...updated[index], tax_percent: parseFloat(e.target.value) || 0 };
+                        onChange(updated);
+                      }}
+                    >
+                      <option value="0">0%</option>
+                      {taxSlabs.map(slab => (
+                        <option key={slab.id} value={slab.tax_rate}>{slab.tax_rate}%</option>
+                      ))}
+                    </select>
+                  ) : (
+                    <span>{item.tax_percent || 0}%</span>
+                  )}
+                </TableCell>
                 <TableCell className="text-right font-medium">
-                  {fc(calculateItemTotal(item))}
+                  {fc(calculateItemTotal(item) * (1 + (item.tax_percent || 0) / 100))}
                 </TableCell>
                 <TableCell>
                   <Button
@@ -259,7 +304,7 @@ export function InvoiceItemsBuilder({
 
           {items.length === 0 && (
             <TableRow>
-              <TableCell colSpan={6} className="text-center text-muted-foreground py-8">
+              <TableCell colSpan={7} className="text-center text-muted-foreground py-8">
                 No items added yet
               </TableCell>
             </TableRow>

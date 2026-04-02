@@ -78,6 +78,7 @@ import BranchModulesPage from "./pages/app/settings/BranchModulesPage";
 import BillingSettingsPage from "./pages/app/settings/BillingSettingsPage";
 import TaxSettingsPage from "./pages/app/settings/TaxSettingsPage";
 import ReceiptTemplatesPage from "./pages/app/settings/ReceiptTemplatesPage";
+const BillingTaxSlabsPage = React.lazy(() => import("./pages/app/settings/BillingTaxSlabsPage"));
 import OrgAdminDashboardPage from "./pages/app/OrgAdminDashboardPage";
 import OrganizationReportsPage from "./pages/app/reports/OrganizationReportsPage";
 import BranchComparisonPage from "./pages/app/reports/BranchComparisonPage";
@@ -1406,6 +1407,7 @@ function App() {
               <Route path="settings/users/invite" element={<UserInvitePage />} />
               <Route path="settings/billing" element={<BillingSettingsPage />} />
               <Route path="settings/tax" element={<TaxSettingsPage />} />
+              <Route path="settings/billing-tax-slabs" element={<React.Suspense fallback={<div>Loading...</div>}><BillingTaxSlabsPage /></React.Suspense>} />
               <Route path="settings/receipts" element={<ReceiptTemplatesPage />} />
               <Route path="settings/clinical" element={<ClinicalConfigPage />} />
               <Route path="settings/lab" element={<LabSettingsPage />} />

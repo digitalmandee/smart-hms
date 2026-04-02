@@ -64,6 +64,9 @@ export interface InvoiceItemInput {
   category?: string | null;
   // Doctor attribution for consultation fees (wallet earnings)
   doctor_id?: string | null;
+  // Tax per line item
+  tax_percent?: number;
+  tax_amount?: number;
 }
 
 // ========== INVOICES ==========
@@ -223,17 +226,23 @@ export function useCreateInvoice() {
       if (invoiceError) throw invoiceError;
 
       // Create invoice items
-      const invoiceItems = items.map((item) => ({
-        invoice_id: invoice.id,
-        description: item.description,
-        quantity: item.quantity,
-        unit_price: item.unit_price,
-        discount_percent: item.discount_percent || 0,
-        total_price: item.quantity * item.unit_price * (1 - (item.discount_percent || 0) / 100),
-        service_type_id: item.service_type_id,
-        medicine_inventory_id: item.medicine_inventory_id,
-        doctor_id: item.doctor_id || null,
-      }));
+      const invoiceItems = items.map((item) => {
+        const lineTotal = item.quantity * item.unit_price * (1 - (item.discount_percent || 0) / 100);
+        const lineTax = lineTotal * ((item.tax_percent || 0) / 100);
+        return {
+          invoice_id: invoice.id,
+          description: item.description,
+          quantity: item.quantity,
+          unit_price: item.unit_price,
+          discount_percent: item.discount_percent || 0,
+          total_price: lineTotal,
+          service_type_id: item.service_type_id,
+          medicine_inventory_id: item.medicine_inventory_id,
+          doctor_id: item.doctor_id || null,
+          tax_percent: item.tax_percent || 0,
+          tax_amount: lineTax,
+        };
+      });
 
       const { error: itemsError } = await supabase
         .from("invoice_items")

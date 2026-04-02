@@ -9,7 +9,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
-import { ArrowLeft, Percent, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Percent, Save, Loader2, ExternalLink } from "lucide-react";
 
 export default function TaxSettingsPage() {
   const navigate = useNavigate();
@@ -173,6 +173,24 @@ export default function TaxSettingsPage() {
               Save Settings
             </Button>
           </div>
+        </CardContent>
+      </Card>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Percent className="h-5 w-5" />
+            Billing Tax Slabs
+          </CardTitle>
+          <CardDescription>
+            Manage different tax rates for different service categories (e.g., Standard 17%, Zero Rated, Reduced 5%)
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Button variant="outline" onClick={() => navigate("/app/settings/billing-tax-slabs")}>
+            <ExternalLink className="mr-2 h-4 w-4" />
+            Manage Tax Slabs
+          </Button>
         </CardContent>
       </Card>
     </div>
