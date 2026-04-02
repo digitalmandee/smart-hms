@@ -106,7 +106,7 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
         .from("journal_entry_lines")
         .select(`
           account_id, debit_amount, credit_amount, description,
-          journal_entry:journal_entries!inner(entry_date, is_posted, organization_id, branch_id, journal_number, description)
+          journal_entry:journal_entries!inner(entry_date, is_posted, organization_id, branch_id, entry_number, description)
         `)
         .eq("journal_entry.is_posted", true)
         .eq("journal_entry.organization_id", profile.organization_id);
