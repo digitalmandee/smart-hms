@@ -165,7 +165,9 @@ export function useAgingReport() {
           id, claim_number, claim_date, submission_date, total_amount, approved_amount, paid_amount, status,
           patient_insurance:patient_insurance(
             patient:patients(first_name, last_name),
-            insurance_company:insurance_companies(name)
+            insurance_plan:insurance_plans(
+              insurance_company:insurance_companies(name)
+            )
           )
         `)
         .eq("organization_id", orgId!)
@@ -182,7 +184,7 @@ export function useAgingReport() {
           claim_number: c.claim_number,
           submission_date: c.submission_date,
           claim_date: c.claim_date,
-          insurer_name: pi?.insurance_company?.name || "Unknown",
+          insurer_name: pi?.insurance_plan?.insurance_company?.name || "Unknown",
           patient_name: pi?.patient ? `${pi.patient.first_name} ${pi.patient.last_name}` : "Unknown",
           total_amount: c.total_amount || 0,
           approved_amount: c.approved_amount || 0,

@@ -3475,7 +3475,7 @@ export const ur: Record<TranslationKey, string> = {
   "demo.section.reports": "رپورٹس اور تعمیل",
   "demo.step.accountsDashboard": "اکاؤنٹس ڈیش بورڈ",
   "demo.step.accountsDashboard.desc": "KPIs، آمدنی کے رجحانات، AR ایجنگ کا جائزہ",
-  "demo.step.accountsDashboard.talk": "دکھائیں کہ ڈیش بورڈ CFO سطح کا سنیپ شاٹ کیسے دیتا ہے",
+  "demo.step.accountsDashboard.talk": "دکھائیں کہ ڈیش بورڈ مالیاتی سنیپ شاٹ کیسے دیتا ہے",
   "demo.step.chartOfAccounts": "چارٹ آف اکاؤنٹس",
   "demo.step.chartOfAccounts.desc": "تمام اکاؤنٹس کا 4 سطحی درجہ بندی ٹری",
   "demo.step.chartOfAccounts.talk": "درجہ بندی دکھائیں: اثاثے ← موجودہ اثاثے ← نقد و بینک ← چھوٹا خرچ",
@@ -3656,7 +3656,7 @@ export const ur: Record<TranslationKey, string> = {
 
   // Aging Report
   "aging.title": "وصول یافتنی اکاؤنٹس — عمر رسیدگی رپورٹ",
-  "aging.subtitle": "CFO گریڈ وصول یافتنی ٹریکنگ محکمہ اور انشورنس بریک ڈاؤن کے ساتھ",
+  "aging.subtitle": "وصول یافتنی ٹریکنگ محکمہ اور انشورنس بریک ڈاؤن کے ساتھ",
   "aging.totalAROutstanding": "کل AR بقایا",
   "aging.patientReceivables": "مریض وصولیاں",
   "aging.insuranceReceivables": "انشورنس وصولیاں",

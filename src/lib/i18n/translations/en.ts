@@ -3543,7 +3543,7 @@ export const en = {
   "demo.section.reports": "Reports & Compliance",
   "demo.step.accountsDashboard": "Accounts Dashboard",
   "demo.step.accountsDashboard.desc": "Overview of KPIs, revenue trends, AR aging, and quick-action cards",
-  "demo.step.accountsDashboard.talk": "Show how the dashboard gives a CFO-level snapshot — revenue this month, outstanding receivables, and expense breakdown",
+  "demo.step.accountsDashboard.talk": "Show how the dashboard gives a financial snapshot — revenue this month, outstanding receivables, and expense breakdown",
   "demo.step.chartOfAccounts": "Chart of Accounts",
   "demo.step.chartOfAccounts.desc": "4-level hierarchical tree of all accounts — expand to see posting accounts",
   "demo.step.chartOfAccounts.talk": "Demonstrate the hierarchy: Asset → Current Assets → Cash & Bank → Petty Cash. Only leaf (posting) accounts accept journal entries",
@@ -3729,7 +3729,7 @@ export const en = {
 
   // Aging Report
   "aging.title": "Accounts Receivable — Aging Report",
-  "aging.subtitle": "CFO-grade receivable tracking with department & insurance breakdown",
+  "aging.subtitle": "Receivable tracking with department & insurance breakdown",
   "aging.totalAROutstanding": "Total AR Outstanding",
   "aging.patientReceivables": "Patient Receivables",
   "aging.insuranceReceivables": "Insurance Receivables",
