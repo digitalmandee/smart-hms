@@ -162,7 +162,7 @@ export function useDepartmentPnL(startDate?: string, endDate?: string, branchId?
 
         transactions.push({
           date: je?.entry_date || "",
-          journal_number: je?.journal_number || "",
+          journal_number: je?.entry_number || "",
           description: (line.description || je?.description || "").toString(),
           department: mapAccountToDepartment(acct.account_number, acct.name),
           account_name: acct.name,
