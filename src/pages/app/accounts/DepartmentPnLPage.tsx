@@ -97,6 +97,7 @@ export default function DepartmentPnLPage() {
   const [expandedDept, setExpandedDept] = useState<string | null>(null);
   const [txnSearch, setTxnSearch] = useState("");
   const [txnTypeFilter, setTxnTypeFilter] = useState<string>("all");
+  const [txnDeptFilter, setTxnDeptFilter] = useState<string>("all");
 
   const dates = useMemo(() => {
     if (preset === "custom" && customStart && customEnd) {
@@ -144,6 +145,9 @@ export default function DepartmentPnLPage() {
   const filteredTransactions = useMemo(() => {
     if (!data?.transactions) return [];
     let txns = data.transactions;
+    if (txnDeptFilter !== "all") {
+      txns = txns.filter((t) => t.department === txnDeptFilter);
+    }
     if (txnTypeFilter !== "all") {
       txns = txns.filter((t) => t.type === txnTypeFilter);
     }
@@ -158,7 +162,12 @@ export default function DepartmentPnLPage() {
       );
     }
     return txns;
-  }, [data?.transactions, txnSearch, txnTypeFilter]);
+  }, [data?.transactions, txnSearch, txnTypeFilter, txnDeptFilter]);
+
+  const departmentNames = useMemo(() => {
+    if (!data?.departments) return [];
+    return data.departments.map((d) => d.department);
+  }, [data?.departments]);
 
   const deptExportColumns = [
     { key: "department", header: t("dept_pnl.department") },
@@ -516,9 +525,26 @@ export default function DepartmentPnLPage() {
                                     </div>
 
                                     {/* Transaction Detail Table */}
-                                    <div className="flex items-center gap-2 mb-2">
-                                      <h4 className="font-medium text-sm">{t("dept_pnl.transactions")}</h4>
-                                      <Badge variant="secondary" className="text-xs">{deptTxns.length}</Badge>
+                                    <div className="flex items-center justify-between gap-2 mb-2">
+                                      <div className="flex items-center gap-2">
+                                        <h4 className="font-medium text-sm">{t("dept_pnl.transactions")}</h4>
+                                        <Badge variant="secondary" className="text-xs">{deptTxns.length}</Badge>
+                                      </div>
+                                      {deptTxns.length > 0 && (
+                                        <ReportExportButton
+                                          data={deptTxns}
+                                          filename={`${dept.department}-transactions-${dates.start}-to-${dates.end}`}
+                                          columns={txnExportColumns}
+                                          title={`${dept.department} — ${t("dept_pnl.transactions")}`}
+                                          pdfOptions={{
+                                            title: `${dept.department} — ${t("dept_pnl.transactions")}`,
+                                            subtitle: `${dates.start} → ${dates.end}`,
+                                            dateRange: pdfDateRange,
+                                            orientation: "landscape",
+                                          }}
+                                          isLoading={false}
+                                        />
+                                      )}
                                     </div>
                                     {deptTxns.length === 0 ? (
                                       <p className="text-sm text-muted-foreground py-4 text-center">{t("dept_pnl.no_data")}</p>
@@ -648,6 +674,17 @@ export default function DepartmentPnLPage() {
                     <SelectItem value="Revenue">{t("dept_pnl.revenue")}</SelectItem>
                     <SelectItem value="COGS">{t("dept_pnl.cogs")}</SelectItem>
                     <SelectItem value="Expense">{t("dept_pnl.expenses")}</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select value={txnDeptFilter} onValueChange={setTxnDeptFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder={t("dept_pnl.department")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("common.all")}</SelectItem>
+                    {departmentNames.map((name) => (
+                      <SelectItem key={name} value={name}>{name}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
