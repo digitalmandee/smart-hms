@@ -190,7 +190,7 @@ export default function DepartmentPnLPage() {
     { key: "paid_to", header: t("dept_pnl.paid_to") },
     { key: "amount", header: t("common.amount"), format: (v: any) => formatCurrency(v), align: "right" as const },
     { key: "payment_method", header: t("dept_pnl.payment_method") },
-    { key: "created_by", header: t("common.created_by") },
+    { key: "created_by", header: t("dept_pnl.created_by") },
   ];
 
   const grnExportColumns = [
