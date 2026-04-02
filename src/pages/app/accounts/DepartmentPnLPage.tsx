@@ -659,6 +659,17 @@ export default function DepartmentPnLPage() {
                     <SelectItem value="Expense">{t("dept_pnl.expenses")}</SelectItem>
                   </SelectContent>
                 </Select>
+                <Select value={txnDeptFilter} onValueChange={setTxnDeptFilter}>
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder={t("dept_pnl.department")} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">{t("common.all")}</SelectItem>
+                    {departmentNames.map((name) => (
+                      <SelectItem key={name} value={name}>{name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
 
               {isLoading ? (
