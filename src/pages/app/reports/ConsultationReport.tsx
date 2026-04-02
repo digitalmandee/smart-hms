@@ -79,11 +79,11 @@ export default function ConsultationReport() {
     queryKey: ["doctors-list", orgId],
     queryFn: async () => {
       if (!orgId) return [];
-      const { data } = await supabase
+      const { data } = await (supabase
         .from("doctors")
         .select("id, profiles(full_name)")
         .eq("organization_id", orgId)
-        .eq("is_active", true);
+        .eq("is_active", true) as any);
       return (data || []).map((d: any) => ({ id: d.id, name: d.profiles?.full_name || "Unknown" }));
     },
     enabled: !!orgId,
