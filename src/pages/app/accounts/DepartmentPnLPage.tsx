@@ -435,11 +435,88 @@ export default function DepartmentPnLPage() {
                                 </Badge>
                               </TableCell>
                             </TableRow>
-                            {isExpanded && (
+                            {isExpanded && (() => {
+                              // Group transactions by type then by account
+                              const revenueTxns = deptTxns.filter(t => t.type === "Revenue");
+                              const cogsTxns = deptTxns.filter(t => t.type === "COGS");
+                              const expenseTxns = deptTxns.filter(t => t.type === "Expense");
+
+                              const groupByAccount = (txns: typeof deptTxns) => {
+                                const map: Record<string, number> = {};
+                                txns.forEach(t => {
+                                  map[t.account_name] = (map[t.account_name] || 0) + Math.abs(t.net_amount);
+                                });
+                                return Object.entries(map).sort((a, b) => b[1] - a[1]);
+                              };
+
+                              const revenueByAcct = groupByAccount(revenueTxns);
+                              const cogsByAcct = groupByAccount(cogsTxns);
+                              const expenseByAcct = groupByAccount(expenseTxns);
+
+                              return (
                               <TableRow key={`${dept.department}-detail`}>
                                 <TableCell colSpan={7} className="p-0">
-                                  <div className="bg-muted/30 p-4 border-y">
-                                    <div className="flex items-center gap-2 mb-3">
+                                  <div className="bg-muted/30 p-4 border-y space-y-4">
+                                    {/* Breakdown Cards */}
+                                    <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+                                      {/* Revenue Breakdown */}
+                                      <div className="rounded-lg border bg-card p-3">
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <TrendingUp className="h-4 w-4 text-primary" />
+                                          <h5 className="font-medium text-sm">{t("dept_pnl.revenue")}</h5>
+                                          <span className="ml-auto font-semibold text-sm text-primary">{formatCurrency(dept.revenue)}</span>
+                                        </div>
+                                        <div className="space-y-1">
+                                          {revenueByAcct.length === 0 ? (
+                                            <p className="text-xs text-muted-foreground">—</p>
+                                          ) : revenueByAcct.map(([acct, amt]) => (
+                                            <div key={acct} className="flex justify-between text-xs">
+                                              <span className="text-muted-foreground truncate mr-2">{acct}</span>
+                                              <span className="font-medium whitespace-nowrap">{formatCurrency(amt)}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      {/* COGS Breakdown */}
+                                      <div className="rounded-lg border bg-card p-3">
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <Package className="h-4 w-4 text-orange-500" />
+                                          <h5 className="font-medium text-sm">{t("dept_pnl.cogs")}</h5>
+                                          <span className="ml-auto font-semibold text-sm text-orange-600">{formatCurrency(dept.cogs)}</span>
+                                        </div>
+                                        <div className="space-y-1">
+                                          {cogsByAcct.length === 0 ? (
+                                            <p className="text-xs text-muted-foreground">—</p>
+                                          ) : cogsByAcct.map(([acct, amt]) => (
+                                            <div key={acct} className="flex justify-between text-xs">
+                                              <span className="text-muted-foreground truncate mr-2">{acct}</span>
+                                              <span className="font-medium whitespace-nowrap">{formatCurrency(amt)}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                      {/* Expenses Breakdown */}
+                                      <div className="rounded-lg border bg-card p-3">
+                                        <div className="flex items-center gap-2 mb-2">
+                                          <TrendingDown className="h-4 w-4 text-destructive" />
+                                          <h5 className="font-medium text-sm">{t("dept_pnl.expenses")}</h5>
+                                          <span className="ml-auto font-semibold text-sm text-destructive">{formatCurrency(dept.expenses)}</span>
+                                        </div>
+                                        <div className="space-y-1">
+                                          {expenseByAcct.length === 0 ? (
+                                            <p className="text-xs text-muted-foreground">—</p>
+                                          ) : expenseByAcct.map(([acct, amt]) => (
+                                            <div key={acct} className="flex justify-between text-xs">
+                                              <span className="text-muted-foreground truncate mr-2">{acct}</span>
+                                              <span className="font-medium whitespace-nowrap">{formatCurrency(amt)}</span>
+                                            </div>
+                                          ))}
+                                        </div>
+                                      </div>
+                                    </div>
+
+                                    {/* Transaction Detail Table */}
+                                    <div className="flex items-center gap-2 mb-2">
                                       <h4 className="font-medium text-sm">{t("dept_pnl.transactions")}</h4>
                                       <Badge variant="secondary" className="text-xs">{deptTxns.length}</Badge>
                                     </div>
@@ -490,7 +567,8 @@ export default function DepartmentPnLPage() {
                                   </div>
                                 </TableCell>
                               </TableRow>
-                            )}
+                              );
+                            })()}
                           </>
                         );
                       })}
