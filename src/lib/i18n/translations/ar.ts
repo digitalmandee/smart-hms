@@ -3623,6 +3623,16 @@ export const ar: Record<TranslationKey, string> = {
   "dept_pnl.total_cost": "إجمالي التكلفة",
   "dept_pnl.profit": "الربح",
   "dept_pnl.no_pharmacy_data": "لا توجد بيانات مبيعات صيدلية لهذه الفترة",
+  "dept_pnl.transactions": "جميع المعاملات",
+  "dept_pnl.txn_date": "التاريخ",
+  "dept_pnl.journal_number": "رقم القيد",
+  "dept_pnl.txn_description": "الوصف",
+  "dept_pnl.account": "الحساب",
+  "dept_pnl.txn_type": "النوع",
+  "dept_pnl.debit": "مدين",
+  "dept_pnl.credit": "دائن",
+  "dept_pnl.search_transactions": "البحث في المعاملات...",
+  "dept_pnl.filter_type": "تصفية حسب النوع",
 
 };
 

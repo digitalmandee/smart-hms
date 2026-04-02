@@ -20,7 +20,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip,
   ResponsiveContainer, PieChart, Pie, Cell, Legend,
 } from "recharts";
-import { useDepartmentPnL, DepartmentTransaction } from "@/hooks/useDepartmentPnL";
+import { useDepartmentPnL } from "@/hooks/useDepartmentPnL";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useTranslation } from "@/lib/i18n";
 import { useQuery } from "@tanstack/react-query";
