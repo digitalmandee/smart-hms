@@ -241,6 +241,17 @@ export default function InvoiceFormPage() {
     return sum + item.quantity * item.unit_price * (1 - (item.discount_percent || 0) / 100);
   }, 0);
 
+  // Auto-compute tax from line items
+  const computedTax = items.reduce((sum, item) => {
+    const lineTotal = item.quantity * item.unit_price * (1 - (item.discount_percent || 0) / 100);
+    return sum + lineTotal * ((item.tax_percent || 0) / 100);
+  }, 0);
+
+  // Sync computed tax to state
+  if (Math.abs(computedTax - taxAmount) > 0.01 && computedTax > 0) {
+    setTaxAmount(Math.round(computedTax * 100) / 100);
+  }
+
   const handleSubmit = async (status: "draft" | "pending" = "pending") => {
     if (!selectedPatient || items.length === 0) return;
 
