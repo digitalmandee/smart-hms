@@ -33,7 +33,7 @@ const JournalEntriesPage = () => {
   const [page, setPage] = useState(0);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["journal-entries", profile?.organization_id, startDate, endDate, statusFilter, refTypeFilter, page],
+    queryKey: ["journal-entries", profile?.organization_id, startDate, endDate, statusFilter, refTypeFilter, voucherTypeFilter, page],
     queryFn: async () => {
       if (!profile?.organization_id) return { entries: [], count: 0 };
       
