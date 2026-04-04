@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { useTranslation, getTranslatedString } from '@/lib/i18n';
-import { PageHeader } from "@/components/PageHeader";
+import { useTranslation } from '@/lib/i18n';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +42,7 @@ import {
   Trophy,
   Activity,
   Droplets,
+  BookOpen,
 } from "lucide-react";
 import { AddTeamMemberDialog } from "@/components/ot/AddTeamMemberDialog";
 import { format, differenceInMinutes } from "date-fns";
@@ -54,29 +54,45 @@ import {
   useAdmitToPACU
 } from "@/hooks/useOT";
 import { useSurgeryConsents } from "@/hooks/useConsentForms";
-import { useSurgeryMedications } from "@/hooks/useOTMedications";
 import { useAcceptSurgeryAssignment, useDeclineSurgeryAssignment } from "@/hooks/useSurgeryConfirmation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { useSurgeryConsumables } from "@/hooks/useSurgeryConsumables";
 
 export default function SurgeryDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { profile, hasRole } = useAuth();
+  const { hasRole } = useAuth();
   
   const { data: surgery, isLoading, isError } = useSurgery(id!);
   const { data: consents } = useSurgeryConsents(id);
+  const { data: consumables } = useSurgeryConsumables(id);
   const startSurgery = useStartSurgery();
   const completeSurgery = useCompleteSurgery();
   const cancelSurgery = useCancelSurgery();
   const admitToPACU = useAdmitToPACU();
-  const acceptAssignment = useAcceptSurgeryAssignment();
-  const declineAssignment = useDeclineSurgeryAssignment();
+
+  // Fetch GL journal entry linked to this surgery
+  const { data: glEntry } = useQuery({
+    queryKey: ['surgery-gl-entry', id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('journal_entries')
+        .select('id, entry_number, entry_date, is_posted')
+        .eq('reference_id', id!)
+        .eq('reference_type', 'surgery')
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!id && surgery?.status === 'completed',
+  });
 
   const [showChecklist, setShowChecklist] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
-  const [showOutcomeForm, setShowOutcomeForm] = useState(false);
+  const [, setShowOutcomeForm] = useState(false);
   const [isBeginningPreOp, setIsBeginningPreOp] = useState(false);
 
   // Check if any valid consent exists (fallback if surgery.consent_signed not updated)
@@ -84,10 +100,11 @@ export default function SurgeryDetailPage() {
 
   // Role-based visibility checks
   const canCompleteChecklist = hasRole('surgeon') || hasRole('ot_nurse') || hasRole('branch_admin') || hasRole('super_admin');
-  const canViewBilling = hasRole('receptionist') || hasRole('branch_admin') || hasRole('super_admin') || hasRole('accountant');
-  const isAnesthetist = hasRole('anesthetist');
-  const isSurgeon = hasRole('surgeon');
-  const isNurse = hasRole('ot_nurse') || hasRole('nurse');
+
+  // Calculate totals
+  const consumableTotal = consumables?.reduce((sum, c) => sum + (c.total_price || 0), 0) || 0;
+  const surgeryFee = surgery?.estimated_cost || 0;
+  const totalCharges = surgeryFee + consumableTotal;
 
   if (isLoading) {
     return (
@@ -736,6 +753,61 @@ export default function SurgeryDetailPage() {
               />
             </CardContent>
           </Card>
+
+          {/* Financial Summary & GL Entry - shown when completed */}
+          {surgery.status === 'completed' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5" />
+                  {t('ot.surgeryCharges' as any)}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{t('ot.surgeryCharges' as any)}</span>
+                  <span className="font-medium">{surgeryFee.toLocaleString()}</span>
+                </div>
+                {consumableTotal > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">{t('ot.consumablesCost' as any)}</span>
+                    <span className="font-medium">{consumableTotal.toLocaleString()}</span>
+                  </div>
+                )}
+                <div className="border-t pt-2 flex justify-between font-semibold">
+                  <span>{t('ot.totalCharges' as any)}</span>
+                  <span>{totalCharges.toLocaleString()}</span>
+                </div>
+
+                {/* GL Entry Link */}
+                {glEntry && (
+                  <div className="border-t pt-3 mt-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span className="text-sm font-medium">{t('ot.glEntryPosted' as any)}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-2">{t('ot.glAutoPosted' as any)}</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => navigate(`/app/accounts/journal-entries/${glEntry.id}`)}
+                    >
+                      <BookOpen className="h-4 w-4 mr-2" />
+                      {t('ot.viewGLEntry' as any)} ({glEntry.entry_number})
+                    </Button>
+                  </div>
+                )}
+
+                {/* Day Surgery - no admission */}
+                {!surgery.admission_id && (
+                  <div className="border-t pt-3 mt-3">
+                    <Badge variant="outline" className="mb-2">{t('ot.noAdmission' as any)}</Badge>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
 
           {/* Pre-Op Readiness - Interactive checklist for nurses */}
           <PreOpReadinessCard

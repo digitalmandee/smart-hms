@@ -237,11 +237,46 @@ export function useCreatePostOpOrder() {
         .single();
 
       if (error) throw error;
+
+      // Bridge medications to IPD if surgery has an admission
+      if (data && order.medications && Array.isArray(order.medications) && order.medications.length > 0) {
+        // Look up the surgery to get admission_id
+        const { data: surgeryData } = await supabase
+          .from('surgeries')
+          .select('admission_id')
+          .eq('id', order.surgery_id)
+          .maybeSingle();
+
+        if (surgeryData?.admission_id) {
+          const ipdMeds = (order.medications as Array<{ medication: string; dose: string; route: string; frequency: string }>).map(med => ({
+            admission_id: surgeryData.admission_id!,
+            medicine_name: med.medication,
+            dosage: med.dose,
+            route: (med.route || 'oral') as any,
+            frequency: med.frequency,
+            start_date: new Date().toISOString().split('T')[0],
+            is_active: true,
+            prescribed_by: profile?.id,
+            special_instructions: `Post-op order from surgery ${order.surgery_id}`,
+          }));
+
+          const { error: ipdError } = await supabase
+            .from('ipd_medications')
+            .insert(ipdMeds);
+
+          if (ipdError) {
+            console.error('Failed to bridge post-op meds to IPD:', ipdError);
+            // Don't throw - post-op orders are saved, just log the IPD bridge failure
+          }
+        }
+      }
+
       return data;
     },
     onSuccess: (_, variables) => {
       queryClient.invalidateQueries({ queryKey: ['post-op-orders', variables.surgery_id] });
       queryClient.invalidateQueries({ queryKey: ['surgery', variables.surgery_id] });
+      queryClient.invalidateQueries({ queryKey: ['ipd-medications'] });
       toast.success('Post-op orders saved');
     },
     onError: (error: any) => {

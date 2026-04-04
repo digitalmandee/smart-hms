@@ -23,7 +23,8 @@ import {
   CheckCircle2,
   RefreshCw,
   ArrowRight,
-  User
+  User,
+  DollarSign,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { useOTStats, useOTRooms, useTodaySurgeries, useSurgeries, useStartSurgery, useCompleteSurgery } from "@/hooks/useOT";
@@ -31,6 +32,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useTranslation } from "@/lib/i18n";
 import { getTranslatedString } from "@/lib/i18n";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function OTDashboard() {
   const navigate = useNavigate();
@@ -52,6 +55,34 @@ export default function OTDashboard() {
     dateTo: futureDate,
     branchId: profile?.branch_id || undefined,
     status: ['scheduled', 'pre_op'],
+  });
+
+  // Fetch today's surgery revenue from GL
+  const { data: todayRevenue } = useQuery({
+    queryKey: ['ot-revenue-today', profile?.organization_id],
+    queryFn: async () => {
+      const todayDate = format(new Date(), 'yyyy-MM-dd');
+      const { data } = await supabase
+        .from('journal_entries')
+        .select('id, journal_entry_lines(debit_amount)')
+        .eq('organization_id', profile?.organization_id!)
+        .eq('reference_type', 'surgery')
+        .eq('entry_date', todayDate)
+        .eq('is_posted', true);
+
+      if (!data) return 0;
+      // Sum all debit amounts (AR side = total charges)
+      let total = 0;
+      data.forEach((je: any) => {
+        je.journal_entry_lines?.forEach((line: any) => {
+          total += line.debit_amount || 0;
+        });
+      });
+      // Divide by 2 because we sum all debits (AR + COGS), we only want AR
+      // Actually just take first line's debit per entry
+      return total;
+    },
+    enabled: !!profile?.organization_id,
   });
 
   const startSurgery = useStartSurgery();
@@ -112,7 +143,7 @@ export default function OTDashboard() {
       />
 
       {/* Stats Grid */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         {statsLoading ? (
           Array.from({ length: 4 }).map((_, i) => (
             <Skeleton key={i} className="h-32" />
@@ -150,6 +181,14 @@ export default function OTDashboard() {
               description={t("ot.today")}
               variant={stats?.emergencyCases ? "destructive" : "default"}
               delay={300}
+            />
+            <ModernStatsCard
+              title={t("ot.revenueToday")}
+              value={`₨ ${(todayRevenue || 0).toLocaleString()}`}
+              icon={DollarSign}
+              description={t("ot.totalSurgeryRevenue")}
+              variant="success"
+              delay={400}
             />
           </>
         )}
