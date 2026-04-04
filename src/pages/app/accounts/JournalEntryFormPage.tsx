@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import { useAccounts, type Account } from "@/hooks/useAccounts";
+import { useAccounts } from "@/hooks/useAccounts";
 import { useBranches } from "@/hooks/useBranches";
 import { useCostCenters } from "@/hooks/useCostCenters";
 import { useTranslation } from "@/lib/i18n";
