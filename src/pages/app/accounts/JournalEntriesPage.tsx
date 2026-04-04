@@ -29,6 +29,7 @@ const JournalEntriesPage = () => {
   const [endDate, setEndDate] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [refTypeFilter, setRefTypeFilter] = useState<string>("all");
+  const [voucherTypeFilter, setVoucherTypeFilter] = useState<string>("all");
   const [page, setPage] = useState(0);
 
   const { data, isLoading } = useQuery({
