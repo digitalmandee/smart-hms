@@ -182,6 +182,14 @@ export default function OTDashboard() {
               variant={stats?.emergencyCases ? "destructive" : "default"}
               delay={300}
             />
+            <ModernStatsCard
+              title={t("ot.revenueToday")}
+              value={`₨ ${(todayRevenue || 0).toLocaleString()}`}
+              icon={DollarSign}
+              description={t("ot.totalSurgeryRevenue")}
+              variant="success"
+              delay={400}
+            />
           </>
         )}
       </div>
