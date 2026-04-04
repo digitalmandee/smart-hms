@@ -107,15 +107,7 @@ const JournalEntryFormPage = () => {
     [allAccounts]
   );
 
-  // Bank accounts for BPV/BRV (filter by account type category = asset and look for bank-related)
-  const bankAccounts = useMemo(() =>
-    allAccounts.filter(a =>
-      !a.is_header &&
-      a.account_type?.category === "asset" &&
-      (a.account_number?.startsWith("1010") || a.account_number?.startsWith("1020") || a.name?.toLowerCase().includes("bank"))
-    ),
-    [allAccounts]
-  );
+  // Bank accounts available via AccountPicker with category="asset" filter
 
   const selectedPaymentAccount = useMemo(() =>
     allAccounts.find(a => a.id === paymentAccountId),
