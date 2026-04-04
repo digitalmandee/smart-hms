@@ -23,7 +23,8 @@ import {
   CheckCircle2,
   RefreshCw,
   ArrowRight,
-  User
+  User,
+  DollarSign,
 } from "lucide-react";
 import { format, addDays } from "date-fns";
 import { useOTStats, useOTRooms, useTodaySurgeries, useSurgeries, useStartSurgery, useCompleteSurgery } from "@/hooks/useOT";
@@ -31,6 +32,8 @@ import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useTranslation } from "@/lib/i18n";
 import { getTranslatedString } from "@/lib/i18n";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 export default function OTDashboard() {
   const navigate = useNavigate();
