@@ -754,6 +754,61 @@ export default function SurgeryDetailPage() {
             </CardContent>
           </Card>
 
+          {/* Financial Summary & GL Entry - shown when completed */}
+          {surgery.status === 'completed' && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <BookOpen className="h-5 w-5" />
+                  {t('ot.surgeryCharges' as any)}
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="space-y-3">
+                <div className="flex justify-between text-sm">
+                  <span className="text-muted-foreground">{t('ot.surgeryCharges' as any)}</span>
+                  <span className="font-medium">{surgeryFee.toLocaleString()}</span>
+                </div>
+                {consumableTotal > 0 && (
+                  <div className="flex justify-between text-sm">
+                    <span className="text-muted-foreground">{t('ot.consumablesCost' as any)}</span>
+                    <span className="font-medium">{consumableTotal.toLocaleString()}</span>
+                  </div>
+                )}
+                <div className="border-t pt-2 flex justify-between font-semibold">
+                  <span>{t('ot.totalCharges' as any)}</span>
+                  <span>{totalCharges.toLocaleString()}</span>
+                </div>
+
+                {/* GL Entry Link */}
+                {glEntry && (
+                  <div className="border-t pt-3 mt-3">
+                    <div className="flex items-center gap-2 mb-2">
+                      <CheckCircle2 className="h-4 w-4 text-green-500" />
+                      <span className="text-sm font-medium">{t('ot.glEntryPosted' as any)}</span>
+                    </div>
+                    <p className="text-xs text-muted-foreground mb-2">{t('ot.glAutoPosted' as any)}</p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="w-full"
+                      onClick={() => navigate(`/app/accounts/journal-entries/${glEntry.id}`)}
+                    >
+                      <BookOpen className="h-4 w-4 mr-2" />
+                      {t('ot.viewGLEntry' as any)} ({glEntry.entry_number})
+                    </Button>
+                  </div>
+                )}
+
+                {/* Day Surgery - no admission */}
+                {!surgery.admission_id && (
+                  <div className="border-t pt-3 mt-3">
+                    <Badge variant="outline" className="mb-2">{t('ot.noAdmission' as any)}</Badge>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
           {/* Pre-Op Readiness - Interactive checklist for nurses */}
           <PreOpReadinessCard
             surgeryId={surgery.id}
