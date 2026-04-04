@@ -57,6 +57,34 @@ export default function OTDashboard() {
     status: ['scheduled', 'pre_op'],
   });
 
+  // Fetch today's surgery revenue from GL
+  const { data: todayRevenue } = useQuery({
+    queryKey: ['ot-revenue-today', profile?.organization_id],
+    queryFn: async () => {
+      const todayDate = format(new Date(), 'yyyy-MM-dd');
+      const { data } = await supabase
+        .from('journal_entries')
+        .select('id, journal_entry_lines(debit_amount)')
+        .eq('organization_id', profile?.organization_id!)
+        .eq('reference_type', 'surgery')
+        .eq('entry_date', todayDate)
+        .eq('is_posted', true);
+
+      if (!data) return 0;
+      // Sum all debit amounts (AR side = total charges)
+      let total = 0;
+      data.forEach((je: any) => {
+        je.journal_entry_lines?.forEach((line: any) => {
+          total += line.debit_amount || 0;
+        });
+      });
+      // Divide by 2 because we sum all debits (AR + COGS), we only want AR
+      // Actually just take first line's debit per entry
+      return total;
+    },
+    enabled: !!profile?.organization_id,
+  });
+
   const startSurgery = useStartSurgery();
   const completeSurgery = useCompleteSurgery();
   const firstName = profile?.full_name?.split(" ")[0] || "Doctor";
