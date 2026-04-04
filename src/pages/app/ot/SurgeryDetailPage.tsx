@@ -64,21 +64,35 @@ export default function SurgeryDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { t } = useTranslation();
-  const { profile, hasRole } = useAuth();
+  const { hasRole } = useAuth();
   
   const { data: surgery, isLoading, isError } = useSurgery(id!);
   const { data: consents } = useSurgeryConsents(id);
+  const { data: consumables } = useSurgeryConsumables(id);
   const startSurgery = useStartSurgery();
   const completeSurgery = useCompleteSurgery();
   const cancelSurgery = useCancelSurgery();
   const admitToPACU = useAdmitToPACU();
-  const acceptAssignment = useAcceptSurgeryAssignment();
-  const declineAssignment = useDeclineSurgeryAssignment();
+
+  // Fetch GL journal entry linked to this surgery
+  const { data: glEntry } = useQuery({
+    queryKey: ['surgery-gl-entry', id],
+    queryFn: async () => {
+      const { data } = await supabase
+        .from('journal_entries')
+        .select('id, entry_number, entry_date, is_posted')
+        .eq('reference_id', id!)
+        .eq('reference_type', 'surgery')
+        .maybeSingle();
+      return data;
+    },
+    enabled: !!id && surgery?.status === 'completed',
+  });
 
   const [showChecklist, setShowChecklist] = useState(false);
   const [showCancelDialog, setShowCancelDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
-  const [showOutcomeForm, setShowOutcomeForm] = useState(false);
+  const [, setShowOutcomeForm] = useState(false);
   const [isBeginningPreOp, setIsBeginningPreOp] = useState(false);
 
   // Check if any valid consent exists (fallback if surgery.consent_signed not updated)
@@ -86,10 +100,11 @@ export default function SurgeryDetailPage() {
 
   // Role-based visibility checks
   const canCompleteChecklist = hasRole('surgeon') || hasRole('ot_nurse') || hasRole('branch_admin') || hasRole('super_admin');
-  const canViewBilling = hasRole('receptionist') || hasRole('branch_admin') || hasRole('super_admin') || hasRole('accountant');
-  const isAnesthetist = hasRole('anesthetist');
-  const isSurgeon = hasRole('surgeon');
-  const isNurse = hasRole('ot_nurse') || hasRole('nurse');
+
+  // Calculate totals
+  const consumableTotal = consumables?.reduce((sum, c) => sum + (c.total_price || 0), 0) || 0;
+  const surgeryFee = surgery?.estimated_cost || 0;
+  const totalCharges = surgeryFee + consumableTotal;
 
   if (isLoading) {
     return (
