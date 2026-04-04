@@ -1,158 +1,93 @@
 
 
-# Accounting Voucher Module — Full Redesign
+# OT Module — System Linkage Audit & Enhancement Plan
 
-## Current State Analysis
+## Current Linkage Status
 
-The existing `JournalEntryFormPage.tsx` is a **generic journal entry form** with:
-- Single date field, description, notes, reference type selector
-- Simple debit/credit line table with account picker
-- No voucher type concept (CPV/CRV/BPV/BRV/JV)
-- No payment/receipt account header field
-- No branch selector, no cost center on lines (DB supports it but UI doesn't use it)
-- No posting date (only entry date)
-- No currency/exchange rate support
-- No cheque/instrument fields for bank vouchers
-- No confirmation dialog before posting
-- No preview mode
-- No audit trail display
-- Lines lack cost_center_id (DB column exists but not exposed)
+### Working Integrations
+1. **OT → IPD**: Surgery links to `admission_id`; IPD detail page shows `AdmissionOTChargesCard` with surgery list
+2. **OT → Patients**: Full patient join on surgery records
+3. **OT → Doctors**: Lead surgeon, team members with confirmation workflow and calendar integration
+4. **OT → Consent Forms**: Digital consent with signature capture, revocation support
+5. **OT → Pre-Op Labs**: `lab_orders.surgery_id` FK exists for pre-op investigations
+6. **OT → OPD Consultation**: Surgery requests originate from consultation page (`RecommendSurgeryDialog`)
+7. **OT → Medications**: OT medication panel with pharmacy approval queue (`OTMedicationChargesPage`)
+8. **OT → PACU**: Post-op recovery with Aldrete scoring, discharge destinations
+9. **OT → Scheduling**: Room-based calendar, doctor availability checks
+10. **OT → Reports**: Surgeon performance, room utilization, anesthesia type breakdown, trends
+11. **OT → Doctor Calendar**: Surgery notifications and team assignment confirmation on `MyCalendarPage`
+12. **OT → Fee Templates**: Surgeon fee templates with auto-populated charges (surgeon, anesthesia, OT room, consumable fees)
 
-**Database already supports**: `branch_id`, `approved_by/at`, `posted_by/at`, `reversed_by/at`, `reversal_entry_id`, `is_reversed`, `fiscal_year_id`, `cost_center_id` on lines.
+### Gaps Found
 
-**Missing from DB**: `voucher_type`, `posting_date`, `currency`, `exchange_rate`, `cheque_number`, `instrument_date`, `payment_account_id`, `cancelled_by/at`, `status` enum.
+| Gap | Impact |
+|-----|--------|
+| **No GL posting on surgery completion** | Surgery charges (surgeon fee, anesthesia, consumables) never hit the General Ledger unlike POS/GRN/Payroll which all auto-post |
+| **Consumables not deducted from inventory** | `surgery_consumables` tracks usage but never reduces `store_stock` quantities — inventory stays inflated |
+| **No surgery-specific invoice generation** | Day-surgery patients (no admission) have no billing path; IPD patients rely on manual discharge billing |
+| **No OT-to-Inventory link for instruments** | Instrument count page is clinical-only; no reusable instrument tracking or CSSD sterilization workflow |
+| **Post-Op orders don't reach nursing/pharmacy** | Post-op orders are stored as JSON but don't create actual medication or nursing orders in the IPD system |
 
 ---
 
-## Plan
+## Enhancement Plan
 
-### Phase 1 — Database Migration
+### Enhancement 1 — Auto-Post Surgery GL Entry on Completion
 
-Add columns to `journal_entries`:
-- `voucher_type` TEXT CHECK (CPV, CRV, BPV, BRV, JV) DEFAULT 'JV'
-- `posting_date` DATE (defaults to entry_date)
-- `currency` TEXT DEFAULT 'PKR'
-- `exchange_rate` NUMERIC DEFAULT 1
-- `payment_account_id` UUID REFERENCES accounts(id) — the cash/bank account for CPV/CRV/BPV/BRV
-- `cheque_number` TEXT
-- `instrument_date` DATE
-- `instrument_reference` TEXT (deposit slip / transaction ref)
-- `status` TEXT CHECK ('draft','posted','cancelled') DEFAULT 'draft'
-- `cancelled_by` UUID REFERENCES profiles(id)
-- `cancelled_at` TIMESTAMPTZ
-- `external_reference` TEXT
+When surgery status changes to `completed`, create a journal entry:
+- **DR** Accounts Receivable (or IPD Patient Account) = total surgery charges
+- **CR** Surgery Revenue account = total charges
 
-Update `reference_type` constraint to include 'cpv','crv','bpv','brv'.
+This mirrors how POS and GRN already auto-post.
 
-Add `branch_id` column to `journal_entry_lines` (currently only on header — needed for cross-branch lines).
+**Files**: New migration (DB trigger `auto_post_surgery_to_journal`), modeled after existing `auto_post_pos_transaction` trigger.
 
-Create DB function `generate_voucher_number(voucher_type, org_id)` that returns formatted numbers like `CPV-2026-00001`.
+### Enhancement 2 — Auto-Deduct Consumables from Inventory
 
-### Phase 2 — New Voucher Form Page
+When surgery is completed, iterate `surgery_consumables` with `inventory_item_id` and deduct quantities from `store_stock` (FIFO, same pattern as POS stock deduction in `usePOS.ts`).
 
-Replace the current `JournalEntryFormPage.tsx` with a comprehensive voucher creation form. Route remains `/app/accounts/journal-entries/new`.
+**Files**: Add to the `useCompleteSurgery` hook in `useOT.ts` — after status update, loop consumables and deduct stock. Create stock adjustment records for audit trail.
 
-**Header Section** (card):
+### Enhancement 3 — Day-Surgery Invoice Generation
 
-| Field | CPV | CRV | BPV | BRV | JV |
-|-------|-----|-----|-----|-----|-----|
-| Voucher Type | mandatory | mandatory | mandatory | mandatory | mandatory |
-| Voucher Number | auto, read-only | auto | auto | auto | auto |
-| Entry Date | mandatory | mandatory | mandatory | mandatory | mandatory |
-| Posting Date | mandatory | mandatory | mandatory | mandatory | mandatory |
-| Branch | mandatory | mandatory | mandatory | mandatory | mandatory |
-| Payment/Receipt Account | Cash (auto-filled, locked) | Cash (auto-filled, locked) | Bank (mandatory select) | Bank (mandatory select) | HIDDEN |
-| Cheque No / Instrument | hidden | hidden | shown | shown | hidden |
-| Instrument Date | hidden | hidden | shown | shown | hidden |
-| Transaction Reference | hidden | hidden | shown | shown | hidden |
-| Currency | shown | shown | shown | shown | shown |
-| Exchange Rate | shown if foreign | shown if foreign | shown if foreign | shown if foreign | shown if foreign |
-| External Reference | optional | optional | optional | optional | optional |
-| Description / Narration | mandatory | mandatory | mandatory | mandatory | mandatory |
-| Cost Center | optional | optional | optional | optional | optional |
-| Status | Draft (default) | Draft | Draft | Draft | Draft |
+For surgeries where `admission_id IS NULL` (day cases), auto-generate an invoice on completion using the surgery charges breakdown (surgeon fee + anesthesia + OT room + consumables).
 
-**Line Items Section**:
+**Files**: Add to `useCompleteSurgery` or create a "Generate Invoice" button on `SurgeryDetailPage.tsx` for non-admitted patients.
 
-Each line: Account (picker, posting-only) | Description | Debit | Credit | Cost Center | Branch
+### Enhancement 4 — Post-Op Orders Integration with IPD
 
-Rules by voucher type:
-- **CPV**: Credit side auto-generated from cash account. User enters debit lines only. System creates balancing credit line on save.
-- **CRV**: Debit side auto-generated from cash account. User enters credit lines only.
-- **BPV**: Credit side auto-generated from selected bank account. User enters debit lines only.
-- **BRV**: Debit side auto-generated from selected bank account. User enters credit lines only.
-- **JV**: Fully manual debit and credit entry on all lines.
+Convert post-op medication orders into actual `ipd_medications` records so they appear on nursing charts and pharmacy queues.
 
-For CPV/CRV/BPV/BRV, show a simplified "counter entries" table where user only fills the opposite side. The payment/receipt account line is shown as a read-only summary row showing the auto-balancing amount.
+**Files**: Update `usePostOpOrders.ts` save function to also insert into `ipd_medications` when `admission_id` exists.
 
-**Validation Rules** (enforced in UI):
-- Hard: voucher type, dates, branch, description required
-- Hard: min 2 lines (1 user + 1 auto for cash/bank types; 2 user lines for JV)
-- Hard: total DR = total CR
-- Hard: no negative values, no zero-value posting
-- Hard: no line with both debit and credit > 0
-- Hard: payment account mandatory for CPV/CRV/BPV/BRV
-- Hard: cheque number mandatory if bank voucher and payment method is cheque
-- Soft warnings: backdated posting, posting to inactive accounts, missing narration on lines
+### Enhancement 5 — OT Dashboard Quick-Links & Status Improvements
 
-**Action Buttons**:
-- "Save Draft" — saves with status=draft, is_posted=false
-- "Post Voucher" — confirmation dialog, then saves with status=posted, is_posted=true
-- "Preview" — modal showing voucher summary before posting
+- Add "Revenue Today" stat card on OT Dashboard showing total surgery charges for the day
+- Add link to GL entries from surgery detail page (similar to GRN → "View Journal Entry")
+- Add inventory alert if any scheduled surgery's consumable list has items below reorder level
 
-**UX Improvements**:
-- Running totals with sticky footer row
-- Difference amount shown in red when unbalanced
-- Post button disabled until balanced
-- Auto-focus flow with Enter key navigation
-- Formatted number inputs with locale-aware decimals
-- Row duplication button
-- Account search by code and name (already in AccountPicker)
-- Contextual labels: "Cash Account" for CPV/CRV, "Bank Account" for BPV/BRV
+**Files**: `OTDashboard.tsx`, `SurgeryDetailPage.tsx`
 
-### Phase 3 — Posting Engine Updates
+### Enhancement 6 — Trilingual Labels
 
-Modify `handleSave`:
-1. Call `generate_voucher_number` RPC for entry_number
-2. For CPV/CRV/BPV/BRV, auto-insert the payment/receipt account line
-3. Set `voucher_type`, `posting_date`, `currency`, `exchange_rate`, `payment_account_id`, `status`
-4. Set `cheque_number`, `instrument_date`, `instrument_reference` for bank types
-5. Include `cost_center_id` and `branch_id` on each line
-6. Validate account is active before posting
-7. Store `posted_by`, `posted_at` on post
-
-### Phase 4 — Trilingual Labels
-
-Add all new labels to `en.ts`, `ur.ts`, `ar.ts`:
-- Voucher type names (CPV, CRV, BPV, BRV, JV) with descriptions
-- Field labels: posting date, cheque number, instrument date, bank account, cash account, exchange rate
-- Action labels: preview, post voucher, cancel voucher
-- Validation messages
-- Status labels: draft, posted, cancelled
-
-### Phase 5 — Journal Entry Detail Page Updates
-
-Update `JournalEntryDetailPage.tsx` to display:
-- Voucher type badge
-- Payment/receipt account
-- Cheque/instrument details for bank vouchers
-- Status with color coding
-- Audit trail (created by, posted by, approved by)
-- "Cancel Voucher" action (creates reversal entry, sets status=cancelled)
+Add all new labels (GL posting status, invoice generated, stock deducted, revenue card) to `en.ts`, `ur.ts`, `ar.ts`.
 
 ---
 
 ## Files to Change
 
-1. **New migration** — add voucher columns to `journal_entries`, `generate_voucher_number` function
-2. **`src/pages/app/accounts/JournalEntryFormPage.tsx`** — complete rewrite as voucher form
-3. **`src/pages/app/accounts/JournalEntryDetailPage.tsx`** — add voucher type display, cancel action
-4. **`src/pages/app/accounts/JournalEntriesPage.tsx`** — add voucher type filter column
-5. **`src/lib/i18n/translations/en.ts`** — English labels
-6. **`src/lib/i18n/translations/ur.ts`** — Urdu labels
-7. **`src/lib/i18n/translations/ar.ts`** — Arabic labels
+1. **New migration** — `auto_post_surgery_to_journal` trigger function
+2. **`src/hooks/useOT.ts`** — Add consumable stock deduction to `useCompleteSurgery`
+3. **`src/pages/app/ot/SurgeryDetailPage.tsx`** — Add "View GL Entry" link, "Generate Invoice" for day-surgery
+4. **`src/pages/app/ot/OTDashboard.tsx`** — Add revenue stat card
+5. **`src/hooks/usePostOpOrders.ts`** — Bridge post-op orders to IPD medications
+6. **`src/lib/i18n/translations/en.ts`**, **`ur.ts`**, **`ar.ts`** — New labels
 
-## Scope Note
+## Priority Order
 
-This plan focuses on the form and posting logic. Maker-checker approval workflow, role-based access control on individual voucher actions, and attachment support are deferred to a follow-up phase to keep this deliverable focused and testable.
+1. GL auto-posting (financial compliance)
+2. Consumable stock deduction (inventory accuracy)
+3. Day-surgery invoicing (revenue capture)
+4. Post-op orders integration (clinical safety)
+5. Dashboard enhancements (operational visibility)
 
