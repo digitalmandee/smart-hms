@@ -179,14 +179,15 @@ const JournalEntriesPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Entry #</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Reference</TableHead>
-                    <TableHead className="text-right">Debit</TableHead>
-                    <TableHead className="text-right">Credit</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead></TableHead>
+                     <TableHead>Entry #</TableHead>
+                     <TableHead>Type</TableHead>
+                     <TableHead>Date</TableHead>
+                     <TableHead>Description</TableHead>
+                     <TableHead>Reference</TableHead>
+                     <TableHead className="text-right">Debit</TableHead>
+                     <TableHead className="text-right">Credit</TableHead>
+                     <TableHead>Status</TableHead>
+                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
