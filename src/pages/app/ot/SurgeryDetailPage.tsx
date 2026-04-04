@@ -43,6 +43,9 @@ import {
   Trophy,
   Activity,
   Droplets,
+  BookOpen,
+  Receipt,
+  DollarSign,
 } from "lucide-react";
 import { AddTeamMemberDialog } from "@/components/ot/AddTeamMemberDialog";
 import { format, differenceInMinutes } from "date-fns";
@@ -57,6 +60,9 @@ import { useSurgeryConsents } from "@/hooks/useConsentForms";
 import { useSurgeryMedications } from "@/hooks/useOTMedications";
 import { useAcceptSurgeryAssignment, useDeclineSurgeryAssignment } from "@/hooks/useSurgeryConfirmation";
 import { useAuth } from "@/contexts/AuthContext";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 export default function SurgeryDetailPage() {
   const { id } = useParams<{ id: string }>();
