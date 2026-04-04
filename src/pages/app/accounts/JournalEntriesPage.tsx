@@ -210,8 +210,8 @@ const JournalEntriesPage = () => {
                         <TableCell className="text-right font-mono">{formatCurrency(totalDebit)}</TableCell>
                         <TableCell className="text-right font-mono">{formatCurrency(totalCredit)}</TableCell>
                         <TableCell>
-                          <Badge variant={entry.is_posted ? "default" : "secondary"}>
-                            {entry.is_posted ? "Posted" : "Draft"}
+                          <Badge variant={entry.status === 'cancelled' ? 'destructive' : entry.is_posted ? "default" : "secondary"}>
+                            {entry.status === 'cancelled' ? 'Cancelled' : entry.is_posted ? "Posted" : "Draft"}
                           </Badge>
                         </TableCell>
                         <TableCell>
