@@ -144,6 +144,17 @@ const JournalEntriesPage = () => {
                 <SelectItem value="manual">Manual</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={voucherTypeFilter} onValueChange={(v) => { setVoucherTypeFilter(v); setPage(0); }}>
+              <SelectTrigger className="w-[180px]"><SelectValue placeholder="All Voucher Types" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Voucher Types</SelectItem>
+                <SelectItem value="CPV">CPV - Cash Payment</SelectItem>
+                <SelectItem value="CRV">CRV - Cash Receipt</SelectItem>
+                <SelectItem value="BPV">BPV - Bank Payment</SelectItem>
+                <SelectItem value="BRV">BRV - Bank Receipt</SelectItem>
+                <SelectItem value="JV">JV - Journal</SelectItem>
+              </SelectContent>
+            </Select>
             <Input placeholder="Search entries..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="max-w-xs" />
           </div>
         </CardContent>
