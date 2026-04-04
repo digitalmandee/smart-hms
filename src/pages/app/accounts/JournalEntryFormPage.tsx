@@ -623,12 +623,12 @@ const JournalEntryFormPage = () => {
                       {isPaymentType(voucherType) ? t("voucher.payment_auto", "Payment") : t("voucher.receipt_auto", "Receipt")}
                     </span>
                   </TableCell>
-                  {(voucherType === "JV" || userEntersDebit) && (
+                  {userEntersDebit && (
                     <TableCell className="text-right font-mono font-bold">
                       {isReceiptType(voucherType) ? formatCurrency(autoBalanceAmount) : "—"}
                     </TableCell>
                   )}
-                  {(voucherType === "JV" || userEntersCredit) && (
+                  {userEntersCredit && (
                     <TableCell className="text-right font-mono font-bold">
                       {isPaymentType(voucherType) ? formatCurrency(autoBalanceAmount) : "—"}
                     </TableCell>
