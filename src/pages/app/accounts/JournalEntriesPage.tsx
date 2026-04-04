@@ -196,8 +196,11 @@ const JournalEntriesPage = () => {
                     const totalCredit = entry.journal_entry_lines?.reduce((s: number, l: any) => s + (l.credit_amount || 0), 0) || 0;
                     return (
                       <TableRow key={entry.id}>
-                        <TableCell className="font-medium">{entry.entry_number}</TableCell>
-                        <TableCell>{format(new Date(entry.entry_date), "dd MMM yyyy")}</TableCell>
+                         <TableCell className="font-medium">{entry.entry_number}</TableCell>
+                         <TableCell>
+                           <Badge variant="outline" className="text-xs font-mono">{entry.voucher_type || "JV"}</Badge>
+                         </TableCell>
+                         <TableCell>{format(new Date(entry.entry_date), "dd MMM yyyy")}</TableCell>
                         <TableCell className="max-w-[200px] truncate">{entry.description || "-"}</TableCell>
                         <TableCell>
                           {entry.reference_type ? (
