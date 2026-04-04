@@ -29,10 +29,11 @@ const JournalEntriesPage = () => {
   const [endDate, setEndDate] = useState("");
   const [statusFilter, setStatusFilter] = useState<string>("all");
   const [refTypeFilter, setRefTypeFilter] = useState<string>("all");
+  const [voucherTypeFilter, setVoucherTypeFilter] = useState<string>("all");
   const [page, setPage] = useState(0);
 
   const { data, isLoading } = useQuery({
-    queryKey: ["journal-entries", profile?.organization_id, startDate, endDate, statusFilter, refTypeFilter, page],
+    queryKey: ["journal-entries", profile?.organization_id, startDate, endDate, statusFilter, refTypeFilter, voucherTypeFilter, page],
     queryFn: async () => {
       if (!profile?.organization_id) return { entries: [], count: 0 };
       
@@ -52,6 +53,7 @@ const JournalEntriesPage = () => {
       if (statusFilter === "posted") query = query.eq("is_posted", true);
       if (statusFilter === "draft") query = query.eq("is_posted", false);
       if (refTypeFilter !== "all") query = query.eq("reference_type", refTypeFilter);
+      if (voucherTypeFilter !== "all") query = query.eq("voucher_type", voucherTypeFilter);
       
       query = query.range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
       
@@ -142,6 +144,17 @@ const JournalEntriesPage = () => {
                 <SelectItem value="manual">Manual</SelectItem>
               </SelectContent>
             </Select>
+            <Select value={voucherTypeFilter} onValueChange={(v) => { setVoucherTypeFilter(v); setPage(0); }}>
+              <SelectTrigger className="w-[180px]"><SelectValue placeholder="All Voucher Types" /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Voucher Types</SelectItem>
+                <SelectItem value="CPV">CPV - Cash Payment</SelectItem>
+                <SelectItem value="CRV">CRV - Cash Receipt</SelectItem>
+                <SelectItem value="BPV">BPV - Bank Payment</SelectItem>
+                <SelectItem value="BRV">BRV - Bank Receipt</SelectItem>
+                <SelectItem value="JV">JV - Journal</SelectItem>
+              </SelectContent>
+            </Select>
             <Input placeholder="Search entries..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="max-w-xs" />
           </div>
         </CardContent>
@@ -166,14 +179,15 @@ const JournalEntriesPage = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Entry #</TableHead>
-                    <TableHead>Date</TableHead>
-                    <TableHead>Description</TableHead>
-                    <TableHead>Reference</TableHead>
-                    <TableHead className="text-right">Debit</TableHead>
-                    <TableHead className="text-right">Credit</TableHead>
-                    <TableHead>Status</TableHead>
-                    <TableHead></TableHead>
+                     <TableHead>Entry #</TableHead>
+                     <TableHead>Type</TableHead>
+                     <TableHead>Date</TableHead>
+                     <TableHead>Description</TableHead>
+                     <TableHead>Reference</TableHead>
+                     <TableHead className="text-right">Debit</TableHead>
+                     <TableHead className="text-right">Credit</TableHead>
+                     <TableHead>Status</TableHead>
+                     <TableHead></TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -182,8 +196,11 @@ const JournalEntriesPage = () => {
                     const totalCredit = entry.journal_entry_lines?.reduce((s: number, l: any) => s + (l.credit_amount || 0), 0) || 0;
                     return (
                       <TableRow key={entry.id}>
-                        <TableCell className="font-medium">{entry.entry_number}</TableCell>
-                        <TableCell>{format(new Date(entry.entry_date), "dd MMM yyyy")}</TableCell>
+                         <TableCell className="font-medium">{entry.entry_number}</TableCell>
+                         <TableCell>
+                           <Badge variant="outline" className="text-xs font-mono">{entry.voucher_type || "JV"}</Badge>
+                         </TableCell>
+                         <TableCell>{format(new Date(entry.entry_date), "dd MMM yyyy")}</TableCell>
                         <TableCell className="max-w-[200px] truncate">{entry.description || "-"}</TableCell>
                         <TableCell>
                           {entry.reference_type ? (
@@ -193,8 +210,8 @@ const JournalEntriesPage = () => {
                         <TableCell className="text-right font-mono">{formatCurrency(totalDebit)}</TableCell>
                         <TableCell className="text-right font-mono">{formatCurrency(totalCredit)}</TableCell>
                         <TableCell>
-                          <Badge variant={entry.is_posted ? "default" : "secondary"}>
-                            {entry.is_posted ? "Posted" : "Draft"}
+                          <Badge variant={entry.status === 'cancelled' ? 'destructive' : entry.is_posted ? "default" : "secondary"}>
+                            {entry.status === 'cancelled' ? 'Cancelled' : entry.is_posted ? "Posted" : "Draft"}
                           </Badge>
                         </TableCell>
                         <TableCell>

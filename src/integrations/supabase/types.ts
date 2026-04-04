@@ -13307,73 +13307,109 @@ export type Database = {
           approved_at: string | null
           approved_by: string | null
           branch_id: string | null
+          cancelled_at: string | null
+          cancelled_by: string | null
+          cheque_number: string | null
           created_at: string
           created_by: string | null
+          currency: string | null
           description: string | null
           entry_date: string
           entry_number: string
+          exchange_rate: number | null
+          external_reference: string | null
           fiscal_year_id: string | null
           id: string
+          instrument_date: string | null
+          instrument_reference: string | null
           is_posted: boolean
           is_reversed: boolean
           notes: string | null
           organization_id: string
+          payment_account_id: string | null
           posted_at: string | null
           posted_by: string | null
+          posting_date: string | null
           reference_id: string | null
           reference_type: string | null
           reversal_entry_id: string | null
           reversed_at: string | null
           reversed_by: string | null
+          status: string | null
           updated_at: string
+          voucher_type: string | null
         }
         Insert: {
           approved_at?: string | null
           approved_by?: string | null
           branch_id?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          cheque_number?: string | null
           created_at?: string
           created_by?: string | null
+          currency?: string | null
           description?: string | null
           entry_date: string
           entry_number: string
+          exchange_rate?: number | null
+          external_reference?: string | null
           fiscal_year_id?: string | null
           id?: string
+          instrument_date?: string | null
+          instrument_reference?: string | null
           is_posted?: boolean
           is_reversed?: boolean
           notes?: string | null
           organization_id: string
+          payment_account_id?: string | null
           posted_at?: string | null
           posted_by?: string | null
+          posting_date?: string | null
           reference_id?: string | null
           reference_type?: string | null
           reversal_entry_id?: string | null
           reversed_at?: string | null
           reversed_by?: string | null
+          status?: string | null
           updated_at?: string
+          voucher_type?: string | null
         }
         Update: {
           approved_at?: string | null
           approved_by?: string | null
           branch_id?: string | null
+          cancelled_at?: string | null
+          cancelled_by?: string | null
+          cheque_number?: string | null
           created_at?: string
           created_by?: string | null
+          currency?: string | null
           description?: string | null
           entry_date?: string
           entry_number?: string
+          exchange_rate?: number | null
+          external_reference?: string | null
           fiscal_year_id?: string | null
           id?: string
+          instrument_date?: string | null
+          instrument_reference?: string | null
           is_posted?: boolean
           is_reversed?: boolean
           notes?: string | null
           organization_id?: string
+          payment_account_id?: string | null
           posted_at?: string | null
           posted_by?: string | null
+          posting_date?: string | null
           reference_id?: string | null
           reference_type?: string | null
           reversal_entry_id?: string | null
           reversed_at?: string | null
           reversed_by?: string | null
+          status?: string | null
           updated_at?: string
+          voucher_type?: string | null
         }
         Relationships: [
           {
@@ -13388,6 +13424,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_cancelled_by_fkey"
+            columns: ["cancelled_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
             referencedColumns: ["id"]
           },
           {
@@ -13409,6 +13452,13 @@ export type Database = {
             columns: ["organization_id"]
             isOneToOne: false
             referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entries_payment_account_id_fkey"
+            columns: ["payment_account_id"]
+            isOneToOne: false
+            referencedRelation: "accounts"
             referencedColumns: ["id"]
           },
           {
@@ -13437,6 +13487,7 @@ export type Database = {
       journal_entry_lines: {
         Row: {
           account_id: string
+          branch_id: string | null
           cost_center_id: string | null
           created_at: string
           credit_amount: number
@@ -13447,6 +13498,7 @@ export type Database = {
         }
         Insert: {
           account_id: string
+          branch_id?: string | null
           cost_center_id?: string | null
           created_at?: string
           credit_amount?: number
@@ -13457,6 +13509,7 @@ export type Database = {
         }
         Update: {
           account_id?: string
+          branch_id?: string | null
           cost_center_id?: string | null
           created_at?: string
           credit_amount?: number
@@ -13471,6 +13524,13 @@ export type Database = {
             columns: ["account_id"]
             isOneToOne: false
             referencedRelation: "accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "journal_entry_lines_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
             referencedColumns: ["id"]
           },
           {
@@ -24863,6 +24923,10 @@ export type Database = {
       generate_session_number: { Args: { p_org_id: string }; Returns: string }
       generate_surgery_number: {
         Args: { branch_id: string; org_id: string }
+        Returns: string
+      }
+      generate_voucher_number: {
+        Args: { p_org_id: string; p_voucher_type: string }
         Returns: string
       }
       get_or_create_default_account: {
