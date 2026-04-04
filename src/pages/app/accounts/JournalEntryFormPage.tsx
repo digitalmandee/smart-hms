@@ -326,7 +326,7 @@ const JournalEntryFormPage = () => {
                     <SelectItem key={vt.value} value={vt.value}>
                       <div className="flex items-center gap-2">
                         <Badge variant="outline" className="text-xs font-mono">{vt.value}</Badge>
-                        <span>{t(vt.labelKey, vt.value)}</span>
+                        <span>{t(vt.labelKey as any, vt.value)}</span>
                       </div>
                     </SelectItem>
                   ))}
