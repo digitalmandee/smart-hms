@@ -53,6 +53,7 @@ const JournalEntriesPage = () => {
       if (statusFilter === "posted") query = query.eq("is_posted", true);
       if (statusFilter === "draft") query = query.eq("is_posted", false);
       if (refTypeFilter !== "all") query = query.eq("reference_type", refTypeFilter);
+      if (voucherTypeFilter !== "all") query = query.eq("voucher_type", voucherTypeFilter);
       
       query = query.range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1);
       
