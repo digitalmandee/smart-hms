@@ -967,6 +967,10 @@ export const ur: Record<TranslationKey, string> = {
   "ot.totalCharges": "کل چارجز",
   "ot.stockDeducted": "انوینٹری سے اسٹاک کم کیا گیا",
   "ot.postOpOrdersBridged": "آپریشن کے بعد کی ہدایات آئی پی ڈی ادویات سے مطابقت",
+  "accounting.duplicateTriggerCleaned": "ڈپلیکیٹ جی ایل ٹرگرز صاف کیے گئے",
+  "accounting.vendorPaymentGLAuto": "وینڈر ادائیگی جی ایل پوسٹنگ ڈیٹابیس ٹرگر سے ہوتی ہے",
+  "accounting.medicationChargeAuto": "وارڈ دوائی چارج خودکار طور پر بنایا گیا",
+  "accounting.posSessionGLRemoved": "POS سیشن جی ایل پوسٹنگ فی ٹرانزیکشن ٹرگر سے ہوتی ہے",
 
   // Org Admin Dashboard
   "org.overview": "تنظیم کا جائزہ",

@@ -267,95 +267,15 @@ export function useApproveVendorPayment() {
       if (payment.status === "paid") throw new Error("Payment is already approved");
       if (payment.status === "cancelled") throw new Error("Cannot approve a cancelled payment");
       
-      // Get default AP account
-      const { data: apAccount } = await supabase
-        .from("accounts")
-        .select("id")
-        .ilike("name", "%accounts payable%")
-        .eq("organization_id", profile!.organization_id!)
-        .eq("is_active", true)
-        .limit(1)
-        .single();
+      // GL posting is handled by DB trigger (trg_post_vendor_payment_to_journal)
+      // which fires when status changes to 'paid' with idempotency guard.
+      // We only need to update the status here.
       
-      // Get cash account if no bank account linked
-      let creditAccountId = (payment as any).bank_account?.account_id;
-      if (!creditAccountId) {
-        const { data: cashAccount } = await supabase
-          .from("accounts")
-          .select("id")
-          .ilike("name", "%cash%")
-          .eq("organization_id", profile!.organization_id!)
-          .eq("is_active", true)
-          .limit(1)
-          .single();
-        creditAccountId = cashAccount?.id;
-      }
-      
-      let journalEntryId = null;
-      
-      // Create journal entry if accounts exist
-      if (apAccount?.id && creditAccountId) {
-        // Create journal entry
-        const { data: journalEntry, error: jeError } = await supabase
-          .from("journal_entries")
-          .insert({
-            organization_id: profile!.organization_id!,
-            branch_id: payment.branch_id,
-            entry_number: "",
-            entry_date: payment.payment_date,
-            description: `Vendor payment to ${(payment as any).vendor?.name} - ${payment.payment_number}`,
-            reference_type: "vendor_payment",
-            reference_id: payment.id,
-            is_posted: true,
-            posted_by: profile!.id,
-            posted_at: new Date().toISOString(),
-            created_by: profile!.id,
-          })
-          .select()
-          .single();
-        
-        if (jeError) throw jeError;
-        journalEntryId = journalEntry.id;
-        
-        // Create journal lines: Debit AP, Credit Cash/Bank
-        const { error: linesError } = await supabase
-          .from("journal_entry_lines")
-          .insert([
-            {
-              journal_entry_id: journalEntry.id,
-              account_id: apAccount.id,
-              description: `Payment to ${(payment as any).vendor?.name}`,
-              debit_amount: payment.amount,
-              credit_amount: 0,
-            },
-            {
-              journal_entry_id: journalEntry.id,
-              account_id: creditAccountId,
-              description: `Payment to ${(payment as any).vendor?.name}`,
-              debit_amount: 0,
-              credit_amount: payment.amount,
-            },
-          ]);
-        
-        if (linesError) throw linesError;
-        
-        // Update account balances by directly updating current_balance
-        // Decrease AP (liability decreases with debit)
-        await supabase
-          .from("accounts")
-          .update({ current_balance: supabase.rpc ? undefined : 0 })
-          .eq("id", apAccount.id);
-          
-        // For now, we'll just create the journal entries
-        // Account balances should be updated by a database trigger
-      }
-      
-      // Update payment status
+      // Update payment status — trigger handles journal entry creation
       const { data: updatedPayment, error: updateError } = await supabase
         .from("vendor_payments")
         .update({
           status: "paid",
-          journal_entry_id: journalEntryId,
           approved_by: profile!.id,
           approved_at: new Date().toISOString(),
         })
