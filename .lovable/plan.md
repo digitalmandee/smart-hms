@@ -1,93 +1,122 @@
 
 
-# OT Module — System Linkage Audit & Enhancement Plan
+# Accounting Flow Audit — Duplication & Integrity Review
 
-## Current Linkage Status
+## Complete GL Posting Map
 
-### Working Integrations
-1. **OT → IPD**: Surgery links to `admission_id`; IPD detail page shows `AdmissionOTChargesCard` with surgery list
-2. **OT → Patients**: Full patient join on surgery records
-3. **OT → Doctors**: Lead surgeon, team members with confirmation workflow and calendar integration
-4. **OT → Consent Forms**: Digital consent with signature capture, revocation support
-5. **OT → Pre-Op Labs**: `lab_orders.surgery_id` FK exists for pre-op investigations
-6. **OT → OPD Consultation**: Surgery requests originate from consultation page (`RecommendSurgeryDialog`)
-7. **OT → Medications**: OT medication panel with pharmacy approval queue (`OTMedicationChargesPage`)
-8. **OT → PACU**: Post-op recovery with Aldrete scoring, discharge destinations
-9. **OT → Scheduling**: Room-based calendar, doctor availability checks
-10. **OT → Reports**: Surgeon performance, room utilization, anesthesia type breakdown, trends
-11. **OT → Doctor Calendar**: Surgery notifications and team assignment confirmation on `MyCalendarPage`
-12. **OT → Fee Templates**: Surgeon fee templates with auto-populated charges (surgeon, anesthesia, OT room, consumable fees)
+Your system has **15 financial trigger points** that auto-post to the General Ledger. Here is every source and its posting mechanism:
 
-### Gaps Found
-
-| Gap | Impact |
-|-----|--------|
-| **No GL posting on surgery completion** | Surgery charges (surgeon fee, anesthesia, consumables) never hit the General Ledger unlike POS/GRN/Payroll which all auto-post |
-| **Consumables not deducted from inventory** | `surgery_consumables` tracks usage but never reduces `store_stock` quantities — inventory stays inflated |
-| **No surgery-specific invoice generation** | Day-surgery patients (no admission) have no billing path; IPD patients rely on manual discharge billing |
-| **No OT-to-Inventory link for instruments** | Instrument count page is clinical-only; no reusable instrument tracking or CSSD sterilization workflow |
-| **Post-Op orders don't reach nursing/pharmacy** | Post-op orders are stored as JSON but don't create actual medication or nursing orders in the IPD system |
+```text
+Source                  Trigger Method          GL Entry Pattern
+--------------------    --------------------    ---------------------------
+OPD/Lab/ER/IPD/IMG      DB: post_invoice        DR AR-001 / CR Revenue
+Patient Payment         DB: post_payment        DR Cash|Bank / CR AR-001
+Pharmacy POS            DB: post_pos             DR Cash / CR Pharm Revenue + COGS
+GRN (Verified)          DB: post_grn             DR INV-001 / CR AP-001
+Vendor Payment          CODE: useVendorPayments  DR AP-001 / CR Cash|Bank
+Expense                 DB: post_expense         DR Expense / CR Cash|Bank
+Payroll (Completed)     DB: post_payroll         DR Salary Expense / CR Payable
+Donation (Received)     DB: post_donation        DR Cash / CR Donation Revenue
+Patient Deposit         DB: post_deposit         DR Cash / CR Liability
+Credit Note (Approved)  DB: post_credit_note     DR Revenue / CR AR-001
+Surgery (Completed)     DB: post_surgery         DR AR / CR Surgery Revenue + COGS
+Shipment Cost           DB: post_shipping        DR Shipping Exp / CR AP
+Stock Write-Off         DB: post_writeoff        DR Write-off Exp / CR Inventory
+Manual Voucher          CODE: JournalEntryForm   User-defined DR/CR
+POS Session Close       CODE: usePOSSessions     DR Cash / CR Revenue (DEAD CODE)
+```
 
 ---
 
-## Enhancement Plan
+## Issues Found
 
-### Enhancement 1 — Auto-Post Surgery GL Entry on Completion
+### 1. DUPLICATE TRIGGER on Invoices (Risk: Double-Posting)
+The `invoices` table has **two triggers** calling the same function:
+- `auto_post_invoice` (from original migration)
+- `trg_post_invoice_to_journal` (from later migration)
 
-When surgery status changes to `completed`, create a journal entry:
-- **DR** Accounts Receivable (or IPD Patient Account) = total surgery charges
-- **CR** Surgery Revenue account = total charges
+Both fire `AFTER INSERT` and call `post_invoice_to_journal()`. The **idempotency guard** (`IF EXISTS reference_id`) currently prevents actual double entries, but this is fragile — if the guard is ever removed or the function refactored, every invoice will post twice.
 
-This mirrors how POS and GRN already auto-post.
+**Fix**: Drop `auto_post_invoice`, keep only `trg_post_invoice_to_journal`.
 
-**Files**: New migration (DB trigger `auto_post_surgery_to_journal`), modeled after existing `auto_post_pos_transaction` trigger.
+### 2. Dead Code — POS Session GL Posting
+`usePOSSessions.ts` (lines 162-220) creates journal entries with `reference_type: 'pos_session'` on session close. But the DB trigger `auto_post_pos_transaction` already posts per-transaction. Result: **0 pos_session entries in DB** (the code path may not execute, or it fails silently). This is dead code that risks creating duplicate revenue entries if it ever fires alongside the per-transaction trigger.
 
-### Enhancement 2 — Auto-Deduct Consumables from Inventory
+**Fix**: Remove the journal entry creation code from `usePOSSessions.ts`. Per-transaction posting via trigger is the correct approach.
 
-When surgery is completed, iterate `surgery_consumables` with `inventory_item_id` and deduct quantities from `store_stock` (FIFO, same pattern as POS stock deduction in `usePOS.ts`).
+### 3. Vendor Payment — Code-Level Instead of Trigger
+`useVendorPayments.ts` creates journal entries via application code (not a DB trigger), unlike every other source. This means:
+- No trigger-level idempotency guard
+- If the code crashes after inserting the JE but before completing, partial state
+- No consistency with the trigger pattern used everywhere else
 
-**Files**: Add to the `useCompleteSurgery` hook in `useOT.ts` — after status update, loop consumables and deduct stock. Create stock adjustment records for audit trail.
+**Fix**: Move to a DB trigger `post_vendor_payment_to_journal` (trigger exists but verify it's the active path — the code-level insert may be redundant WITH the trigger).
 
-### Enhancement 3 — Day-Surgery Invoice Generation
+### 4. Vendor Payment — Potential Double Posting
+The trigger `trg_post_vendor_payment_to_journal` fires `AFTER INSERT ON vendor_payments`, AND `useVendorPayments.ts` code manually inserts a journal entry. If both are active, vendor payments could double-post (no idempotency guard in the trigger function to check).
 
-For surgeries where `admission_id IS NULL` (day cases), auto-generate an invoice on completion using the surgery charges breakdown (surgeon fee + anesthesia + OT room + consumables).
+**Fix**: Remove code-level JE creation from `useVendorPayments.ts`, rely solely on DB trigger with idempotency guard.
 
-**Files**: Add to `useCompleteSurgery` or create a "Generate Invoice" button on `SurgeryDetailPage.tsx` for non-admitted patients.
+### 5. IPD Ward Medications — Missing Charge Bridge
+Regular ward medications ordered through nursing charts do NOT auto-create `ipd_charges`. Only OT medications are bridged. This means medication costs can be missed at discharge billing.
 
-### Enhancement 4 — Post-Op Orders Integration with IPD
+**Fix**: Add trigger or hook to create `ipd_charges` when `medication_administration` records are created.
 
-Convert post-op medication orders into actual `ipd_medications` records so they appear on nursing charts and pharmacy queues.
+### 6. Surgery Has Two Triggers (Correct but Worth Noting)
+- `trg_auto_post_surgery_to_journal` — GL posting (financial)
+- `trg_post_surgery_earnings` — Doctor compensation splits (operational)
 
-**Files**: Update `usePostOpOrders.ts` save function to also insert into `ipd_medications` when `admission_id` exists.
-
-### Enhancement 5 — OT Dashboard Quick-Links & Status Improvements
-
-- Add "Revenue Today" stat card on OT Dashboard showing total surgery charges for the day
-- Add link to GL entries from surgery detail page (similar to GRN → "View Journal Entry")
-- Add inventory alert if any scheduled surgery's consumable list has items below reorder level
-
-**Files**: `OTDashboard.tsx`, `SurgeryDetailPage.tsx`
-
-### Enhancement 6 — Trilingual Labels
-
-Add all new labels (GL posting status, invoice generated, stock deducted, revenue card) to `en.ts`, `ur.ts`, `ar.ts`.
+These serve different purposes and are NOT duplicates. No fix needed.
 
 ---
+
+## Summary Scorecard
+
+| Check | Status |
+|-------|--------|
+| Invoice posting | DUPLICATE TRIGGER (fix needed) |
+| Payment posting | Clean |
+| POS transaction posting | Clean (trigger) |
+| POS session posting | DEAD CODE (remove) |
+| GRN posting | Clean (single trigger) |
+| Vendor payment posting | DUPLICATE PATH (trigger + code) |
+| Expense posting | Clean |
+| Payroll posting | Clean |
+| Donation posting | Clean |
+| Patient deposit posting | Clean |
+| Credit note posting | Clean |
+| Surgery GL posting | Clean |
+| Surgery earnings | Clean (separate concern) |
+| Shipping cost posting | Clean |
+| Stock write-off posting | Clean |
+| Manual vouchers | Clean (code-level, intentional) |
+| IPD ward medications | GAP (no charge bridge) |
+| All reference_ids unique | VERIFIED (no duplicates in data) |
+| Account balance updates | Clean (single trigger pattern) |
+
+---
+
+## Implementation Plan
+
+### Step 1 — Remove Duplicate Invoice Trigger
+Drop `auto_post_invoice` from `invoices` table, keeping only `trg_post_invoice_to_journal`.
+
+### Step 2 — Remove Dead POS Session GL Code
+Remove journal entry creation logic from `usePOSSessions.ts` (lines 140-230). Session close should only handle session status, not GL posting.
+
+### Step 3 — Fix Vendor Payment Double-Path
+Add idempotency guard to `post_vendor_payment_to_journal` trigger function. Remove manual JE creation from `useVendorPayments.ts` hook.
+
+### Step 4 — Bridge IPD Ward Medications to Charges
+When `medication_administration` records are inserted, auto-create corresponding `ipd_charges` entries so discharge billing captures all medication costs.
+
+### Step 5 — Trilingual Labels
+Add translation keys for any new status messages or alerts in `en.ts`, `ur.ts`, `ar.ts`.
 
 ## Files to Change
-
-1. **New migration** — `auto_post_surgery_to_journal` trigger function
-2. **`src/hooks/useOT.ts`** — Add consumable stock deduction to `useCompleteSurgery`
-3. **`src/pages/app/ot/SurgeryDetailPage.tsx`** — Add "View GL Entry" link, "Generate Invoice" for day-surgery
-4. **`src/pages/app/ot/OTDashboard.tsx`** — Add revenue stat card
-5. **`src/hooks/usePostOpOrders.ts`** — Bridge post-op orders to IPD medications
-6. **`src/lib/i18n/translations/en.ts`**, **`ur.ts`**, **`ar.ts`** — New labels
-
-## Priority Order
-
-1. GL auto-posting (financial compliance)
-2. Consumable stock deduction (inventory accuracy)
-3. Day-surgery invoicing (revenue capture)
-4. Post-op orders integration (clinical safety)
-5. Dashboard enhancements (operational visibility)
+1. **New migration** — Drop `auto_post_invoice` trigger, add idempotency guard to vendor payment trigger
+2. **`src/hooks/usePOSSessions.ts`** — Remove dead GL posting code from session close
+3. **`src/hooks/useVendorPayments.ts`** — Remove manual JE creation (rely on trigger)
+4. **New migration** — Trigger on `medication_administration` to create `ipd_charges`
+5. **`src/lib/i18n/translations/en.ts`**, **`ur.ts`**, **`ar.ts`** — New labels
 
