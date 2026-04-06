@@ -451,10 +451,10 @@ const JournalEntryFormPage = () => {
 
             <div>
               <Label>{t("voucher.cost_center", "Cost Center")}</Label>
-              <Select value={costCenterId} onValueChange={setCostCenterId}>
+              <Select value={costCenterId || "__none__"} onValueChange={v => setCostCenterId(v === "__none__" ? "" : v)}>
                 <SelectTrigger><SelectValue placeholder={t("voucher.select_cc", "Select...")} /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">—</SelectItem>
+                  <SelectItem value="__none__">—</SelectItem>
                   {costCenters?.map((cc: any) => (
                     <SelectItem key={cc.id} value={cc.id}>{cc.code} — {cc.name}</SelectItem>
                   ))}
