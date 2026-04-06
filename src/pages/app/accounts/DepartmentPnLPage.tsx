@@ -274,12 +274,12 @@ export default function DepartmentPnLPage() {
                 <label className="text-sm font-medium text-muted-foreground mb-1 block">
                   {t("dept_pnl.branch")}
                 </label>
-                <Select value={branchId} onValueChange={setBranchId}>
+                <Select value={branchId || "__none__"} onValueChange={v => setBranchId(v === "__none__" ? "" : v)}>
                   <SelectTrigger className="w-[200px]">
                     <SelectValue placeholder={t("common.all")} />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="">{t("common.all")}</SelectItem>
+                    <SelectItem value="__none__">{t("common.all")}</SelectItem>
                     {branches.map((b) => (
                       <SelectItem key={b.id} value={b.id}>{b.name}</SelectItem>
                     ))}
