@@ -965,6 +965,10 @@ export const en = {
   "ot.totalCharges": "Total Charges",
   "ot.stockDeducted": "Stock deducted from inventory",
   "ot.postOpOrdersBridged": "Post-op orders synced to IPD medications",
+  "accounting.duplicateTriggerCleaned": "Duplicate GL triggers cleaned",
+  "accounting.vendorPaymentGLAuto": "Vendor payment GL posting handled by database trigger",
+  "accounting.medicationChargeAuto": "Ward medication charge auto-created on administration",
+  "accounting.posSessionGLRemoved": "POS session GL posting delegated to per-transaction trigger",
 
   // Org Admin Dashboard
   "org.overview": "Organization Overview",

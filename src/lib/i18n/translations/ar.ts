@@ -967,6 +967,10 @@ export const ar: Record<TranslationKey, string> = {
   "ot.totalCharges": "إجمالي الرسوم",
   "ot.stockDeducted": "تم خصم المخزون من المستودع",
   "ot.postOpOrdersBridged": "تم مزامنة أوامر ما بعد الجراحة مع أدوية التنويم",
+  "accounting.duplicateTriggerCleaned": "تم تنظيف مشغلات دفتر الأستاذ المكررة",
+  "accounting.vendorPaymentGLAuto": "ترحيل دفعة المورد يتم تلقائياً عبر مشغل قاعدة البيانات",
+  "accounting.medicationChargeAuto": "رسوم أدوية الجناح تُنشأ تلقائياً عند الإعطاء",
+  "accounting.posSessionGLRemoved": "ترحيل جلسة نقطة البيع مفوض لمشغل المعاملة الفردية",
 
   // Org Admin Dashboard
   "org.overview": "نظرة عامة على المؤسسة",
