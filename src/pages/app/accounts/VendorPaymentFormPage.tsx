@@ -160,12 +160,12 @@ export default function VendorPaymentFormPage() {
                     {outstandingLoading ? (
                       <Skeleton className="h-10 w-full" />
                     ) : (
-                      <Select value={grnId} onValueChange={setGrnId}>
+                      <Select value={grnId || "__none__"} onValueChange={v => setGrnId(v === "__none__" ? "" : v)}>
                         <SelectTrigger id="grn">
                           <SelectValue placeholder="Select invoice to pay" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="">General Payment</SelectItem>
+                          <SelectItem value="__none__">General Payment</SelectItem>
                           {outstandingData?.outstandingItems?.map((item) => (
                             <SelectItem key={item.id} value={item.id}>
                               {item.grn_number} - {item.invoice_number || "No Invoice"} 

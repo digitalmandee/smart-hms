@@ -586,10 +586,10 @@ const JournalEntryFormPage = () => {
                     </TableCell>
                   )}
                   <TableCell>
-                    <Select value={line.cost_center_id} onValueChange={v => updateLine(line.id, "cost_center_id", v)}>
+                    <Select value={line.cost_center_id || "__none__"} onValueChange={v => updateLine(line.id, "cost_center_id", v === "__none__" ? "" : v)}>
                       <SelectTrigger className="h-9 text-xs"><SelectValue placeholder="—" /></SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="">—</SelectItem>
+                        <SelectItem value="__none__">—</SelectItem>
                         {costCenters?.map((cc: any) => (
                           <SelectItem key={cc.id} value={cc.id}>{cc.code}</SelectItem>
                         ))}
