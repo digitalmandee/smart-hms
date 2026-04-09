@@ -24,7 +24,6 @@ const RETENTION_POLICIES = [
 
 export default function DataRetentionPage() {
   const { t } = useTranslation();
-  const { profile } = useAuth();
   const [isPurging, setIsPurging] = useState(false);
 
   const { data: lastPurge } = useQuery({
@@ -59,7 +58,7 @@ export default function DataRetentionPage() {
 
   return (
     <div className="space-y-6">
-      <PageHeader title={t("retention.title")} subtitle={t("retention.subtitle")} />
+      <PageHeader title={t("retention.title")} description={t("retention.subtitle")} />
 
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
