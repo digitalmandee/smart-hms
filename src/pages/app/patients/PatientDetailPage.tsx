@@ -1,4 +1,5 @@
-import { useRef, useEffect, useState } from "react";
+import { useEffect, useState } from "react";
+import { usePhiAccessLog } from "@/hooks/usePhiAccessLog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
@@ -76,6 +77,7 @@ import { MobilePatientProfile } from "@/components/mobile/MobilePatientProfile";
 export function PatientDetailPage() {
   const { id } = useParams();
   const { profile } = useAuth();
+  usePhiAccessLog("patient", id);
   const queryClient = useQueryClient();
   const { data: patient, isLoading, refetch: refetchPatient } = usePatient(id);
   const { data: medicalHistory } = useMedicalHistory(id);

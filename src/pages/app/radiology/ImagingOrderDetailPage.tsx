@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { getImageUrls } from '@/lib/radiology-image-utils';
 import { useParams, useNavigate } from 'react-router-dom';
+import { usePhiAccessLog } from '@/hooks/usePhiAccessLog';
 import { useTranslation, getTranslatedString } from '@/lib/i18n';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
@@ -34,6 +35,7 @@ import { useOrganizationBranding } from '@/hooks/useOrganizationBranding';
 export default function ImagingOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  usePhiAccessLog("radiology_order", id);
   const { t } = useTranslation();
   const { data: order, isLoading, refetch } = useImagingOrder(id);
   const { data: result } = useImagingResult(id);

@@ -12,11 +12,16 @@ import { BottomNavigation } from "@/components/mobile/BottomNavigation";
 import { cn } from "@/lib/utils";
 import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useIsRTL } from "@/lib/i18n";
+import { useIdleTimeout } from "@/hooks/useIdleTimeout";
+import { IdleTimeoutDialog } from "@/components/IdleTimeoutDialog";
 
 export const DashboardLayout = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
   const [isDesktopCollapsed, setIsDesktopCollapsed] = useState(false);
   
+  // HIPAA: Idle session timeout
+  const { showWarning, remainingSeconds, handleStayLoggedIn, handleLogout } = useIdleTimeout();
+
   // Detect if we should show mobile UI
   const isMobileScreen = useIsMobile();
   const isNative = Capacitor.isNativePlatform();
@@ -87,6 +92,14 @@ export const DashboardLayout = () => {
           <Outlet />
         </div>
       </main>
+
+      {/* HIPAA: Idle timeout warning */}
+      <IdleTimeoutDialog
+        open={showWarning}
+        remainingSeconds={remainingSeconds}
+        onStayLoggedIn={handleStayLoggedIn}
+        onLogout={handleLogout}
+      />
     </div>
   );
 };

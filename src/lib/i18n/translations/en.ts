@@ -3912,6 +3912,13 @@ export const en = {
   "voucher.cheque_details": "Cheque / Instrument Details",
   "voucher.audit_trail": "Audit Trail",
 
+  // HIPAA Compliance
+  "hipaa.session_timeout_title": "Session Timeout Warning",
+  "hipaa.session_timeout_message": "Your session will expire due to inactivity. Click 'Stay Logged In' to continue working.",
+  "hipaa.stay_logged_in": "Stay Logged In",
+  "hipaa.logout_now": "Logout Now",
+  "hipaa.export_logged": "Export action recorded in audit log",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

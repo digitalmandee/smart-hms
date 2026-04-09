@@ -6,6 +6,7 @@
 import { formatCurrency } from "@/lib/currency";
 import { format } from "date-fns";
 import DOMPurify from "dompurify";
+import { logExportAudit } from "@/lib/auditExport";
 
 export interface PDFColumn {
   key: string;
@@ -72,6 +73,14 @@ export function generatePDFReport(options: PDFExportOptions): void {
     alert("Please allow popups to generate PDF reports");
     return;
   }
+
+  // HIPAA: Audit log the PDF export
+  logExportAudit({
+    entityType: title,
+    recordCount: data.length,
+    exportFormat: "pdf",
+    filename: `${title}.pdf`,
+  });
 
   const currentDateTime = format(new Date(), "MMM dd, yyyy 'at' h:mm a");
   const dateRangeText = dateRange

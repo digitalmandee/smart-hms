@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
+import { usePhiAccessLog } from "@/hooks/usePhiAccessLog";
 import { useLabOrder, useUpdateLabOrderItem, useMarkSampleCollected, useCompleteLabOrder } from "@/hooks/useLabOrders";
 import { usePublishLabReport } from "@/hooks/usePublicLabReport";
 import { useLabSettings } from "@/hooks/useLabSettings";
@@ -41,6 +42,7 @@ const statusConfig = {
 export default function LabResultEntryPage() {
   const { orderId } = useParams<{ orderId: string }>();
   const navigate = useNavigate();
+  usePhiAccessLog("lab_order", orderId);
   const { profile } = useAuth();
   const { country_code } = useCountryConfig();
   const { data: labOrder, isLoading } = useLabOrder(orderId);

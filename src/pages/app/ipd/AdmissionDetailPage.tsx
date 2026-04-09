@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useParams, useNavigate, Link } from "react-router-dom";
+import { usePhiAccessLog } from "@/hooks/usePhiAccessLog";
 import { format } from "date-fns";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
@@ -45,6 +46,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function AdmissionDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  usePhiAccessLog("admission", id);
   const { hasPermission } = useAuth();
   const canViewBilling = hasPermission("billing.view") || hasPermission("ipd.billing");
   const { data: admissions, refetch: refetchAdmissions } = useAdmissions();
