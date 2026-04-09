@@ -47,7 +47,7 @@ export function MobileLabQueue() {
       .on('postgres_changes', { 
         event: '*', 
         schema: 'public', 
-        table: 'lab_orders' 
+        table: 'lab_orders',
       }, () => {
         refetch();
       })

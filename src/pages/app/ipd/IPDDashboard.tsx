@@ -64,6 +64,7 @@ export default function IPDDashboard() {
         event: 'INSERT',
         schema: 'public',
         table: 'admissions',
+        filter: `organization_id=eq.${profile.organization_id}`,
       }, (payload: any) => {
         // Show toast for new admission
         const newRecord = payload.new;
@@ -78,6 +79,7 @@ export default function IPDDashboard() {
         event: 'UPDATE',
         schema: 'public',
         table: 'admissions',
+        filter: `organization_id=eq.${profile.organization_id}`,
       }, () => {
         queryClient.invalidateQueries({ queryKey: ['admissions'] });
         queryClient.invalidateQueries({ queryKey: ['ipd-stats'] });
