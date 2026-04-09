@@ -199,6 +199,7 @@ export default function ProfilePage() {
         <p className="text-center text-xs text-muted-foreground pt-4">
           HealthOS v2.0.0 • Build 2026.02.01
         </p>
+        <EnrollMFADialog open={showEnrollDialog} onOpenChange={setShowEnrollDialog} />
       </div>
     );
   }
