@@ -226,6 +226,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         roles,
         permissions,
         isLoading,
+        mfaRequired,
         signIn,
         signUp,
         signOut,
