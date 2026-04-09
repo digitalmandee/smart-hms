@@ -1,4 +1,5 @@
 import { useRef, useEffect, useState } from "react";
+import { usePhiAccessLog } from "@/hooks/usePhiAccessLog";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
