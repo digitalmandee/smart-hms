@@ -1,81 +1,125 @@
 
 
-# HIPAA Phase 2 — MFA, Session Timeout, Export Audit Logging
+# HIPAA Phase 3 — Breach Notification, Training Tracking, BAA Management
 
 ## Overview
+Phase 3 raises HIPAA readiness from ~72% to ~85% by adding three compliance framework modules.
 
-Phase 2 implements 4 core HIPAA technical safeguards to raise compliance from ~55% to ~72%.
+## Current State
+- `incident_reports` table and hooks already exist in HR compliance module (medical/workplace incidents)
+- `audit_logs` table + viewer page exists in Settings
+- HR compliance dashboard has tabs for fitness, vaccinations, disciplinary, incidents
+- No HIPAA-specific breach notification workflow
+- No training acknowledgment tracking
+- No BAA (Business Associate Agreement) management
 
 ---
 
-## 1. Session Idle Timeout
+## 1. HIPAA Breach Notification Module
 
-Create a `useIdleTimeout` hook that monitors mouse, keyboard, scroll, and touch activity. After inactivity:
-- **Warning dialog** at 12 minutes (clinical) / 25 minutes (admin)
-- **Auto-logout** at 15 minutes (clinical) / 30 minutes (admin)
-- Role-based timeout: clinical roles (doctor, nurse, pharmacist, lab_tech, radiologist) get shorter timeouts
-- Warning dialog shows countdown with "Stay Logged In" button
+Extend the existing `incident_reports` infrastructure to add a **dedicated HIPAA breach workflow** with 60-day notification tracking per HIPAA Breach Notification Rule.
+
+### New DB Table: `hipaa_breach_incidents`
+- `id`, `organization_id`, `branch_id`
+- `incident_date`, `discovery_date`, `notification_deadline` (auto-calculated: discovery + 60 days)
+- `breach_type` (unauthorized_access, loss, theft, improper_disposal, hacking, other)
+- `phi_types_involved` (JSONB array: demographics, clinical_notes, lab_results, prescriptions, billing, images)
+- `individuals_affected_count`
+- `description`, `root_cause`, `corrective_actions`
+- `risk_assessment` (low, medium, high)
+- `notification_status` (pending, notified_individuals, notified_hhs, closed)
+- `notified_individuals_date`, `notified_hhs_date`
+- `reported_by`, `investigated_by`
+- `status` (open, investigating, contained, resolved, closed)
 
 ### Files
-- **New: `src/hooks/useIdleTimeout.ts`** — Core hook tracking last activity timestamp, showing warning, triggering `signOut()`
-- **New: `src/components/IdleTimeoutDialog.tsx`** — Warning dialog with countdown timer
-- **Edit: `src/App.tsx`** — Mount `useIdleTimeout` inside the authenticated layout
+- **New migration** — Create `hipaa_breach_incidents` table with RLS
+- **New: `src/hooks/useHipaaBreaches.ts`** — CRUD hooks
+- **New: `src/pages/app/settings/HipaaBreachesPage.tsx`** — List + create/edit breach incidents with notification countdown, status workflow
+- **Edit: `src/pages/app/settings/AuditLogsPage.tsx`** — Add link to breach module
+- **Edit routing** — Add route under `/app/settings/hipaa-breaches`
 
 ---
 
-## 2. PHI Export Audit Logging
+## 2. HIPAA Training Tracking
 
-Every CSV/PDF export writes an `audit_logs` entry recording who exported what data and how many records.
+Track workforce HIPAA training completion and annual renewal requirements.
+
+### New DB Table: `hipaa_training_records`
+- `id`, `organization_id`, `employee_id` (references profiles)
+- `training_type` (initial, annual_refresher, breach_response, phi_handling)
+- `training_date`, `expiry_date` (auto: training_date + 1 year)
+- `status` (completed, expired, due_soon)
+- `acknowledged_at` (employee signature/timestamp)
+- `trainer_name`, `certificate_url`
+- `notes`
 
 ### Files
-- **Edit: `src/lib/exportUtils.ts`** — Add `logExportAudit()` function that inserts into `audit_logs` with `action: 'data_export'`, `entity_type` (report name), record count, and export format in `new_values`
-- **Edit: `src/lib/pdfExport.ts`** — Add same audit log call in `generatePDFReport()`
-- **Edit: `src/components/reports/ReportExportButton.tsx`** — Pass entity type metadata to export functions
-
-No schema changes needed — `audit_logs` table already has all required columns (`action`, `entity_type`, `entity_id`, `new_values`, `user_id`, `organization_id`).
-
----
-
-## 3. PHI Access Logging (DB Trigger)
-
-Create a lightweight DB function + triggers that log when PHI tables are read via RPC. Since client-side SELECT queries can't trigger DB-level read logging, we add a **client-side PHI access logger** that records page views of sensitive patient data.
-
-### Approach
-- **New: `src/hooks/usePhiAccessLog.ts`** — Hook that inserts into `audit_logs` when a user views a patient record, lab result, prescription, or radiology report. Called from detail pages.
-- **Edit patient/lab/radiology detail pages** — Add `usePhiAccessLog('patient', patientId)` calls to ~6 key pages:
-  - `PatientDetailPage.tsx`
-  - `LabOrderDetailPage.tsx`
-  - `RadiologyOrderDetailPage.tsx`
-  - `AdmissionDetailPage.tsx`
-  - `ConsultationDetailPage.tsx`
-  - `PrescriptionDetailPage.tsx` (if exists)
-
-The hook debounces (1 log per entity per user per 5 minutes) to avoid flooding.
+- **New migration** — Create `hipaa_training_records` table with RLS
+- **New: `src/hooks/useHipaaTraining.ts`** — CRUD + expiry queries
+- **New: `src/pages/app/hr/compliance/HipaaTrainingPage.tsx`** — Training records list, assign training, track completion, expiry alerts
+- **Edit: `src/pages/app/hr/compliance/ComplianceDashboardPage.tsx`** — Add HIPAA training stat card and tab
 
 ---
 
-## 4. Trilingual Labels
+## 3. BAA (Business Associate Agreement) Management
 
-Add translation keys for:
-- Session timeout warning messages
-- Export audit toast messages
-- PHI access log labels
+Track agreements with third-party vendors who handle PHI.
+
+### New DB Table: `business_associate_agreements`
+- `id`, `organization_id`
+- `vendor_name`, `vendor_contact`, `vendor_email`
+- `service_description` (what PHI they access)
+- `agreement_date`, `expiry_date`, `renewal_date`
+- `status` (active, expired, pending_renewal, terminated)
+- `document_url` (stored in private bucket)
+- `phi_categories` (JSONB: which PHI types they access)
+- `reviewed_by`, `approved_by`
+- `notes`
 
 ### Files
-- **Edit: `src/lib/i18n/translations/en.ts`**
-- **Edit: `src/lib/i18n/translations/ur.ts`**
-- **Edit: `src/lib/i18n/translations/ar.ts`**
+- **New migration** — Create `business_associate_agreements` table with RLS
+- **New: `src/hooks/useBAAgreements.ts`** — CRUD hooks
+- **New: `src/pages/app/settings/BAAManagementPage.tsx`** — BAA list, create/edit, expiry tracking, renewal alerts
+- **Edit routing** — Add route under `/app/settings/baa-management`
+
+---
+
+## 4. HIPAA Compliance Dashboard
+
+A unified view showing compliance status across all HIPAA controls.
+
+### Files
+- **New: `src/pages/app/settings/HipaaComplianceDashboardPage.tsx`** — Score card showing:
+  - Breach incidents (open/closed count, days to notification deadline)
+  - Training compliance (% staff trained, upcoming expirations)
+  - BAA status (active/expiring agreements)
+  - Session timeout status (enabled)
+  - Export audit log count (last 30 days)
+  - PHI access log count (last 30 days)
+- **Edit Settings sidebar/nav** — Add HIPAA section with links to dashboard, breaches, BAA
+
+---
+
+## 5. Trilingual Labels
+
+Add translation keys for all new modules in `en.ts`, `ur.ts`, `ar.ts`:
+- Breach notification form fields and statuses
+- Training types and status labels
+- BAA management labels
+- Compliance dashboard headings
 
 ---
 
 ## Summary
 
-| Item | Type | Impact |
-|---|---|---|
-| Idle timeout hook + dialog | New code | §164.312(a)(2)(iii) |
-| Export audit logging | Edit 3 files | §164.312(b) |
-| PHI access logging hook | New hook + edit 6 pages | §164.312(b) |
-| Translations | Edit 3 files | i18n |
+| Item | Type | HIPAA Rule | Impact |
+|---|---|---|---|
+| Breach notification module | New table + page | §164.308(a)(6), §164.408 | Breach tracking & 60-day notification |
+| Training tracking | New table + page | §164.308(a)(5) | Workforce compliance proof |
+| BAA management | New table + page | §164.308(b)(1) | Vendor PHI oversight |
+| Compliance dashboard | New page | Administrative | Unified compliance visibility |
+| Translations | Edit 3 files | i18n | Trilingual support |
 
-**Note on MFA**: Supabase TOTP MFA requires dashboard-level configuration (enabling MFA in Auth settings) plus enrollment UI. This is deferred to Phase 2b as it requires Supabase dashboard changes the migration tool cannot perform. The 3 items above are fully implementable now.
+**3 new migrations, 6 new files, ~5 file edits. Target: 85% HIPAA readiness.**
 
