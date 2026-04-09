@@ -251,6 +251,9 @@ import PaymentMethodsListPage from "./pages/app/settings/PaymentMethodsListPage"
 import PaymentMethodFormPage from "./pages/app/settings/PaymentMethodFormPage";
 import NotificationSettingsPage from "./pages/app/settings/NotificationSettingsPage";
 import AuditLogsPage from "./pages/app/settings/AuditLogsPage";
+import HipaaBreachesPage from "./pages/app/settings/HipaaBreachesPage";
+import BAAManagementPage from "./pages/app/settings/BAAManagementPage";
+import HipaaComplianceDashboardPage from "./pages/app/settings/HipaaComplianceDashboardPage";
 import SMSSettingsPage from "./pages/app/settings/SMSSettingsPage";
 import ReportTemplatesPage from "./pages/app/settings/ReportTemplatesPage";
 import PublicLabReportPage from "./pages/public/PublicLabReportPage";
@@ -311,6 +314,7 @@ import VaccinationsPage from "./pages/app/hr/compliance/VaccinationsPage";
 import DisciplinaryPage from "./pages/app/hr/compliance/DisciplinaryPage";
 import MedicalLicensesPage from "./pages/app/hr/compliance/MedicalLicensesPage";
 import EmployeeDocumentsPage from "./pages/app/hr/compliance/EmployeeDocumentsPage";
+import HipaaTrainingPage from "./pages/app/hr/compliance/HipaaTrainingPage";
 import ClearancePage from "./pages/app/hr/exit/ClearancePage";
 import SettlementsPage from "./pages/app/hr/exit/SettlementsPage";
 import ExitInterviewsPage from "./pages/app/hr/exit/ExitInterviewsPage";
@@ -1329,6 +1333,7 @@ function App() {
               <Route path="hr/compliance/disciplinary" element={<DisciplinaryPage />} />
               <Route path="hr/compliance/licenses" element={<MedicalLicensesPage />} />
               <Route path="hr/compliance/documents" element={<EmployeeDocumentsPage />} />
+              <Route path="hr/compliance/hipaa-training" element={<HipaaTrainingPage />} />
               <Route path="hr/paramedical" element={<ParamedicalStaffPage />} />
               <Route path="hr/support-staff" element={<SupportStaffPage />} />
               <Route path="hr/visiting-doctors" element={<VisitingDoctorsPage />} />
@@ -1395,6 +1400,9 @@ function App() {
               <Route path="settings/email" element={<EmailSettingsPage />} />
               <Route path="settings/email-templates" element={<EmailTemplatesPage />} />
               <Route path="settings/audit-logs" element={<AuditLogsPage />} />
+              <Route path="settings/hipaa-breaches" element={<HipaaBreachesPage />} />
+              <Route path="settings/baa-management" element={<BAAManagementPage />} />
+              <Route path="settings/hipaa-compliance" element={<HipaaComplianceDashboardPage />} />
               <Route path="settings/report-templates" element={<ReportTemplatesPage />} />
               <Route path="settings/specializations" element={<SpecializationsPage />} />
               <Route path="settings/qualifications" element={<QualificationsPage />} />
