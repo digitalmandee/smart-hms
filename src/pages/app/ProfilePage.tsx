@@ -148,6 +148,40 @@ export default function ProfilePage() {
 
         <Separator />
 
+        {/* Two-Factor Authentication */}
+        <div className="space-y-4">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+            {t("mfa.two_factor")}
+          </h2>
+          <div className="flex items-center justify-between py-3">
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <span>{t("mfa.two_factor")}</span>
+                <Badge variant={isEnrolled ? "default" : "secondary"} className="ml-2">
+                  {isEnrolled ? t("mfa.enabled_badge") : t("mfa.disabled_badge")}
+                </Badge>
+              </div>
+            </div>
+            <Button
+              variant={isEnrolled ? "destructive" : "default"}
+              size="sm"
+              onClick={async () => {
+                if (isEnrolled && factorId) {
+                  await unenroll(factorId);
+                  toast.success(t("mfa.disabled_badge"));
+                } else {
+                  setShowEnrollDialog(true);
+                }
+              }}
+            >
+              {isEnrolled ? t("mfa.disable") : t("mfa.enable")}
+            </Button>
+          </div>
+        </div>
+
+        <Separator />
+
         {/* Edit Profile Button */}
         <Button
           variant="outline"
