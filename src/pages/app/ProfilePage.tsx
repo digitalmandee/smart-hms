@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   User, 
@@ -8,7 +9,8 @@ import {
   ChevronRight,
   Moon,
   Smartphone,
-  ArrowLeft
+  ArrowLeft,
+  ShieldCheck
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,12 +18,17 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ROLE_LABELS } from "@/constants/roles";
 import { useTheme } from "next-themes";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useHaptics } from "@/hooks/useHaptics";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Capacitor } from "@capacitor/core";
+import { useMFA } from "@/hooks/useMFA";
+import { EnrollMFADialog } from "@/components/mfa/EnrollMFADialog";
+import { useTranslation } from "@/lib/i18n";
+import { toast } from "sonner";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -32,6 +39,9 @@ export default function ProfilePage() {
   const isMobileScreen = useIsMobile();
   const isNative = Capacitor.isNativePlatform();
   const showMobileUI = isMobileScreen || isNative;
+  const { isEnrolled, factorId, unenroll } = useMFA();
+  const [showEnrollDialog, setShowEnrollDialog] = useState(false);
+  const { t } = useTranslation();
 
   const initials = profile?.full_name
     ?.split(' ')
@@ -138,6 +148,40 @@ export default function ProfilePage() {
 
         <Separator />
 
+        {/* Two-Factor Authentication */}
+        <div className="space-y-4">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+            {t("mfa.two_factor")}
+          </h2>
+          <div className="flex items-center justify-between py-3">
+            <div className="flex items-center gap-3">
+              <ShieldCheck className="h-5 w-5 text-muted-foreground" />
+              <div>
+                <span>{t("mfa.two_factor")}</span>
+                <Badge variant={isEnrolled ? "default" : "secondary"} className="ml-2">
+                  {isEnrolled ? t("mfa.enabled_badge") : t("mfa.disabled_badge")}
+                </Badge>
+              </div>
+            </div>
+            <Button
+              variant={isEnrolled ? "destructive" : "default"}
+              size="sm"
+              onClick={async () => {
+                if (isEnrolled && factorId) {
+                  await unenroll(factorId);
+                  toast.success(t("mfa.disabled_badge"));
+                } else {
+                  setShowEnrollDialog(true);
+                }
+              }}
+            >
+              {isEnrolled ? t("mfa.disable") : t("mfa.enable")}
+            </Button>
+          </div>
+        </div>
+
+        <Separator />
+
         {/* Edit Profile Button */}
         <Button
           variant="outline"
@@ -155,6 +199,7 @@ export default function ProfilePage() {
         <p className="text-center text-xs text-muted-foreground pt-4">
           HealthOS v2.0.0 • Build 2026.02.01
         </p>
+        <EnrollMFADialog open={showEnrollDialog} onOpenChange={setShowEnrollDialog} />
       </div>
     );
   }
@@ -219,6 +264,39 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
+      {/* Two-Factor Authentication */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5" />
+            {t("mfa.two_factor")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">{t("mfa.two_factor_desc")}</p>
+              <Badge variant={isEnrolled ? "default" : "secondary"} className="mt-2">
+                {isEnrolled ? t("mfa.enabled_badge") : t("mfa.disabled_badge")}
+              </Badge>
+            </div>
+            <Button
+              variant={isEnrolled ? "destructive" : "default"}
+              onClick={async () => {
+                if (isEnrolled && factorId) {
+                  await unenroll(factorId);
+                  toast.success(t("mfa.disabled_badge"));
+                } else {
+                  setShowEnrollDialog(true);
+                }
+              }}
+            >
+              {isEnrolled ? t("mfa.disable") : t("mfa.enable")}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardContent className="pt-6">
           <Button
@@ -231,6 +309,8 @@ export default function ProfilePage() {
           </Button>
         </CardContent>
       </Card>
+
+      <EnrollMFADialog open={showEnrollDialog} onOpenChange={setShowEnrollDialog} />
     </div>
   );
 }

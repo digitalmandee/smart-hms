@@ -661,6 +661,8 @@ import MobileLabPage from "./pages/mobile/MobileLabPage";
 import ProfilePage from "./pages/app/ProfilePage";
 import NotificationsPage from "./pages/app/NotificationsPage";
 import MorePage from "./pages/app/MorePage";
+const MFAVerifyPage = React.lazy(() => import("./components/mfa/MFAVerifyPage"));
+const DataRetentionPage = React.lazy(() => import("./pages/app/settings/DataRetentionPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -756,6 +758,15 @@ function App() {
               <Route path="signup" element={<SignupPage />} />
               <Route path="client-login" element={<ClientLoginPage />} />
             </Route>
+
+            {/* MFA Verify route */}
+            <Route path="/app/mfa-verify" element={
+              <ProtectedRoute>
+                <React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}>
+                  <MFAVerifyPage />
+                </React.Suspense>
+              </ProtectedRoute>
+            } />
 
             {/* Mobile routes - Native app experience */}
             <Route path="/mobile/login" element={<MobileLoginPage />} />
@@ -1403,6 +1414,7 @@ function App() {
               <Route path="settings/hipaa-breaches" element={<HipaaBreachesPage />} />
               <Route path="settings/baa-management" element={<BAAManagementPage />} />
               <Route path="settings/hipaa-compliance" element={<HipaaComplianceDashboardPage />} />
+              <Route path="settings/data-retention" element={<React.Suspense fallback={<div>Loading...</div>}><DataRetentionPage /></React.Suspense>} />
               <Route path="settings/report-templates" element={<ReportTemplatesPage />} />
               <Route path="settings/specializations" element={<SpecializationsPage />} />
               <Route path="settings/qualifications" element={<QualificationsPage />} />

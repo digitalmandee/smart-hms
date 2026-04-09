@@ -65,3 +65,6 @@ verify_jwt = false
 
 [functions.sehhaty-gateway]
 verify_jwt = false
+
+[functions.data-retention-purge]
+verify_jwt = false
