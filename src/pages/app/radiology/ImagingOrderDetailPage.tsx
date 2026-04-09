@@ -35,6 +35,7 @@ import { useOrganizationBranding } from '@/hooks/useOrganizationBranding';
 export default function ImagingOrderDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
+  usePhiAccessLog("radiology_order", id);
   const { t } = useTranslation();
   const { data: order, isLoading, refetch } = useImagingOrder(id);
   const { data: result } = useImagingResult(id);
