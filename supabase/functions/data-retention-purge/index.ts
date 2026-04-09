@@ -1,9 +1,5 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.49.4";
 
-const ALLOWED_ORIGINS = [
-  "https://smart-hms.lovable.app",
-  "https://id-preview--0eeac695-3ca2-45ba-87e8-f046d5957181.lovable.app",
-];
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
