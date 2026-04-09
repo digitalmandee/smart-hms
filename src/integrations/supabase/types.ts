@@ -3356,6 +3356,88 @@ export type Database = {
           },
         ]
       }
+      business_associate_agreements: {
+        Row: {
+          agreement_date: string
+          approved_by: string | null
+          created_at: string
+          document_url: string | null
+          expiry_date: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          phi_categories: Json | null
+          renewal_date: string | null
+          reviewed_by: string | null
+          service_description: string | null
+          status: Database["public"]["Enums"]["baa_status"]
+          updated_at: string
+          vendor_contact: string | null
+          vendor_email: string | null
+          vendor_name: string
+        }
+        Insert: {
+          agreement_date: string
+          approved_by?: string | null
+          created_at?: string
+          document_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          phi_categories?: Json | null
+          renewal_date?: string | null
+          reviewed_by?: string | null
+          service_description?: string | null
+          status?: Database["public"]["Enums"]["baa_status"]
+          updated_at?: string
+          vendor_contact?: string | null
+          vendor_email?: string | null
+          vendor_name: string
+        }
+        Update: {
+          agreement_date?: string
+          approved_by?: string | null
+          created_at?: string
+          document_url?: string | null
+          expiry_date?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          phi_categories?: Json | null
+          renewal_date?: string | null
+          reviewed_by?: string | null
+          service_description?: string | null
+          status?: Database["public"]["Enums"]["baa_status"]
+          updated_at?: string
+          vendor_contact?: string | null
+          vendor_email?: string | null
+          vendor_name?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "business_associate_agreements_approved_by_fkey"
+            columns: ["approved_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_associate_agreements_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "business_associate_agreements_reviewed_by_fkey"
+            columns: ["reviewed_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       claim_attachments: {
         Row: {
           attachment_type: string
@@ -10517,6 +10599,182 @@ export type Database = {
             columns: ["submitted_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hipaa_breach_incidents: {
+        Row: {
+          branch_id: string | null
+          breach_type: Database["public"]["Enums"]["hipaa_breach_type"]
+          corrective_actions: string | null
+          created_at: string
+          description: string | null
+          discovery_date: string
+          id: string
+          incident_date: string
+          individuals_affected_count: number | null
+          investigated_by: string | null
+          notification_deadline: string | null
+          notification_status:
+            | Database["public"]["Enums"]["hipaa_notification_status"]
+            | null
+          notified_hhs_date: string | null
+          notified_individuals_date: string | null
+          organization_id: string
+          phi_types_involved: Json | null
+          reported_by: string | null
+          risk_assessment:
+            | Database["public"]["Enums"]["hipaa_risk_level"]
+            | null
+          root_cause: string | null
+          status: Database["public"]["Enums"]["hipaa_breach_status"] | null
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          breach_type?: Database["public"]["Enums"]["hipaa_breach_type"]
+          corrective_actions?: string | null
+          created_at?: string
+          description?: string | null
+          discovery_date: string
+          id?: string
+          incident_date: string
+          individuals_affected_count?: number | null
+          investigated_by?: string | null
+          notification_deadline?: string | null
+          notification_status?:
+            | Database["public"]["Enums"]["hipaa_notification_status"]
+            | null
+          notified_hhs_date?: string | null
+          notified_individuals_date?: string | null
+          organization_id: string
+          phi_types_involved?: Json | null
+          reported_by?: string | null
+          risk_assessment?:
+            | Database["public"]["Enums"]["hipaa_risk_level"]
+            | null
+          root_cause?: string | null
+          status?: Database["public"]["Enums"]["hipaa_breach_status"] | null
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          breach_type?: Database["public"]["Enums"]["hipaa_breach_type"]
+          corrective_actions?: string | null
+          created_at?: string
+          description?: string | null
+          discovery_date?: string
+          id?: string
+          incident_date?: string
+          individuals_affected_count?: number | null
+          investigated_by?: string | null
+          notification_deadline?: string | null
+          notification_status?:
+            | Database["public"]["Enums"]["hipaa_notification_status"]
+            | null
+          notified_hhs_date?: string | null
+          notified_individuals_date?: string | null
+          organization_id?: string
+          phi_types_involved?: Json | null
+          reported_by?: string | null
+          risk_assessment?:
+            | Database["public"]["Enums"]["hipaa_risk_level"]
+            | null
+          root_cause?: string | null
+          status?: Database["public"]["Enums"]["hipaa_breach_status"] | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hipaa_breach_incidents_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hipaa_breach_incidents_investigated_by_fkey"
+            columns: ["investigated_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hipaa_breach_incidents_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hipaa_breach_incidents_reported_by_fkey"
+            columns: ["reported_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      hipaa_training_records: {
+        Row: {
+          acknowledged_at: string | null
+          certificate_url: string | null
+          created_at: string
+          employee_id: string
+          expiry_date: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          status: Database["public"]["Enums"]["hipaa_training_status"]
+          trainer_name: string | null
+          training_date: string
+          training_type: Database["public"]["Enums"]["hipaa_training_type"]
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          certificate_url?: string | null
+          created_at?: string
+          employee_id: string
+          expiry_date?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          status?: Database["public"]["Enums"]["hipaa_training_status"]
+          trainer_name?: string | null
+          training_date: string
+          training_type?: Database["public"]["Enums"]["hipaa_training_type"]
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          certificate_url?: string | null
+          created_at?: string
+          employee_id?: string
+          expiry_date?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          status?: Database["public"]["Enums"]["hipaa_training_status"]
+          trainer_name?: string | null
+          training_date?: string
+          training_type?: Database["public"]["Enums"]["hipaa_training_type"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "hipaa_training_records_employee_id_fkey"
+            columns: ["employee_id"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "hipaa_training_records_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -25075,6 +25333,7 @@ export type Database = {
         | "holiday"
         | "weekend"
         | "work_from_home"
+      baa_status: "active" | "expired" | "pending_renewal" | "terminated"
       bed_status:
         | "available"
         | "occupied"
@@ -25184,6 +25443,31 @@ export type Database = {
         | "phone"
       gender: "male" | "female" | "other" | "child"
       grn_status: "draft" | "pending_verification" | "verified" | "posted"
+      hipaa_breach_status:
+        | "open"
+        | "investigating"
+        | "contained"
+        | "resolved"
+        | "closed"
+      hipaa_breach_type:
+        | "unauthorized_access"
+        | "loss"
+        | "theft"
+        | "improper_disposal"
+        | "hacking"
+        | "other"
+      hipaa_notification_status:
+        | "pending"
+        | "notified_individuals"
+        | "notified_hhs"
+        | "closed"
+      hipaa_risk_level: "low" | "medium" | "high"
+      hipaa_training_status: "completed" | "expired" | "due_soon"
+      hipaa_training_type:
+        | "initial"
+        | "annual_refresher"
+        | "breach_response"
+        | "phi_handling"
       imaging_finding_status: "normal" | "abnormal" | "critical"
       imaging_modality:
         | "xray"
@@ -25612,6 +25896,7 @@ export const Constants = {
         "weekend",
         "work_from_home",
       ],
+      baa_status: ["active", "expired", "pending_renewal", "terminated"],
       bed_status: [
         "available",
         "occupied",
@@ -25734,6 +26019,35 @@ export const Constants = {
       ],
       gender: ["male", "female", "other", "child"],
       grn_status: ["draft", "pending_verification", "verified", "posted"],
+      hipaa_breach_status: [
+        "open",
+        "investigating",
+        "contained",
+        "resolved",
+        "closed",
+      ],
+      hipaa_breach_type: [
+        "unauthorized_access",
+        "loss",
+        "theft",
+        "improper_disposal",
+        "hacking",
+        "other",
+      ],
+      hipaa_notification_status: [
+        "pending",
+        "notified_individuals",
+        "notified_hhs",
+        "closed",
+      ],
+      hipaa_risk_level: ["low", "medium", "high"],
+      hipaa_training_status: ["completed", "expired", "due_soon"],
+      hipaa_training_type: [
+        "initial",
+        "annual_refresher",
+        "breach_response",
+        "phi_handling",
+      ],
       imaging_finding_status: ["normal", "abnormal", "critical"],
       imaging_modality: [
         "xray",
