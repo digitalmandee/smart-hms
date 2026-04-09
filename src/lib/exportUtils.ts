@@ -2,6 +2,7 @@
  * Export utilities for CSV download and printing
  */
 import DOMPurify from "dompurify";
+import { logExportAudit } from "@/lib/auditExport";
 
 interface ColumnConfig {
   key: string;
@@ -12,7 +13,8 @@ interface ColumnConfig {
 export const exportToCSV = <T extends Record<string, any>>(
   data: T[],
   filename: string,
-  columns: ColumnConfig[]
+  columns: ColumnConfig[],
+  entityType?: string
 ): void => {
   if (!data || data.length === 0) {
     console.warn('No data to export');
@@ -47,6 +49,14 @@ export const exportToCSV = <T extends Record<string, any>>(
   link.click();
   document.body.removeChild(link);
   URL.revokeObjectURL(url);
+
+  // HIPAA: Audit log the export
+  logExportAudit({
+    entityType: entityType || filename,
+    recordCount: data.length,
+    exportFormat: "csv",
+    filename: `${filename}.csv`,
+  });
 };
 
 export const formatCurrency = (value: number | null | undefined): string => {
