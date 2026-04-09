@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { 
   User, 
@@ -8,7 +9,8 @@ import {
   ChevronRight,
   Moon,
   Smartphone,
-  ArrowLeft
+  ArrowLeft,
+  ShieldCheck
 } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
@@ -16,12 +18,17 @@ import { Switch } from "@/components/ui/switch";
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
 import { ROLE_LABELS } from "@/constants/roles";
 import { useTheme } from "next-themes";
 import { usePushNotifications } from "@/hooks/usePushNotifications";
 import { useHaptics } from "@/hooks/useHaptics";
 import { useIsMobile } from "@/hooks/use-mobile";
 import { Capacitor } from "@capacitor/core";
+import { useMFA } from "@/hooks/useMFA";
+import { EnrollMFADialog } from "@/components/mfa/EnrollMFADialog";
+import { useTranslation } from "@/lib/i18n";
+import { toast } from "sonner";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -32,6 +39,9 @@ export default function ProfilePage() {
   const isMobileScreen = useIsMobile();
   const isNative = Capacitor.isNativePlatform();
   const showMobileUI = isMobileScreen || isNative;
+  const { isEnrolled, factorId, unenroll } = useMFA();
+  const [showEnrollDialog, setShowEnrollDialog] = useState(false);
+  const { t } = useTranslation();
 
   const initials = profile?.full_name
     ?.split(' ')
