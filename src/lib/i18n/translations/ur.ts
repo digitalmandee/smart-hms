@@ -3839,5 +3839,13 @@ export const ur: Record<TranslationKey, string> = {
   "voucher.cheque_details": "چیک / آلہ کی تفصیلات",
   "voucher.audit_trail": "آڈٹ ٹریل",
 
+  // HIPAA Compliance
+  "hipaa.session_timeout_title": "سیشن ٹائم آؤٹ وارننگ",
+  "hipaa.session_timeout_message": "غیر فعالیت کی وجہ سے آپ کا سیشن ختم ہونے والا ہے۔ کام جاری رکھنے کے لیے 'لاگ ان رہیں' پر کلک کریں۔",
+  "hipaa.stay_logged_in": "لاگ ان رہیں",
+  "hipaa.logout_now": "ابھی لاگ آؤٹ کریں",
+  "hipaa.export_logged": "ایکسپورٹ ایکشن آڈٹ لاگ میں ریکارڈ ہو گیا",
+
 };
+
 

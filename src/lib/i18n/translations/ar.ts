@@ -3839,5 +3839,13 @@ export const ar: Record<TranslationKey, string> = {
   "voucher.cheque_details": "تفاصيل الشيك / الأداة",
   "voucher.audit_trail": "سجل المراجعة",
 
+  // HIPAA Compliance
+  "hipaa.session_timeout_title": "تحذير انتهاء الجلسة",
+  "hipaa.session_timeout_message": "ستنتهي جلستك بسبب عدم النشاط. انقر على 'البقاء متصلاً' لمواصلة العمل.",
+  "hipaa.stay_logged_in": "البقاء متصلاً",
+  "hipaa.logout_now": "تسجيل الخروج الآن",
+  "hipaa.export_logged": "تم تسجيل عملية التصدير في سجل المراجعة",
+
 };
+
 
