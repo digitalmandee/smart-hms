@@ -10,12 +10,14 @@ import { ConsultationSummary } from "@/components/consultation/ConsultationSumma
 import { PrintablePrescription } from "@/components/consultation/PrintablePrescription";
 import { PrintableConsultation } from "@/components/consultation/PrintableConsultation";
 import { usePrint } from "@/hooks/usePrint";
+import { usePhiAccessLog } from "@/hooks/usePhiAccessLog";
 import { ArrowLeft, Printer, FileText } from "lucide-react";
 
 export default function ConsultationDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const { profile } = useAuth();
+  usePhiAccessLog("consultation", id);
 
   const { data: consultation, isLoading } = useConsultation(id);
   const { data: prescription } = usePrescriptionByConsultation(id);

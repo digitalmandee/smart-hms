@@ -46,6 +46,7 @@ import { useAuth } from "@/contexts/AuthContext";
 export default function AdmissionDetailPage() {
   const { id } = useParams();
   const navigate = useNavigate();
+  usePhiAccessLog("admission", id);
   const { hasPermission } = useAuth();
   const canViewBilling = hasPermission("billing.view") || hasPermission("ipd.billing");
   const { data: admissions, refetch: refetchAdmissions } = useAdmissions();

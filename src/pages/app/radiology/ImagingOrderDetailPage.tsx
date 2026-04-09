@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { getImageUrls } from '@/lib/radiology-image-utils';
 import { useParams, useNavigate } from 'react-router-dom';
+import { usePhiAccessLog } from '@/hooks/usePhiAccessLog';
 import { useTranslation, getTranslatedString } from '@/lib/i18n';
 import { PageHeader } from '@/components/PageHeader';
 import { Button } from '@/components/ui/button';
