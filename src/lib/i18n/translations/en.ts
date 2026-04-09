@@ -3919,6 +3919,63 @@ export const en = {
   "hipaa.logout_now": "Logout Now",
   "hipaa.export_logged": "Export action recorded in audit log",
 
+  // HIPAA Phase 3 — Breach Notification
+  "hipaa.breach_title": "HIPAA Breach Incidents",
+  "hipaa.breach_description": "Track and manage HIPAA breach notifications per §164.408",
+  "hipaa.breach_incidents": "Breach Incidents",
+  "hipaa.report_breach": "Report Breach",
+  "hipaa.incident_date": "Incident Date",
+  "hipaa.discovery_date": "Discovery Date",
+  "hipaa.breach_type": "Breach Type",
+  "hipaa.risk_level": "Risk Level",
+  "hipaa.affected_count": "Individuals Affected",
+  "hipaa.root_cause": "Root Cause",
+  "hipaa.corrective_actions": "Corrective Actions",
+  "hipaa.notification_deadline": "Notification Deadline",
+  "hipaa.open_breaches": "Open Breaches",
+  "hipaa.total_breaches": "Total Breaches",
+  "hipaa.pending_notification": "Pending Notification",
+  "hipaa.no_breaches": "No breach incidents recorded",
+
+  // HIPAA Phase 3 — Training
+  "hipaa.training_title": "HIPAA Training Records",
+  "hipaa.training_description": "Track workforce HIPAA training completion and renewals",
+  "hipaa.training_records": "Training Records",
+  "hipaa.add_training": "Add Training",
+  "hipaa.employee": "Employee",
+  "hipaa.training_type": "Training Type",
+  "hipaa.training_date": "Training Date",
+  "hipaa.expiry_date": "Expiry Date",
+  "hipaa.trainer_name": "Trainer Name",
+  "hipaa.total_trained": "Total Trained",
+  "hipaa.training_expired": "Expired",
+  "hipaa.training_due_soon": "Due Soon",
+  "hipaa.training_completed": "Completed",
+  "hipaa.no_training_records": "No training records found",
+
+  // HIPAA Phase 3 — BAA
+  "hipaa.baa_title": "Business Associate Agreements",
+  "hipaa.baa_description": "Manage vendor agreements for PHI access per §164.308(b)(1)",
+  "hipaa.baa_agreements": "BAA Agreements",
+  "hipaa.add_baa": "Add BAA",
+  "hipaa.vendor_name": "Vendor Name",
+  "hipaa.vendor_contact": "Vendor Contact",
+  "hipaa.vendor_email": "Vendor Email",
+  "hipaa.service_description": "Service Description",
+  "hipaa.agreement_date": "Agreement Date",
+  "hipaa.active_baas": "Active BAAs",
+  "hipaa.total_baas": "Total BAAs",
+  "hipaa.expiring_baas": "Expiring Soon",
+  "hipaa.no_baas": "No business associate agreements found",
+
+  // HIPAA Phase 3 — Compliance Dashboard
+  "hipaa.compliance_dashboard": "HIPAA Compliance Dashboard",
+  "hipaa.compliance_dashboard_desc": "Unified view of all HIPAA technical and administrative controls",
+  "hipaa.overall_score": "HIPAA Readiness Score",
+  "hipaa.overall_score_desc": "Calculated from active controls, training compliance, and breach status",
+  "hipaa.export_audit": "Export Audit Logging",
+  "hipaa.phi_access_audit": "PHI Access Logging",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;
