@@ -263,6 +263,39 @@ export default function ProfilePage() {
         </CardContent>
       </Card>
 
+      {/* Two-Factor Authentication */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <ShieldCheck className="h-5 w-5" />
+            {t("mfa.two_factor")}
+          </CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm text-muted-foreground">{t("mfa.two_factor_desc")}</p>
+              <Badge variant={isEnrolled ? "default" : "secondary"} className="mt-2">
+                {isEnrolled ? t("mfa.enabled_badge") : t("mfa.disabled_badge")}
+              </Badge>
+            </div>
+            <Button
+              variant={isEnrolled ? "destructive" : "default"}
+              onClick={async () => {
+                if (isEnrolled && factorId) {
+                  await unenroll(factorId);
+                  toast.success(t("mfa.disabled_badge"));
+                } else {
+                  setShowEnrollDialog(true);
+                }
+              }}
+            >
+              {isEnrolled ? t("mfa.disable") : t("mfa.enable")}
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+
       <Card>
         <CardContent className="pt-6">
           <Button
@@ -275,6 +308,8 @@ export default function ProfilePage() {
           </Button>
         </CardContent>
       </Card>
+
+      <EnrollMFADialog open={showEnrollDialog} onOpenChange={setShowEnrollDialog} />
     </div>
   );
 }
