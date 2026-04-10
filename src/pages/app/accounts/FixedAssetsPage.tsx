@@ -18,11 +18,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/lib/i18n";
 
 export default function FixedAssetsPage() {
+  const { t } = useTranslation();
   const { data: assets, isLoading } = useFixedAssets();
   const createMutation = useCreateFixedAsset();
+  const depPosting = useDepreciationPosting();
   const { formatCurrency } = useCurrencyFormatter();
   const [open, setOpen] = useState(false);
+  const [depOpen, setDepOpen] = useState(false);
   const [scheduleAsset, setScheduleAsset] = useState<any>(null);
+  const now = new Date();
+  const [depMonth, setDepMonth] = useState(String(now.getMonth() + 1));
+  const [depYear, setDepYear] = useState(String(now.getFullYear()));
+  const [depExpAcct, setDepExpAcct] = useState("");
+  const [depAccumAcct, setDepAccumAcct] = useState("");
   const [form, setForm] = useState({
     name: "", category: "", purchase_date: "", purchase_cost: "",
     useful_life_months: "60", depreciation_method: "straight_line", salvage_value: "0",
