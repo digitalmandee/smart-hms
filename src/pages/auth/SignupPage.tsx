@@ -8,7 +8,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Loader2, Eye, EyeOff, Check, X } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
+import { PasswordStrengthIndicator } from "@/components/auth/PasswordStrengthIndicator";
 
 export const SignupPage = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -28,13 +29,6 @@ export const SignupPage = () => {
   });
 
   const password = watch("password", "");
-
-  const passwordRequirements = [
-    { label: "At least 8 characters", met: password.length >= 8 },
-    { label: "One uppercase letter", met: /[A-Z]/.test(password) },
-    { label: "One lowercase letter", met: /[a-z]/.test(password) },
-    { label: "One number", met: /\d/.test(password) },
-  ];
 
   const onSubmit = async (data: SignupFormData) => {
     setIsLoading(true);
@@ -147,26 +141,7 @@ export const SignupPage = () => {
             <p className="text-sm text-destructive">{errors.password.message}</p>
           )}
 
-          {/* Password Requirements */}
-          {password && (
-            <div className="space-y-1 mt-2">
-              {passwordRequirements.map((req, index) => (
-                <div
-                  key={index}
-                  className={`flex items-center gap-2 text-xs ${
-                    req.met ? "text-success" : "text-muted-foreground"
-                  }`}
-                >
-                  {req.met ? (
-                    <Check className="h-3 w-3" />
-                  ) : (
-                    <X className="h-3 w-3" />
-                  )}
-                  {req.label}
-                </div>
-              ))}
-            </div>
-          )}
+          <PasswordStrengthIndicator password={password} />
         </div>
 
         <div className="space-y-2">
