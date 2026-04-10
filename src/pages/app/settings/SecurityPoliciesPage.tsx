@@ -115,7 +115,7 @@ const SecurityPoliciesPage = () => {
     <div className="space-y-6">
       <PageHeader
         title={t("security_policies.title")}
-        subtitle={t("security_policies.subtitle")}
+        description={t("security_policies.subtitle")}
       />
 
       <Card>

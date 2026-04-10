@@ -45,7 +45,7 @@ export function PasswordStrengthIndicator({ password }: PasswordStrengthIndicato
           metCount <= 1 ? "text-destructive" : 
           metCount <= 3 ? "text-warning" : "text-success"
         )}>
-          {t(strength.key)}
+          {t(strength.key as any)}
         </span>
       </div>
 
