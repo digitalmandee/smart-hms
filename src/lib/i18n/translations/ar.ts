@@ -4047,6 +4047,7 @@ export const ar: Record<TranslationKey, string> = {
   "finance.effective_date": "تاريخ السريان",
   "finance.reason": "السبب",
   "finance.salary_revised": "تم حفظ مراجعة الراتب بنجاح",
+  "finance.department": "القسم",
 
 };
 
