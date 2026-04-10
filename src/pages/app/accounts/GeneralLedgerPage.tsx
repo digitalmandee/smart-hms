@@ -1,5 +1,5 @@
 import { useState, useMemo, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import { formatCurrency } from "@/lib/currency";
 import { format } from "date-fns";
 import { BookOpen } from "lucide-react";
@@ -41,8 +41,24 @@ function getDescendantPostingIds(parentId: string, allAccounts: Account[]): stri
   return ids;
 }
 
+function getSourceDocumentPath(referenceType: string | null, referenceId: string | null): string | null {
+  if (!referenceType || !referenceId) return null;
+  switch (referenceType) {
+    case "invoice": return `/app/billing/invoices/${referenceId}`;
+    case "payment": return `/app/billing/invoices/${referenceId}`;
+    case "payroll": return `/app/hr/payroll/${referenceId}`;
+    case "expense": return `/app/accounts/expenses`;
+    case "vendor_payment": return `/app/accounts/vendor-payments/${referenceId}`;
+    case "grn": return `/app/warehouse/grn/${referenceId}`;
+    case "patient_deposit": return `/app/accounts/patient-deposits`;
+    case "donation": return `/app/donations`;
+    default: return null;
+  }
+}
+
 const GeneralLedgerPage = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const journalParam = searchParams.get("journal");
   const [selectedAccountId, setSelectedAccountId] = useState<string>("");
   const [dateRange, setDateRange] = useState<{ from: string; to: string }>({ from: "", to: "" });
@@ -323,7 +339,14 @@ const GeneralLedgerPage = () => {
                       </TableCell>
                       <TableCell>
                         {entry.journal_entry?.reference_type && (
-                          <Badge variant="outline" className={`text-xs ${refBadgeColor(entry.journal_entry.reference_type)}`}>
+                          <Badge
+                            variant="outline"
+                            className={`text-xs cursor-pointer hover:opacity-80 ${refBadgeColor(entry.journal_entry.reference_type)}`}
+                            onClick={() => {
+                              const path = getSourceDocumentPath(entry.journal_entry.reference_type, entry.journal_entry.reference_id);
+                              if (path) navigate(path);
+                            }}
+                          >
                             {entry.journal_entry.reference_type}
                           </Badge>
                         )}

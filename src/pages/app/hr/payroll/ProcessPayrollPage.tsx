@@ -13,7 +13,8 @@ import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
 import { Calculator, Users, Check, ArrowRight, ArrowLeft, AlertCircle, Wallet, Info } from "lucide-react";
 import { useEmployeeSalaries, useCreatePayrollRun, useEmployeeLoans, useCreatePayrollEntries } from "@/hooks/usePayroll";
-import { useUnpaidEarningsForEmployee, useSettleWalletEarnings } from "@/hooks/useDoctorCompensation";
+import { useSettleWalletEarnings } from "@/hooks/useDoctorCompensation";
+import { useSalaryComponents, useTaxSlabs, useMonthlyAttendance, calculateEmployeePayroll } from "@/hooks/usePayrollCalculation";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
@@ -100,16 +101,20 @@ export default function ProcessPayrollPage() {
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [includeCommissions, setIncludeCommissions] = useState<Record<string, boolean>>({});
   const [isProcessing, setIsProcessing] = useState(false);
+  const [adjustments, setAdjustments] = useState<Record<string, { name: string; amount: number; type: "earning" | "deduction" }[]>>({});
 
   const { data: salaries, isLoading: salariesLoading } = useEmployeeSalaries({ isCurrent: true });
   const { data: loans } = useEmployeeLoans({ status: "active" });
   const createPayrollRun = useCreatePayrollRun();
   const createPayrollEntries = useCreatePayrollEntries();
   const settleWalletEarnings = useSettleWalletEarnings();
+  const { data: salaryComponents = [] } = useSalaryComponents();
+  const { data: taxSlabs = [] } = useTaxSlabs();
 
   // Get all employee IDs for fetching wallet balances
   const allEmployeeIds = useMemo(() => salaries?.map((s: any) => s.employee_id) || [], [salaries]);
   const { data: allUnpaidEarnings } = useAllUnpaidEarnings(allEmployeeIds, profile?.organization_id);
+  const { data: attendanceData = {} } = useMonthlyAttendance(parseInt(selectedMonth), parseInt(selectedYear), allEmployeeIds);
 
   const years = Array.from({ length: 5 }, (_, i) => (currentDate.getFullYear() - 2 + i).toString());
 
@@ -209,44 +214,58 @@ export default function ProcessPayrollPage() {
         total_net: totals.net,
       });
 
-      // Step 2: Create individual payroll entries for each selected employee
+      // Step 2: Create individual payroll entries using real salary components & attendance
       const selectedSalaries = salaries?.filter((s: any) => selectedEmployees.includes(s.employee_id)) || [];
       const entries = selectedSalaries.map((salary: any) => {
         const loanDeduction = getEmployeeLoanDeductions(salary.employee_id);
         const commission = getEmployeeCommission(salary.employee_id);
         const basicSalary = salary.basic_salary || 0;
-        const grossSalary = basicSalary + commission;
-        const netSalary = grossSalary - loanDeduction;
-        
         const employee = salary.employee;
-        
-        const earnings: { name: string; amount: number }[] = [
-          { name: "Basic Salary", amount: basicSalary }
-        ];
-        
+
+        // Get real attendance data
+        const empAttendance = attendanceData[salary.employee_id] || {
+          totalDays: 26, presentDays: 26, absentDays: 0, leaveDays: 0, overtimeHours: 0, lateMinutes: 0,
+        };
+
+        // Calculate using real components
+        const calc = calculateEmployeePayroll(
+          basicSalary,
+          salaryComponents,
+          empAttendance,
+          taxSlabs,
+          loanDeduction,
+          commission,
+          salary.component_overrides || undefined,
+          adjustments[salary.employee_id] || undefined,
+        );
+
+        // Add commission breakdown to earnings
         if (commission > 0) {
           const bySource = allUnpaidEarnings?.[salary.employee_id]?.bySource || {};
+          // Remove generic commission and add detailed
+          const earningsFiltered = calc.earnings.filter(e => e.code !== "COMMISSION");
           Object.entries(bySource).forEach(([source, amount]) => {
-            earnings.push({ 
-              name: `Commission (${source.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())})`, 
-              amount: amount as number 
+            earningsFiltered.push({
+              name: `Commission (${source.replace(/_/g, ' ').replace(/\b\w/g, l => l.toUpperCase())})`,
+              code: "COMMISSION", amount: amount as number, type: "earning", isTaxable: true,
             });
           });
+          calc.earnings = earningsFiltered;
         }
         
         return {
           payroll_run_id: payrollRun.id,
           employee_id: salary.employee_id,
           basic_salary: basicSalary,
-          gross_salary: grossSalary,
-          net_salary: netSalary,
-          total_deductions: loanDeduction,
-          total_working_days: 26,
-          present_days: 24,
-          absent_days: 0,
-          leave_days: 2,
-          earnings,
-          deductions: loanDeduction > 0 ? [{ name: "Loan EMI", amount: loanDeduction }] : [],
+          gross_salary: calc.grossSalary,
+          net_salary: calc.netSalary,
+          total_deductions: calc.totalDeductions,
+          total_working_days: calc.totalWorkingDays,
+          present_days: calc.presentDays,
+          absent_days: calc.absentDays,
+          leave_days: calc.leaveDays,
+          earnings: calc.earnings.map(e => ({ name: e.name, amount: e.amount })),
+          deductions: calc.deductions.map(d => ({ name: d.name, amount: d.amount })),
           bank_name: employee?.bank_name || null,
           account_number: employee?.account_number || null,
         };

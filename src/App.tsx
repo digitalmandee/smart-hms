@@ -305,6 +305,7 @@ import DoctorCompensationPage from "./pages/app/hr/payroll/DoctorCompensationPag
 import DoctorEarningsPage from "./pages/app/hr/payroll/DoctorEarningsPage";
 import DailyCommissionReport from "./pages/app/hr/payroll/DailyCommissionReport";
 import CommissionsPage from "./pages/app/hr/payroll/CommissionsPage";
+import SalaryRevisionsPage from "./pages/app/hr/payroll/SalaryRevisionsPage";
 import JobOpeningsPage from "./pages/app/hr/recruitment/JobOpeningsPage";
 import ApplicationsPage from "./pages/app/hr/recruitment/ApplicationsPage";
 import ResignationsPage from "./pages/app/hr/exit/ResignationsPage";
@@ -593,6 +594,7 @@ import BankAccountsPage from "./pages/app/accounts/BankAccountsPage";
 import BudgetsPage from "./pages/app/accounts/BudgetsPage";
 const ExpenseManagementPage = React.lazy(() => import("./pages/app/accounts/ExpenseManagementPage"));
 const RevenueBySourcePage = React.lazy(() => import("./pages/app/accounts/RevenueBySourcePage"));
+const RevenueDrillDownPage = React.lazy(() => import("./pages/app/accounts/RevenueDrillDownPage"));
 import AccountSettingsPage from "./pages/app/accounts/AccountSettingsPage";
 import AccountTypesPage from "./pages/app/accounts/AccountTypesPage";
 import AccountTypeFormPage from "./pages/app/accounts/AccountTypeFormPage";
@@ -1266,6 +1268,7 @@ function App() {
                 <Route path="accounts/reports/detailed-pnl" element={<DetailedPnLPage />} />
                 <Route path="accounts/reports/department-pnl" element={<DepartmentPnLPage />} />
                 <Route path="accounts/reports/ar-reconciliation" element={<ARReconciliationPage />} />
+                <Route path="accounts/reports/revenue-drilldown" element={<RevenueDrillDownPage />} />
 
                {/* Donation Management routes */}
                <Route path="donations" element={<FinDonationDashboard />} />
@@ -1333,6 +1336,7 @@ function App() {
               <Route path="hr/payroll/wallet-balances" element={<DoctorWalletBalancesPage />} />
               <Route path="hr/payroll/daily-commissions" element={<DailyCommissionReport />} />
               <Route path="hr/payroll/commissions" element={<CommissionsPage />} />
+              <Route path="hr/payroll/salary-revisions" element={<SalaryRevisionsPage />} />
               <Route path="hr/recruitment/jobs" element={<JobOpeningsPage />} />
               <Route path="hr/recruitment/applications" element={<ApplicationsPage />} />
               <Route path="hr/exit/resignations" element={<ResignationsPage />} />

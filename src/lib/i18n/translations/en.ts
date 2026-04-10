@@ -4100,6 +4100,37 @@ export const en = {
   "security_policies.pen_test": "Conduct annual penetration test",
   "security_policies.dr_drill": "Run annual disaster recovery drill",
 
+  // Finance & Payroll
+  "finance.revenue_drilldown": "Revenue Drill-Down",
+  "finance.revenue_drilldown_desc": "Trace GL revenue entries to invoices, doctors, and patients",
+  "finance.revenue_account": "Revenue Account",
+  "finance.total_revenue": "Total Revenue",
+  "finance.invoices": "Invoices",
+  "finance.patients": "Patients",
+  "finance.top_doctor": "Top Doctor",
+  "finance.top_earning_doctors": "Top Earning Doctors",
+  "finance.revenue_entries": "Revenue Entries",
+  "finance.entry_number": "Entry #",
+  "finance.invoice": "Invoice",
+  "finance.patient": "Patient",
+  "finance.doctor": "Doctor",
+  "finance.amount": "Amount",
+  "finance.reports": "Reports",
+  "finance.salary_revisions": "Salary Revisions",
+  "finance.salary_revisions_desc": "Manage salary increments, appraisals, and adjustments",
+  "finance.salary_history": "Salary History",
+  "finance.basic_salary": "Basic Salary",
+  "finance.effective_from": "Effective From",
+  "finance.effective_to": "Effective To",
+  "finance.change": "Change",
+  "finance.new_revision": "New Revision",
+  "finance.new_salary_revision": "New Salary Revision",
+  "finance.revision_desc": "Adjust employee salary with reason tracking",
+  "finance.new_basic_salary": "New Basic Salary",
+  "finance.effective_date": "Effective Date",
+  "finance.reason": "Reason",
+  "finance.salary_revised": "Salary revision saved successfully",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;
