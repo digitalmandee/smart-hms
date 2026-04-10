@@ -1,121 +1,110 @@
 
 
-# HIPAA Phase 4 — MFA Enrollment, Data Retention, Realtime RLS
+# HIPAA Phase 6 — Fix 4 Critical Security Findings
 
-## Overview
-Raises HIPAA readiness from ~85% to ~92%.
+## Finding 1: Cross-Tenant Storage — `radiology-images` Bucket
 
----
+**Problem**: Policies only check `bucket_id = 'radiology-images'` — any authenticated user can read/update/delete images from any organization.
 
-## 1. MFA TOTP Enrollment UI
+**Fix**: Drop existing policies, create org-scoped replacements using folder path convention `{org_id}/...`:
 
-Supabase provides `supabase.auth.mfa.enroll()`, `challenge()`, `verify()`, `unenroll()`, and `getAuthenticatorAssuranceLevel()` APIs. We build enrollment + verification UI.
+```sql
+-- Drop old policies
+DROP POLICY "Authenticated users can view radiology images" ON storage.objects;
+DROP POLICY "Authenticated users can update radiology images" ON storage.objects;
+DROP POLICY "Authenticated users can delete radiology images" ON storage.objects;
 
-### New Files
-- **`src/components/mfa/EnrollMFADialog.tsx`** — Modal dialog with:
-  - QR code display from `mfa.enroll({ factorType: 'totp' })`
-  - Manual secret key copy option
-  - 6-digit OTP input using existing `InputOTP` component
-  - Verify button calling `mfa.challengeAndVerify()`
-  - Success/error states
-- **`src/components/mfa/MFAVerifyPage.tsx`** — Standalone page shown after login when user has MFA enrolled but session is at AAL1 (needs step-up). Calls `mfa.challenge()` + `mfa.verify()` to elevate to AAL2.
-- **`src/hooks/useMFA.ts`** — Hook wrapping:
-  - `getAuthenticatorAssuranceLevel()` — check current AAL level + enrolled factors
-  - `enroll()`, `challengeAndVerify()`, `unenroll()` — lifecycle methods
-  - `isEnrolled`, `currentLevel`, `nextLevel` computed state
+-- New org-scoped policies (path starts with org_id)
+CREATE POLICY "Org members can view radiology images" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (bucket_id = 'radiology-images' AND (storage.foldername(name))[1] = get_user_organization_id()::text);
 
-### Edited Files
-- **`src/pages/app/ProfilePage.tsx`** — Add "Two-Factor Authentication" section with Enable/Disable toggle that opens `EnrollMFADialog` or calls `unenroll()`
-- **`src/contexts/AuthContext.tsx`** — After sign-in, check AAL level. If user has MFA enrolled but session is AAL1, redirect to `/app/mfa-verify`
-- **`src/App.tsx`** — Add `/app/mfa-verify` route pointing to `MFAVerifyPage`
+CREATE POLICY "Org members can upload radiology images" ON storage.objects
+  FOR INSERT TO authenticated
+  WITH CHECK (bucket_id = 'radiology-images' AND (storage.foldername(name))[1] = get_user_organization_id()::text);
 
-### Flow
-```text
-Profile Page → "Enable 2FA" → EnrollMFADialog
-  → Shows QR code → User scans → Enters 6-digit code
-  → challengeAndVerify() → Success → Factor active
+CREATE POLICY "Org members can update radiology images" ON storage.objects
+  FOR UPDATE TO authenticated
+  USING (bucket_id = 'radiology-images' AND (storage.foldername(name))[1] = get_user_organization_id()::text);
 
-Next Login → Password OK → AAL1 session
-  → AuthContext detects enrolled factor + AAL1
-  → Redirect to /app/mfa-verify
-  → User enters TOTP code → AAL2 → Proceed to app
+CREATE POLICY "Org members can delete radiology images" ON storage.objects
+  FOR DELETE TO authenticated
+  USING (bucket_id = 'radiology-images' AND (storage.foldername(name))[1] = get_user_organization_id()::text);
 ```
 
----
+No code changes needed — `uploadRadiologyImage()` in `radiology-image-utils.ts` already stores files as `{organizationId}/{orderId}/{fileName}`.
 
-## 2. Data Retention Policies with Automated Purge
+## Finding 2: Cross-Tenant Storage — `vendor-documents` Bucket
 
-Create a scheduled edge function that purges old non-essential data.
+**Problem**: Same issue — only checks `auth.role() = 'authenticated'`.
 
-### Retention Rules
-| Table | Retention | Action |
-|---|---|---|
-| `audit_logs` | 12 months | DELETE where `created_at < now() - interval '12 months'` |
-| `kiosk_sessions` | 90 days | DELETE |
-| `kiosk_token_logs` | 90 days | DELETE |
-| `notification_logs` | 6 months | DELETE |
-| `ai_conversations` | 6 months | DELETE (PHI in prompts) |
-| `hipaa_training_records` | Keep all | No purge (compliance evidence) |
-| `hipaa_breach_incidents` | Keep all | No purge (legal requirement) |
+**Fix**: Same approach — org-scoped folder path check. Also need to verify upload code uses `{org_id}/...` path convention.
 
-### New Files
-- **`supabase/functions/data-retention-purge/index.ts`** — Edge function that:
-  - Authenticates via service_role key
-  - Runs parameterized DELETE queries per table with retention periods
-  - Logs purge counts to `audit_logs` with action `data_retention_purge`
-  - Returns summary JSON
+```sql
+DROP POLICY "Authenticated users can read vendor documents" ON storage.objects;
+DROP POLICY "Authenticated users can delete vendor documents" ON storage.objects;
 
-### Configuration
-- **`supabase/config.toml`** — Add `[functions.data-retention-purge]` with `verify_jwt = false`
-- **Scheduled via pg_cron** — Run weekly (using `supabase--read_query` to insert cron job, not migration)
+-- New org-scoped policies
+CREATE POLICY "Org members can read vendor documents" ON storage.objects
+  FOR SELECT TO authenticated
+  USING (bucket_id = 'vendor-documents' AND (storage.foldername(name))[1] = get_user_organization_id()::text);
 
-### New UI
-- **`src/pages/app/settings/DataRetentionPage.tsx`** — Settings page showing:
-  - Current retention policies (read-only display)
-  - Last purge date and counts (from audit_logs)
-  - Manual "Run Purge Now" button (calls edge function)
-- **Route** added in `App.tsx`
+-- + INSERT, UPDATE, DELETE with same pattern
+```
 
----
+Will also verify vendor document upload code uses the `{orgId}/` prefix; if not, update it.
 
-## 3. Realtime Channel RLS Isolation
+## Finding 3: Kiosk Password Hash Public Exposure
 
-Supabase Realtime `postgres_changes` already respects RLS policies on the underlying tables. Since Phase 1 fixed RLS on key tables with `organization_id` scoping, Realtime is already filtered.
+**Problem**: Policy `"Public can view active kiosks"` lets anonymous users read all columns including `kiosk_password_hash`.
 
-However, current channel subscriptions don't use Supabase's `filter` parameter to narrow down events, meaning the client receives change events for all rows the RLS allows (correct but noisy).
+**Fix**: Create a security-definer view or function that excludes `kiosk_password_hash`, and restrict the anon policy to use it. Simpler approach: drop the anon SELECT policy entirely and use the existing SECURITY DEFINER kiosk auth function for password validation.
 
-### Fixes
-Add `filter` parameter to all Realtime subscriptions where `organization_id` is available:
+```sql
+DROP POLICY "Public can view active kiosks" ON public.kiosk_configs;
 
-- **`src/pages/app/ipd/IPDDashboard.tsx`** — Add `filter: 'organization_id=eq.${orgId}'`
-- **`src/pages/app/ipd/NursingStationPage.tsx`** — Same filter
-- **`src/pages/app/lab/LabQueuePage.tsx`** — Same filter
-- **`src/components/mobile/MobileLabQueue.tsx`** — Same filter
-- **`src/pages/app/appointments/QueueControlPage.tsx`** — Same filter
-- **`src/pages/app/appointments/TokenKioskPage.tsx`** — Same filter
-- **`src/hooks/useAppointmentNotifications.ts`** — Same filter
+-- Create a safe view for public kiosk lookup (no password hash)
+CREATE OR REPLACE FUNCTION public.get_active_kiosk_by_username(p_username text)
+RETURNS TABLE(id uuid, kiosk_name text, organization_id uuid, department_id uuid)
+LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
+AS $$
+  SELECT id, kiosk_name, organization_id, department_id
+  FROM kiosk_configs WHERE kiosk_username = p_username AND is_active = true;
+$$;
+```
 
-This ensures events are filtered at the server level, not just by RLS.
+Update kiosk login UI to use this function instead of direct table query.
 
----
+## Finding 4: Realtime Broadcast Org Isolation (5 remaining subscriptions)
 
-## 4. Trilingual Labels
+**Problem**: These files subscribe to Realtime without org-level server-side filters:
+1. `NursingStationPage.tsx` — `ipd_admissions` 
+2. `TokenKioskPage.tsx` — `appointments` (has date filter only)
+3. `QueueDisplayPage.tsx` — `appointments` (has date filter only)
+4. `AppointmentQueuePage.tsx` — `appointments`
+5. `useAppointmentNotifications.ts` — `appointments` (has doctor_id filter)
 
-Add translations for MFA, data retention, and related UI in `en.ts`, `ur.ts`, `ar.ts`:
-- MFA enrollment prompts, verify page text, success/error messages
-- Data retention policy labels and purge status
-- "Two-Factor Authentication" section heading
+**Fix**: For files with access to `organizationId`, add `organization_id=eq.${orgId}` filter. For kiosk/display pages that run unauthenticated, the date filter + RLS already restricts data (these are public displays by design — will document as accepted risk).
 
----
+### Files Modified
+
+| File | Change |
+|------|--------|
+| `NursingStationPage.tsx` | Add `filter: 'organization_id=eq.${orgId}'` to channel subscription |
+| `AppointmentQueuePage.tsx` | Add org filter to realtime subscription |
+| `useAppointmentNotifications.ts` | Already has `doctor_id` filter — acceptable, add note |
+| `TokenKioskPage.tsx` | Kiosk display — document as accepted (public display, RLS-filtered) |
+| `QueueDisplayPage.tsx` | Same as above — public display, document as accepted |
+
+### Security Findings Updates
+After fixes, mark all 4 critical findings as fixed via `security--manage_security_finding`.
 
 ## Summary
 
-| Item | Files | HIPAA Rule |
-|---|---|---|
-| MFA enrollment UI + verify flow | 3 new + 3 edits | §164.312(d) |
-| Data retention purge function | 1 edge fn + 1 page + config | §164.312(c)(1) |
-| Realtime channel filters | 7 file edits | §164.312(a)(1) |
-| Translations | 3 file edits | i18n |
-
-**Total: ~4 new files, ~13 file edits, 1 edge function, 1 cron job.**
+| Fix | Type | Files |
+|-----|------|-------|
+| Radiology storage org-scoping | Migration | 0 code changes |
+| Vendor-documents org-scoping | Migration + possible code fix | 1 file |
+| Kiosk password hash removal | Migration + code | 1-2 files |
+| Realtime org filters | Code edits | 2-3 files |
 
