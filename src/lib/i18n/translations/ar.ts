@@ -4017,6 +4017,37 @@ export const ar: Record<TranslationKey, string> = {
   "security_policies.pen_test": "إجراء اختبار اختراق سنوي",
   "security_policies.dr_drill": "تشغيل تمرين التعافي من الكوارث سنويًا",
 
+  // Finance & Payroll
+  "finance.revenue_drilldown": "تفصيل الإيرادات",
+  "finance.revenue_drilldown_desc": "تتبع إدخالات الإيرادات من دفتر الأستاذ إلى الفواتير والأطباء والمرضى",
+  "finance.revenue_account": "حساب الإيرادات",
+  "finance.total_revenue": "إجمالي الإيرادات",
+  "finance.invoices": "الفواتير",
+  "finance.patients": "المرضى",
+  "finance.top_doctor": "أفضل طبيب",
+  "finance.top_earning_doctors": "الأطباء الأعلى دخلاً",
+  "finance.revenue_entries": "إدخالات الإيرادات",
+  "finance.entry_number": "رقم القيد",
+  "finance.invoice": "فاتورة",
+  "finance.patient": "مريض",
+  "finance.doctor": "طبيب",
+  "finance.amount": "المبلغ",
+  "finance.reports": "التقارير",
+  "finance.salary_revisions": "مراجعات الرواتب",
+  "finance.salary_revisions_desc": "إدارة الزيادات والتقييمات والتعديلات",
+  "finance.salary_history": "سجل الرواتب",
+  "finance.basic_salary": "الراتب الأساسي",
+  "finance.effective_from": "ساري من",
+  "finance.effective_to": "ساري حتى",
+  "finance.change": "التغيير",
+  "finance.new_revision": "مراجعة جديدة",
+  "finance.new_salary_revision": "مراجعة راتب جديدة",
+  "finance.revision_desc": "تعديل راتب الموظف مع تتبع السبب",
+  "finance.new_basic_salary": "الراتب الأساسي الجديد",
+  "finance.effective_date": "تاريخ السريان",
+  "finance.reason": "السبب",
+  "finance.salary_revised": "تم حفظ مراجعة الراتب بنجاح",
+
 };
 
 

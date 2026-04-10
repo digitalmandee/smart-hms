@@ -4017,6 +4017,37 @@ export const ur: Record<TranslationKey, string> = {
   "security_policies.pen_test": "سالانہ پینیٹریشن ٹیسٹ کریں",
   "security_policies.dr_drill": "سالانہ ڈیزاسٹر ریکوری ڈرل چلائیں",
 
+  // Finance & Payroll
+  "finance.revenue_drilldown": "آمدنی کی تفصیل",
+  "finance.revenue_drilldown_desc": "لیجر آمدنی اندراجات کو انوائسز، ڈاکٹروں اور مریضوں تک ٹریس کریں",
+  "finance.revenue_account": "آمدنی اکاؤنٹ",
+  "finance.total_revenue": "کل آمدنی",
+  "finance.invoices": "انوائسز",
+  "finance.patients": "مریض",
+  "finance.top_doctor": "اعلیٰ ڈاکٹر",
+  "finance.top_earning_doctors": "سب سے زیادہ کمانے والے ڈاکٹر",
+  "finance.revenue_entries": "آمدنی کے اندراجات",
+  "finance.entry_number": "اندراج نمبر",
+  "finance.invoice": "انوائس",
+  "finance.patient": "مریض",
+  "finance.doctor": "ڈاکٹر",
+  "finance.amount": "رقم",
+  "finance.reports": "رپورٹیں",
+  "finance.salary_revisions": "تنخواہ نظرثانی",
+  "finance.salary_revisions_desc": "تنخواہ میں اضافے، تشخیص اور ایڈجسٹمنٹ کا انتظام",
+  "finance.salary_history": "تنخواہ کی تاریخ",
+  "finance.basic_salary": "بنیادی تنخواہ",
+  "finance.effective_from": "مؤثر تاریخ سے",
+  "finance.effective_to": "مؤثر تاریخ تک",
+  "finance.change": "تبدیلی",
+  "finance.new_revision": "نئی نظرثانی",
+  "finance.new_salary_revision": "نئی تنخواہ نظرثانی",
+  "finance.revision_desc": "وجہ کی ٹریکنگ کے ساتھ ملازم کی تنخواہ میں ترمیم",
+  "finance.new_basic_salary": "نئی بنیادی تنخواہ",
+  "finance.effective_date": "مؤثر تاریخ",
+  "finance.reason": "وجہ",
+  "finance.salary_revised": "تنخواہ نظرثانی کامیابی سے محفوظ ہو گئی",
+
 };
 
 
