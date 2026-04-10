@@ -102,20 +102,19 @@ export default function ProcessPayrollPage() {
   const [includeCommissions, setIncludeCommissions] = useState<Record<string, boolean>>({});
   const [isProcessing, setIsProcessing] = useState(false);
   const [adjustments, setAdjustments] = useState<Record<string, { name: string; amount: number; type: "earning" | "deduction" }[]>>({});
-  const [showAdjDialog, setShowAdjDialog] = useState<string | null>(null);
-  const [adjName, setAdjName] = useState("");
-  const [adjAmount, setAdjAmount] = useState("");
-  const [adjType, setAdjType] = useState<"earning" | "deduction">("earning");
 
   const { data: salaries, isLoading: salariesLoading } = useEmployeeSalaries({ isCurrent: true });
   const { data: loans } = useEmployeeLoans({ status: "active" });
   const createPayrollRun = useCreatePayrollRun();
   const createPayrollEntries = useCreatePayrollEntries();
   const settleWalletEarnings = useSettleWalletEarnings();
+  const { data: salaryComponents = [] } = useSalaryComponents();
+  const { data: taxSlabs = [] } = useTaxSlabs();
 
   // Get all employee IDs for fetching wallet balances
   const allEmployeeIds = useMemo(() => salaries?.map((s: any) => s.employee_id) || [], [salaries]);
   const { data: allUnpaidEarnings } = useAllUnpaidEarnings(allEmployeeIds, profile?.organization_id);
+  const { data: attendanceData = {} } = useMonthlyAttendance(parseInt(selectedMonth), parseInt(selectedYear), allEmployeeIds);
 
   const years = Array.from({ length: 5 }, (_, i) => (currentDate.getFullYear() - 2 + i).toString());
 
