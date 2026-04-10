@@ -663,6 +663,7 @@ import NotificationsPage from "./pages/app/NotificationsPage";
 import MorePage from "./pages/app/MorePage";
 const MFAVerifyPage = React.lazy(() => import("./components/mfa/MFAVerifyPage"));
 const DataRetentionPage = React.lazy(() => import("./pages/app/settings/DataRetentionPage"));
+const SecurityPoliciesPage = React.lazy(() => import("./pages/app/settings/SecurityPoliciesPage"));
 
 const queryClient = new QueryClient({
   defaultOptions: {
@@ -1415,6 +1416,7 @@ function App() {
               <Route path="settings/baa-management" element={<BAAManagementPage />} />
               <Route path="settings/hipaa-compliance" element={<HipaaComplianceDashboardPage />} />
               <Route path="settings/data-retention" element={<React.Suspense fallback={<div>Loading...</div>}><DataRetentionPage /></React.Suspense>} />
+              <Route path="settings/security-policies" element={<React.Suspense fallback={<div>Loading...</div>}><SecurityPoliciesPage /></React.Suspense>} />
               <Route path="settings/report-templates" element={<ReportTemplatesPage />} />
               <Route path="settings/specializations" element={<SpecializationsPage />} />
               <Route path="settings/qualifications" element={<QualificationsPage />} />
