@@ -70,19 +70,18 @@ export function useKioskAuth() {
     setError(null);
 
     try {
-      // Find kiosk by username
-      const { data: kiosk, error: kioskError } = await (supabase as any)
-        .from("kiosk_configs")
-        .select("id, organization_id, is_active")
-        .eq("kiosk_username", username)
-        .single();
+      // Find kiosk by username using secure RPC (no password hash exposure)
+      const { data: kioskResult, error: kioskError } = await (supabase as any).rpc(
+        "get_active_kiosk_by_username",
+        { p_username: username }
+      );
 
-      if (kioskError || !kiosk) {
+      if (kioskError) throw kioskError;
+
+      const kiosk = kioskResult && kioskResult.length > 0 ? kioskResult[0] : null;
+
+      if (!kiosk) {
         throw new Error("Invalid username or password");
-      }
-
-      if (!kiosk.is_active) {
-        throw new Error("This kiosk has been deactivated");
       }
 
       // Verify password

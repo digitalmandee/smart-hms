@@ -28,6 +28,7 @@ import {
 import { useDoctors } from '@/hooks/useDoctors';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
+
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -39,7 +40,7 @@ export default function AppointmentQueuePage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { roles } = useAuth();
+  const { roles, profile } = useAuth();
   const { t, language } = useTranslation();
   const [selectedDoctor, setSelectedDoctor] = useState<string>('all');
   
@@ -65,16 +66,17 @@ export default function AppointmentQueuePage() {
   const cancel = useCancelAppointment();
   const noShow = useMarkNoShow();
 
-  // Real-time subscription for instant queue updates
+  // Real-time subscription for instant queue updates (org-scoped)
   useEffect(() => {
-    const today = format(new Date(), 'yyyy-MM-dd');
+    if (!profile?.organization_id) return;
+
     const channel = supabase
       .channel('queue-management-updates')
       .on('postgres_changes', {
         event: 'UPDATE',
         schema: 'public',
         table: 'appointments',
-        filter: `appointment_date=eq.${today}`,
+        filter: `organization_id=eq.${profile.organization_id}`,
       }, () => {
         refetch();
       })
@@ -82,7 +84,7 @@ export default function AppointmentQueuePage() {
         event: 'INSERT',
         schema: 'public',
         table: 'appointments',
-        filter: `appointment_date=eq.${today}`,
+        filter: `organization_id=eq.${profile.organization_id}`,
       }, () => {
         refetch();
       })
@@ -91,7 +93,7 @@ export default function AppointmentQueuePage() {
     return () => {
       supabase.removeChannel(channel);
     };
-  }, [refetch]);
+  }, [refetch, profile?.organization_id]);
 
   const handleAction = async (
     appointmentId: string,
