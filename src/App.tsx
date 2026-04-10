@@ -305,6 +305,7 @@ import DoctorCompensationPage from "./pages/app/hr/payroll/DoctorCompensationPag
 import DoctorEarningsPage from "./pages/app/hr/payroll/DoctorEarningsPage";
 import DailyCommissionReport from "./pages/app/hr/payroll/DailyCommissionReport";
 import CommissionsPage from "./pages/app/hr/payroll/CommissionsPage";
+import SalaryRevisionsPage from "./pages/app/hr/payroll/SalaryRevisionsPage";
 import JobOpeningsPage from "./pages/app/hr/recruitment/JobOpeningsPage";
 import ApplicationsPage from "./pages/app/hr/recruitment/ApplicationsPage";
 import ResignationsPage from "./pages/app/hr/exit/ResignationsPage";
