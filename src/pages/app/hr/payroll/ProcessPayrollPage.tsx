@@ -11,9 +11,12 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { Calculator, Users, Check, ArrowRight, ArrowLeft, AlertCircle, Wallet, Info } from "lucide-react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Calculator, Users, Check, ArrowRight, ArrowLeft, AlertCircle, Wallet, Info, Plus, Minus } from "lucide-react";
 import { useEmployeeSalaries, useCreatePayrollRun, useEmployeeLoans, useCreatePayrollEntries } from "@/hooks/usePayroll";
 import { useUnpaidEarningsForEmployee, useSettleWalletEarnings } from "@/hooks/useDoctorCompensation";
+import { useSalaryComponents, useTaxSlabs, useMonthlyAttendance, calculateEmployeePayroll } from "@/hooks/usePayrollCalculation";
 import { useAuth } from "@/contexts/AuthContext";
 import { toast } from "sonner";
 import { useQuery } from "@tanstack/react-query";
@@ -100,6 +103,11 @@ export default function ProcessPayrollPage() {
   const [selectedEmployees, setSelectedEmployees] = useState<string[]>([]);
   const [includeCommissions, setIncludeCommissions] = useState<Record<string, boolean>>({});
   const [isProcessing, setIsProcessing] = useState(false);
+  const [adjustments, setAdjustments] = useState<Record<string, { name: string; amount: number; type: "earning" | "deduction" }[]>>({});
+  const [showAdjDialog, setShowAdjDialog] = useState<string | null>(null);
+  const [adjName, setAdjName] = useState("");
+  const [adjAmount, setAdjAmount] = useState("");
+  const [adjType, setAdjType] = useState<"earning" | "deduction">("earning");
 
   const { data: salaries, isLoading: salariesLoading } = useEmployeeSalaries({ isCurrent: true });
   const { data: loans } = useEmployeeLoans({ status: "active" });
