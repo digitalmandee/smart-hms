@@ -9,16 +9,13 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Package, Calculator, PlayCircle } from "lucide-react";
+import { Plus, Calculator, PlayCircle } from "lucide-react";
 import { useFixedAssets, useCreateFixedAsset, calculateDepreciation } from "@/hooks/useFixedAssets";
 import { useDepreciationPosting } from "@/hooks/useDepreciationPosting";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/lib/i18n";
-import { supabase } from "@/integrations/supabase/client";
-import { useAuth } from "@/contexts/AuthContext";
-import { useQuery } from "@tanstack/react-query";
 
 export default function FixedAssetsPage() {
   const { data: assets, isLoading } = useFixedAssets();
