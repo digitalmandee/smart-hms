@@ -126,8 +126,6 @@ export function usePostYearEndClosing() {
       if (!journalId) throw new Error("Failed to create closing journal entry");
 
       const lines: any[] = [];
-      let totalDebit = 0;
-      let totalCredit = 0;
 
       // Close revenue accounts (DR Revenue, CR Retained Earnings)
       for (const rev of revenueAccounts) {
@@ -138,7 +136,6 @@ export function usePostYearEndClosing() {
           credit_amount: 0,
           description: `Close ${rev.account_name} to Retained Earnings`,
         });
-        totalDebit += rev.balance;
       }
 
       // Close expense accounts (CR Expense, DR Retained Earnings)
@@ -150,7 +147,6 @@ export function usePostYearEndClosing() {
           credit_amount: exp.balance,
           description: `Close ${exp.account_name} to Retained Earnings`,
         });
-        totalCredit += exp.balance;
       }
 
       // Net to Retained Earnings
@@ -162,7 +158,7 @@ export function usePostYearEndClosing() {
           credit_amount: netIncome,
           description: "Net Income transferred to Retained Earnings",
         });
-        totalCredit += netIncome;
+        
       } else {
         lines.push({
           journal_entry_id: journalId,
@@ -171,7 +167,7 @@ export function usePostYearEndClosing() {
           credit_amount: 0,
           description: "Net Loss transferred to Retained Earnings",
         });
-        totalDebit += Math.abs(netIncome);
+        
       }
 
       const { error: linesErr } = await supabase

@@ -28,7 +28,7 @@ export function useDepreciationPosting() {
         .from("journal_entries")
         .select("id")
         .eq("organization_id", orgId)
-        .eq("reference_type", "depreciation" as any)
+        .eq("reference_type", "depreciation")
         .eq("reference_number", periodKey)
         .limit(1);
 

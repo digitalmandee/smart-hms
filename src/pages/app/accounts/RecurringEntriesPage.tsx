@@ -10,7 +10,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Plus, Play } from "lucide-react";
 import { useRecurringTemplates, useCreateRecurringTemplate, useGenerateRecurringEntries } from "@/hooks/useRecurringEntries";
-import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/lib/i18n";
