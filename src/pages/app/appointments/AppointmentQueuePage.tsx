@@ -28,7 +28,7 @@ import {
 import { useDoctors } from '@/hooks/useDoctors';
 import { useToast } from '@/hooks/use-toast';
 import { useQueryClient } from '@tanstack/react-query';
-import { useProfile } from '@/hooks/useProfile';
+
 import { cn } from '@/lib/utils';
 import { useAuth } from '@/contexts/AuthContext';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -40,7 +40,7 @@ export default function AppointmentQueuePage() {
   const navigate = useNavigate();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { roles } = useAuth();
+  const { roles, profile } = useAuth();
   const { t, language } = useTranslation();
   const [selectedDoctor, setSelectedDoctor] = useState<string>('all');
   
