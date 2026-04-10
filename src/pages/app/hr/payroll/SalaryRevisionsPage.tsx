@@ -14,7 +14,7 @@ import { Plus, TrendingUp, TrendingDown, Minus } from "lucide-react";
 import { format } from "date-fns";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useEmployeeSalaries, useCreateEmployeeSalary } from "@/hooks/usePayroll";
-import { useEmployees } from "@/hooks/useEmployees";
+import { useEmployees } from "@/hooks/useHR";
 import { toast } from "sonner";
 
 const REVISION_REASONS = [
