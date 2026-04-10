@@ -8986,6 +8986,8 @@ export type Database = {
           employee_id: string
           id: string
           is_current: boolean | null
+          revision_notes: string | null
+          revision_reason: string | null
           salary_structure_id: string | null
         }
         Insert: {
@@ -8998,6 +9000,8 @@ export type Database = {
           employee_id: string
           id?: string
           is_current?: boolean | null
+          revision_notes?: string | null
+          revision_reason?: string | null
           salary_structure_id?: string | null
         }
         Update: {
@@ -9010,6 +9014,8 @@ export type Database = {
           employee_id?: string
           id?: string
           is_current?: boolean | null
+          revision_notes?: string | null
+          revision_reason?: string | null
           salary_structure_id?: string | null
         }
         Relationships: [
