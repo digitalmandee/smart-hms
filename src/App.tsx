@@ -1268,6 +1268,7 @@ function App() {
                 <Route path="accounts/reports/detailed-pnl" element={<DetailedPnLPage />} />
                 <Route path="accounts/reports/department-pnl" element={<DepartmentPnLPage />} />
                 <Route path="accounts/reports/ar-reconciliation" element={<ARReconciliationPage />} />
+                <Route path="accounts/reports/revenue-drilldown" element={<RevenueDrillDownPage />} />
 
                {/* Donation Management routes */}
                <Route path="donations" element={<FinDonationDashboard />} />
@@ -1335,6 +1336,7 @@ function App() {
               <Route path="hr/payroll/wallet-balances" element={<DoctorWalletBalancesPage />} />
               <Route path="hr/payroll/daily-commissions" element={<DailyCommissionReport />} />
               <Route path="hr/payroll/commissions" element={<CommissionsPage />} />
+              <Route path="hr/payroll/salary-revisions" element={<SalaryRevisionsPage />} />
               <Route path="hr/recruitment/jobs" element={<JobOpeningsPage />} />
               <Route path="hr/recruitment/applications" element={<ApplicationsPage />} />
               <Route path="hr/exit/resignations" element={<ResignationsPage />} />
