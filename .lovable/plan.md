@@ -1,110 +1,97 @@
 
 
-# HIPAA Phase 6 — Fix 4 Critical Security Findings
+# Finance & Accounting Module — Gap Analysis & Fix Plan
 
-## Finding 1: Cross-Tenant Storage — `radiology-images` Bucket
+## Identified Gaps
 
-**Problem**: Policies only check `bucket_id = 'radiology-images'` — any authenticated user can read/update/delete images from any organization.
+### Gap 1: Revenue Traceability (GL → Invoice → Doctor/Patient/Department)
+**Problem**: When the GL shows "OPD Revenue: 100,000", there's no way to drill down to see which patient invoices, which doctors, and which service categories contributed. The `post_invoice_to_journal` trigger posts a single lump-sum entry per invoice with description "Invoice: INV-XXXXXX" but no line-item detail. The Detailed P&L drill-down shows journal lines but not the underlying invoice items.
 
-**Fix**: Drop existing policies, create org-scoped replacements using folder path convention `{org_id}/...`:
+**Fix**: Build a **Revenue Drill-Down Report** page that traces GL revenue entries back to their source invoices and further to invoice items (doctor, service type, patient). Also enhance the General Ledger to link journal entries to their source documents.
 
-```sql
--- Drop old policies
-DROP POLICY "Authenticated users can view radiology images" ON storage.objects;
-DROP POLICY "Authenticated users can update radiology images" ON storage.objects;
-DROP POLICY "Authenticated users can delete radiology images" ON storage.objects;
+### Gap 2: Payroll Processing Missing Salary Components
+**Problem**: The `ProcessPayrollPage` hardcodes `total_working_days: 26, present_days: 24, absent_days: 0, leave_days: 2` and only adds "Basic Salary" + commissions to earnings. It ignores the salary structure components (HRA, Transport, Medical allowances) and deductions (Income Tax, PF, EOBI) defined in `salary_components`. No per-employee adjustments (one-time bonus, appraisal increment, special allowance) can be added during payroll processing.
 
--- New org-scoped policies (path starts with org_id)
-CREATE POLICY "Org members can view radiology images" ON storage.objects
-  FOR SELECT TO authenticated
-  USING (bucket_id = 'radiology-images' AND (storage.foldername(name))[1] = get_user_organization_id()::text);
+**Fix**: Refactor payroll processing to pull actual attendance data and apply all salary structure components. Add per-employee adjustment capability.
 
-CREATE POLICY "Org members can upload radiology images" ON storage.objects
-  FOR INSERT TO authenticated
-  WITH CHECK (bucket_id = 'radiology-images' AND (storage.foldername(name))[1] = get_user_organization_id()::text);
+### Gap 3: No Salary Revision / Appraisal Module
+**Problem**: While `PromotionsPage` records promotions with old/new salary, there's no dedicated salary revision or appraisal workflow. No way to give a specific employee a raise, bonus, or adjustment outside of the promotion flow.
 
-CREATE POLICY "Org members can update radiology images" ON storage.objects
-  FOR UPDATE TO authenticated
-  USING (bucket_id = 'radiology-images' AND (storage.foldername(name))[1] = get_user_organization_id()::text);
+**Fix**: Add a **Salary Revision** page where HR can adjust individual employee salaries with reason tracking (appraisal, increment, market adjustment).
 
-CREATE POLICY "Org members can delete radiology images" ON storage.objects
-  FOR DELETE TO authenticated
-  USING (bucket_id = 'radiology-images' AND (storage.foldername(name))[1] = get_user_organization_id()::text);
-```
+### Gap 4: GL Entry → Source Document Navigation
+**Problem**: General Ledger shows `reference_type` badge (invoice, payment, payroll) but clicking doesn't navigate to the source document. No clickable links from journal entries to invoices, payments, or payroll runs.
 
-No code changes needed — `uploadRadiologyImage()` in `radiology-image-utils.ts` already stores files as `{organizationId}/{orderId}/{fileName}`.
+**Fix**: Add clickable links in GL and Journal Entry views to navigate to source documents.
 
-## Finding 2: Cross-Tenant Storage — `vendor-documents` Bucket
+### Gap 5: Payslip Missing Actual Attendance & Component Breakdown
+**Problem**: Payslips show hardcoded working days and only basic salary + commission. Missing: actual attendance integration, tax calculations from tax slabs, all earnings/deduction components from salary structure.
 
-**Problem**: Same issue — only checks `auth.role() = 'authenticated'`.
+**Fix**: Integrate attendance data into payroll and apply salary structure components.
 
-**Fix**: Same approach — org-scoped folder path check. Also need to verify upload code uses `{org_id}/...` path convention.
+---
 
-```sql
-DROP POLICY "Authenticated users can read vendor documents" ON storage.objects;
-DROP POLICY "Authenticated users can delete vendor documents" ON storage.objects;
+## Implementation Plan
 
--- New org-scoped policies
-CREATE POLICY "Org members can read vendor documents" ON storage.objects
-  FOR SELECT TO authenticated
-  USING (bucket_id = 'vendor-documents' AND (storage.foldername(name))[1] = get_user_organization_id()::text);
+### 1. Revenue Drill-Down Report (New Page)
+**New file**: `src/pages/app/accounts/RevenueDrillDownPage.tsx`
+- Select a revenue account (OPD Revenue, Lab Revenue, etc.)
+- Shows all journal entries for that account in the period
+- Each journal entry links to its source invoice via `reference_id`
+- Expands to show invoice items with: service name, doctor name, patient name, quantity, amount
+- Filterable by doctor, department, service category
+- Summary cards: top earning doctors, top services, patient count
+- Export to CSV/PDF
 
--- + INSERT, UPDATE, DELETE with same pattern
-```
+**New hook**: `src/hooks/useRevenueDrillDown.ts`
+- Fetches journal entries for revenue accounts
+- Joins through `reference_id` → `invoices` → `invoice_items` → `service_types`, `doctors`, `patients`
 
-Will also verify vendor document upload code uses the `{orgId}/` prefix; if not, update it.
+**Route**: `/app/accounts/reports/revenue-drilldown`
 
-## Finding 3: Kiosk Password Hash Public Exposure
+### 2. GL & Journal Source Document Links
+**Edit**: `src/pages/app/accounts/GeneralLedgerPage.tsx`
+- Make `reference_type` badge clickable
+- Navigate to: invoice → `/app/billing/invoices/{id}`, payment → `/app/billing/invoices/{id}`, payroll → `/app/hr/payroll/{id}`, expense → `/app/accounts/expenses`, vendor_payment → `/app/accounts/vendor-payments/{id}`
 
-**Problem**: Policy `"Public can view active kiosks"` lets anonymous users read all columns including `kiosk_password_hash`.
+**Edit**: `src/pages/app/accounts/JournalEntryDetailPage.tsx`
+- Add "View Source Document" button that navigates based on `reference_type` + `reference_id`
 
-**Fix**: Create a security-definer view or function that excludes `kiosk_password_hash`, and restrict the anon policy to use it. Simpler approach: drop the anon SELECT policy entirely and use the existing SECURITY DEFINER kiosk auth function for password validation.
+### 3. Payroll Processing with Actual Components
+**Edit**: `src/pages/app/hr/payroll/ProcessPayrollPage.tsx`
+- Fetch actual attendance data (present days, absent, late, overtime) from `attendance` table for the month
+- Apply all salary structure components (earnings: HRA, Transport, etc. / deductions: Tax, PF, EOBI)
+- Calculate tax using `tax_slabs` table
+- Add per-employee "Adjustments" column with dialog to add one-time bonus, deduction, or special allowance
+- Store adjustments in `payroll_entries.earnings` / `payroll_entries.deductions` JSONB
 
-```sql
-DROP POLICY "Public can view active kiosks" ON public.kiosk_configs;
+**New hook**: `src/hooks/usePayrollCalculation.ts`
+- Centralized salary calculation logic: fetch structure components, apply formulas, calculate tax from slabs, integrate attendance
 
--- Create a safe view for public kiosk lookup (no password hash)
-CREATE OR REPLACE FUNCTION public.get_active_kiosk_by_username(p_username text)
-RETURNS TABLE(id uuid, kiosk_name text, organization_id uuid, department_id uuid)
-LANGUAGE sql STABLE SECURITY DEFINER SET search_path = public
-AS $$
-  SELECT id, kiosk_name, organization_id, department_id
-  FROM kiosk_configs WHERE kiosk_username = p_username AND is_active = true;
-$$;
-```
+### 4. Salary Revision Page
+**New file**: `src/pages/app/hr/payroll/SalaryRevisionsPage.tsx`
+- List of all salary changes with history
+- "New Revision" dialog: select employee, new basic salary, effective date, reason (appraisal, annual increment, market adjustment, promotion, other)
+- Uses existing `useCreateEmployeeSalary` which already marks old salary as inactive
+- Shows revision history per employee with % change calculation
 
-Update kiosk login UI to use this function instead of direct table query.
+**Route**: `/app/hr/payroll/salary-revisions`
 
-## Finding 4: Realtime Broadcast Org Isolation (5 remaining subscriptions)
+### 5. Translations
+**Edit**: `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts`
+- Revenue drill-down labels, salary revision labels, payroll adjustment labels
 
-**Problem**: These files subscribe to Realtime without org-level server-side filters:
-1. `NursingStationPage.tsx` — `ipd_admissions` 
-2. `TokenKioskPage.tsx` — `appointments` (has date filter only)
-3. `QueueDisplayPage.tsx` — `appointments` (has date filter only)
-4. `AppointmentQueuePage.tsx` — `appointments`
-5. `useAppointmentNotifications.ts` — `appointments` (has doctor_id filter)
-
-**Fix**: For files with access to `organizationId`, add `organization_id=eq.${orgId}` filter. For kiosk/display pages that run unauthenticated, the date filter + RLS already restricts data (these are public displays by design — will document as accepted risk).
-
-### Files Modified
-
-| File | Change |
-|------|--------|
-| `NursingStationPage.tsx` | Add `filter: 'organization_id=eq.${orgId}'` to channel subscription |
-| `AppointmentQueuePage.tsx` | Add org filter to realtime subscription |
-| `useAppointmentNotifications.ts` | Already has `doctor_id` filter — acceptable, add note |
-| `TokenKioskPage.tsx` | Kiosk display — document as accepted (public display, RLS-filtered) |
-| `QueueDisplayPage.tsx` | Same as above — public display, document as accepted |
-
-### Security Findings Updates
-After fixes, mark all 4 critical findings as fixed via `security--manage_security_finding`.
+---
 
 ## Summary
 
-| Fix | Type | Files |
-|-----|------|-------|
-| Radiology storage org-scoping | Migration | 0 code changes |
-| Vendor-documents org-scoping | Migration + possible code fix | 1 file |
-| Kiosk password hash removal | Migration + code | 1-2 files |
-| Realtime org filters | Code edits | 2-3 files |
+| Item | Type | Key Benefit |
+|------|------|-------------|
+| Revenue Drill-Down Report | New page + hook | Trace any GL revenue to doctor/patient/service |
+| GL Source Document Links | 2 file edits | One-click from ledger to invoice/payment |
+| Payroll with Components | Page refactor + new hook | Actual attendance, tax slabs, all allowances |
+| Salary Revision Page | New page | Appraisals, increments, per-employee adjustments |
+| Translations | 3 file edits | Trilingual support |
+
+**Total: ~3 new files, ~7 file edits**
 
