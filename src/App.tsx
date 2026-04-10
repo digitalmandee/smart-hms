@@ -594,6 +594,7 @@ import BankAccountsPage from "./pages/app/accounts/BankAccountsPage";
 import BudgetsPage from "./pages/app/accounts/BudgetsPage";
 const ExpenseManagementPage = React.lazy(() => import("./pages/app/accounts/ExpenseManagementPage"));
 const RevenueBySourcePage = React.lazy(() => import("./pages/app/accounts/RevenueBySourcePage"));
+const RevenueDrillDownPage = React.lazy(() => import("./pages/app/accounts/RevenueDrillDownPage"));
 import AccountSettingsPage from "./pages/app/accounts/AccountSettingsPage";
 import AccountTypesPage from "./pages/app/accounts/AccountTypesPage";
 import AccountTypeFormPage from "./pages/app/accounts/AccountTypeFormPage";
