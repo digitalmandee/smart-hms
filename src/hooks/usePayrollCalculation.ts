@@ -153,7 +153,10 @@ export function calculateEmployeePayroll(
   ];
   const deductions: PayrollComponentResult[] = [];
 
-  // Apply salary components
+  // Two-pass: first basic-based components, then gross-based
+  const basicComponents: any[] = [];
+  const grossComponents: any[] = [];
+
   components.forEach((comp: any) => {
     if (overrides && overrides[comp.code] !== undefined) {
       const entry: PayrollComponentResult = {
@@ -163,15 +166,36 @@ export function calculateEmployeePayroll(
       comp.component_type === "earning" ? earnings.push(entry) : deductions.push(entry);
       return;
     }
+    if (comp.calculation_type === "percentage" && comp.percentage_of === "gross") {
+      grossComponents.push(comp);
+    } else {
+      basicComponents.push(comp);
+    }
+  });
 
+  // Pass 1: basic-based and fixed components
+  basicComponents.forEach((comp: any) => {
     let amount = 0;
     if (comp.calculation_type === "percentage") {
-      const base = comp.percentage_of === "basic" ? effectiveBasic : 0;
-      amount = Math.round((base * (comp.percentage_value || 0)) / 100);
+      amount = Math.round((effectiveBasic * (comp.percentage_value || 0)) / 100);
     } else if (comp.calculation_type === "fixed") {
-      amount = comp.percentage_value || 0; // fixed amount stored in percentage_value for simplicity
+      amount = comp.percentage_value || 0;
     }
+    if (amount > 0) {
+      const entry: PayrollComponentResult = {
+        name: comp.name, code: comp.code, amount,
+        type: comp.component_type, isTaxable: comp.is_taxable,
+      };
+      comp.component_type === "earning" ? earnings.push(entry) : deductions.push(entry);
+    }
+  });
 
+  // Intermediate gross for gross-based components
+  const intermediateGross = earnings.reduce((sum, e) => sum + e.amount, 0);
+
+  // Pass 2: gross-based components
+  grossComponents.forEach((comp: any) => {
+    const amount = Math.round((intermediateGross * (comp.percentage_value || 0)) / 100);
     if (amount > 0) {
       const entry: PayrollComponentResult = {
         name: comp.name, code: comp.code, amount,

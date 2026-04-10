@@ -18,34 +18,51 @@ export function useRevenueDrillDown(filters: RevenueDrillDownFilters) {
     queryFn: async () => {
       if (!profile?.organization_id || !filters.accountId) return [];
 
-      // Step 1: Get journal entry lines for the selected revenue account
+      // Step 1: Fetch journal entry IDs matching date range first (avoids nested filter issue)
       let jeQuery = supabase
-        .from("journal_entry_lines")
-        .select(`
-          id, credit_amount, debit_amount, description,
-          journal_entry:journal_entry_id(
-            id, entry_number, entry_date, description,
-            reference_type, reference_id
-          ),
-          account:account_id(id, name, account_number)
-        `)
-        .eq("account_id", filters.accountId)
-        .gt("credit_amount", 0);
+        .from("journal_entries")
+        .select("id")
+        .eq("organization_id", profile.organization_id);
 
       if (filters.dateFrom) {
-        jeQuery = jeQuery.gte("journal_entry.entry_date", filters.dateFrom);
+        jeQuery = jeQuery.gte("entry_date", filters.dateFrom);
       }
       if (filters.dateTo) {
-        jeQuery = jeQuery.lte("journal_entry.entry_date", filters.dateTo);
+        jeQuery = jeQuery.lte("entry_date", filters.dateTo);
       }
 
-      const { data: journalLines, error: jeError } = await jeQuery;
+      const { data: journalEntries, error: jeError } = await jeQuery;
       if (jeError) throw jeError;
+      
+      const jeIds = (journalEntries || []).map((je: any) => je.id);
+      if (jeIds.length === 0) return [];
 
-      // Filter out lines where journal_entry is null (date filter mismatch)
-      const validLines = (journalLines || []).filter((l: any) => l.journal_entry);
+      // Step 2: Fetch journal entry lines for this account + matching JE IDs
+      // Process in batches of 500 to avoid URL length limits
+      const allLines: any[] = [];
+      for (let i = 0; i < jeIds.length; i += 500) {
+        const batch = jeIds.slice(i, i + 500);
+        const { data: lines, error: linesError } = await supabase
+          .from("journal_entry_lines")
+          .select(`
+            id, credit_amount, debit_amount, description,
+            journal_entry:journal_entry_id(
+              id, entry_number, entry_date, description,
+              reference_type, reference_id
+            ),
+            account:account_id(id, name, account_number)
+          `)
+          .eq("account_id", filters.accountId)
+          .gt("credit_amount", 0)
+          .in("journal_entry_id", batch);
+        
+        if (linesError) throw linesError;
+        if (lines) allLines.push(...lines);
+      }
 
-      // Step 2: Collect invoice reference IDs
+      const validLines = allLines.filter((l: any) => l.journal_entry);
+
+      // Step 3: Collect invoice reference IDs
       const invoiceIds = validLines
         .filter((l: any) => l.journal_entry?.reference_type === "invoice" && l.journal_entry?.reference_id)
         .map((l: any) => l.journal_entry.reference_id);
@@ -58,8 +75,8 @@ export function useRevenueDrillDown(filters: RevenueDrillDownFilters) {
         }));
       }
 
-      // Step 3: Fetch invoices
-      const { data: invoices } = await supabase
+      // Step 4: Fetch invoices (with optional doctor filter)
+      let invoiceQuery = supabase
         .from("invoices")
         .select(`
           id, invoice_number, total_amount, net_amount, status,
@@ -68,14 +85,25 @@ export function useRevenueDrillDown(filters: RevenueDrillDownFilters) {
         `)
         .in("id", invoiceIds);
 
-      // Step 4: Fetch invoice items
+      if (filters.doctorId) {
+        invoiceQuery = invoiceQuery.eq("doctor_id", filters.doctorId);
+      }
+
+      const { data: invoices } = await invoiceQuery;
+
+      // Step 5: Fetch invoice items (with optional department/category filter)
+      const filteredInvoiceIds = (invoices || []).map((inv: any) => inv.id);
+      if (filteredInvoiceIds.length === 0) {
+        return validLines.map((l: any) => ({ ...l, invoice: null, invoiceItems: [] }));
+      }
+
       const { data: invoiceItems } = await supabase
         .from("invoice_items")
         .select(`
           id, invoice_id, item_name, quantity, unit_price, total_price, tax_amount,
           service_type:service_type_id(id, name, category)
         `)
-        .in("invoice_id", invoiceIds);
+        .in("invoice_id", filteredInvoiceIds);
 
       // Build lookup maps
       const invoiceMap: Record<string, any> = {};
@@ -87,8 +115,8 @@ export function useRevenueDrillDown(filters: RevenueDrillDownFilters) {
         itemsByInvoice[item.invoice_id].push(item);
       });
 
-      // Step 5: Combine
-      return validLines.map((l: any) => {
+      // Step 6: Combine and apply department filter client-side
+      let result = validLines.map((l: any) => {
         const refId = l.journal_entry?.reference_id;
         const invoice = refId ? invoiceMap[refId] : null;
         return {
@@ -97,6 +125,23 @@ export function useRevenueDrillDown(filters: RevenueDrillDownFilters) {
           invoiceItems: refId ? (itemsByInvoice[refId] || []) : [],
         };
       });
+
+      // Filter by department if specified (match service_type category)
+      if (filters.departmentId && filters.departmentId !== "all") {
+        result = result.filter((r: any) => {
+          if (!r.invoiceItems.length) return false;
+          return r.invoiceItems.some((item: any) =>
+            item.service_type?.category?.toLowerCase() === filters.departmentId?.toLowerCase()
+          );
+        });
+      }
+
+      // If doctor filter applied, exclude entries whose invoice was filtered out
+      if (filters.doctorId) {
+        result = result.filter((r: any) => r.invoice !== null || r.journal_entry?.reference_type !== "invoice");
+      }
+
+      return result;
     },
     enabled: !!profile?.organization_id && !!filters.accountId,
   });

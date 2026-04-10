@@ -10,10 +10,13 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, FileText, TrendingUp, Users, Stethoscope, ExternalLink } from "lucide-react";
+import { ChevronDown, ChevronRight, FileText, TrendingUp, Users, Stethoscope, ExternalLink, Download } from "lucide-react";
 import { format } from "date-fns";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useRevenueDrillDown, useRevenueAccounts } from "@/hooks/useRevenueDrillDown";
+import { useDoctors } from "@/hooks/useDoctors";
+import { DepartmentFilter, DepartmentType } from "@/components/reports/DepartmentFilter";
+import { ReportExportButton } from "@/components/reports/ReportExportButton";
 
 export default function RevenueDrillDownPage() {
   const { t } = useTranslation();
@@ -23,13 +26,18 @@ export default function RevenueDrillDownPage() {
   const [selectedAccountId, setSelectedAccountId] = useState("");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [selectedDoctorId, setSelectedDoctorId] = useState("all");
+  const [selectedDepartment, setSelectedDepartment] = useState<DepartmentType>("all");
   const [expandedRows, setExpandedRows] = useState<Set<string>>(new Set());
 
   const { data: revenueAccounts = [] } = useRevenueAccounts();
+  const { data: doctors = [] } = useDoctors();
   const { data: drillDownData = [], isLoading } = useRevenueDrillDown({
     accountId: selectedAccountId,
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
+    doctorId: selectedDoctorId !== "all" ? selectedDoctorId : undefined,
+    departmentId: selectedDepartment !== "all" ? selectedDepartment : undefined,
   });
 
   const toggleRow = (id: string) => {
@@ -57,6 +65,27 @@ export default function RevenueDrillDownPage() {
     return { totalRevenue, uniqueInvoices, uniquePatients, topDoctors };
   }, [drillDownData]);
 
+  // Export data
+  const exportData = useMemo(() => {
+    return drillDownData.map((entry: any) => ({
+      date: entry.journal_entry?.entry_date || "",
+      entry_number: entry.journal_entry?.entry_number || "",
+      invoice_number: entry.invoice?.invoice_number || "",
+      patient: entry.invoice?.patient ? `${entry.invoice.patient.first_name} ${entry.invoice.patient.last_name}` : "",
+      doctor: entry.invoice?.doctor?.name || "",
+      amount: entry.credit_amount || 0,
+    }));
+  }, [drillDownData]);
+
+  const exportColumns = [
+    { key: "date", header: t("common.date" as any, "Date") },
+    { key: "entry_number", header: t("finance.entry_number" as any, "Entry #") },
+    { key: "invoice_number", header: t("finance.invoice" as any, "Invoice") },
+    { key: "patient", header: t("finance.patient" as any, "Patient") },
+    { key: "doctor", header: t("finance.doctor" as any, "Doctor") },
+    { key: "amount", header: t("finance.amount" as any, "Amount"), format: (v: any) => String(v), align: "right" as const },
+  ];
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -67,12 +96,25 @@ export default function RevenueDrillDownPage() {
           { label: t("finance.reports" as any, "Reports"), href: "/app/accounts/reports" },
           { label: t("finance.revenue_drilldown" as any, "Revenue Drill-Down") },
         ]}
+        actions={
+          <ReportExportButton
+            data={exportData}
+            filename="revenue-drilldown"
+            columns={exportColumns}
+            title={t("finance.revenue_drilldown" as any, "Revenue Drill-Down")}
+            pdfOptions={{
+              title: t("finance.revenue_drilldown" as any, "Revenue Drill-Down"),
+              orientation: "landscape",
+            }}
+            disabled={drillDownData.length === 0}
+          />
+        }
       />
 
       {/* Filters */}
       <Card>
         <CardContent className="pt-6">
-          <div className="grid gap-4 md:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-3 lg:grid-cols-6">
             <div className="md:col-span-2">
               <Label>{t("finance.revenue_account" as any, "Revenue Account")}</Label>
               <Select value={selectedAccountId} onValueChange={setSelectedAccountId}>
@@ -94,6 +136,22 @@ export default function RevenueDrillDownPage() {
             <div>
               <Label>{t("common.to" as any, "To")}</Label>
               <Input type="date" value={dateTo} onChange={(e) => setDateTo(e.target.value)} />
+            </div>
+            <div>
+              <Label>{t("finance.doctor" as any, "Doctor")}</Label>
+              <Select value={selectedDoctorId} onValueChange={setSelectedDoctorId}>
+                <SelectTrigger><SelectValue placeholder="All Doctors" /></SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">{t("common.all" as any, "All Doctors")}</SelectItem>
+                  {doctors.map((doc: any) => (
+                    <SelectItem key={doc.id} value={doc.id}>{doc.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label>{t("finance.department" as any, "Department")}</Label>
+              <DepartmentFilter value={selectedDepartment} onChange={setSelectedDepartment} showLabel={false} />
             </div>
           </div>
         </CardContent>

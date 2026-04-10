@@ -58,7 +58,9 @@ export default function SalaryRevisionsPage() {
         is_current: true,
         salary_structure_id: currentSalary?.salary_structure_id || null,
         component_overrides: currentSalary?.component_overrides || null,
-      });
+        revision_reason: reason,
+        revision_notes: notes || null,
+      } as any);
 
       toast.success(t("finance.salary_revised" as any, "Salary revision saved successfully"));
       setShowDialog(false);
@@ -76,11 +78,11 @@ export default function SalaryRevisionsPage() {
     setNotes("");
   };
 
-  // Build revision history: group salaries by employee
-  const revisionHistory = allSalaries.reduce((acc: any[], salary: any) => {
-    acc.push(salary);
-    return acc;
-  }, []);
+  // Build revision history sorted by employee + date descending for proper change% calc
+  const revisionHistory = [...allSalaries].sort((a: any, b: any) => {
+    if (a.employee_id !== b.employee_id) return a.employee_id.localeCompare(b.employee_id);
+    return new Date(b.effective_from).getTime() - new Date(a.effective_from).getTime();
+  });
 
   return (
     <div className="space-y-6">
@@ -129,10 +131,9 @@ export default function SalaryRevisionsPage() {
                   </TableRow>
                 ) : (
                   revisionHistory.map((salary: any, idx: number) => {
-                    // Find next salary for this employee to calculate change
+                    // Find the immediate predecessor: same employee, next item in sorted (desc) list
                     const prevSalary = revisionHistory.find(
-                      (s: any) => s.employee_id === salary.employee_id && s.id !== salary.id &&
-                        new Date(s.effective_from) < new Date(salary.effective_from) && !s.is_current
+                      (s: any, sIdx: number) => sIdx > idx && s.employee_id === salary.employee_id
                     );
                     const changePercent = prevSalary
                       ? (((salary.basic_salary - prevSalary.basic_salary) / prevSalary.basic_salary) * 100).toFixed(1)
