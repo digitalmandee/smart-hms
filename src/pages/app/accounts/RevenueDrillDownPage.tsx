@@ -10,7 +10,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { ChevronDown, ChevronRight, FileText, TrendingUp, Users, Stethoscope, ExternalLink, Download } from "lucide-react";
+import { ChevronDown, ChevronRight, FileText, TrendingUp, Users, Stethoscope, ExternalLink } from "lucide-react";
 import { format } from "date-fns";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useRevenueDrillDown, useRevenueAccounts } from "@/hooks/useRevenueDrillDown";

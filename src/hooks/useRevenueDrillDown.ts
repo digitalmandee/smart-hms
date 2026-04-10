@@ -83,7 +83,7 @@ export function useRevenueDrillDown(filters: RevenueDrillDownFilters) {
           patient:patient_id(id, first_name, last_name, patient_number),
           doctor:doctor_id(id, name)
         `)
-        .in("id", invoiceIds);
+        .in("id", invoiceIds) as any;
 
       if (filters.doctorId) {
         invoiceQuery = invoiceQuery.eq("doctor_id", filters.doctorId);
