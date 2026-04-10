@@ -25187,6 +25187,15 @@ export type Database = {
         Args: { p_org_id: string; p_voucher_type: string }
         Returns: string
       }
+      get_active_kiosk_by_username: {
+        Args: { p_username: string }
+        Returns: {
+          id: string
+          is_active: boolean
+          kiosk_name: string
+          organization_id: string
+        }[]
+      }
       get_or_create_default_account: {
         Args: {
           p_account_code: string
