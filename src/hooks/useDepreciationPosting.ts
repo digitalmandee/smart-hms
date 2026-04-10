@@ -24,11 +24,11 @@ export function useDepreciationPosting() {
       const periodKey = `${year}-${String(month).padStart(2, "0")}`;
 
       // Check idempotency — don't double-post for the same month
-      const { data: existing } = await supabase
+      const { data: existing } = await (supabase
         .from("journal_entries")
         .select("id")
         .eq("organization_id", orgId)
-        .eq("reference_type", "depreciation")
+        .eq("reference_type", "depreciation") as any)
         .eq("reference_number", periodKey)
         .limit(1);
 
