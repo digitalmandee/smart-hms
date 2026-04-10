@@ -1,6 +1,7 @@
 import { useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
+import { maskPhiFields } from "@/lib/phiMasking";
 
 const DEBOUNCE_KEY_PREFIX = "phi_access_";
 const DEBOUNCE_MS = 5 * 60 * 1000; // 5 minutes
