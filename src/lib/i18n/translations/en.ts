@@ -4130,6 +4130,7 @@ export const en = {
   "finance.effective_date": "Effective Date",
   "finance.reason": "Reason",
   "finance.salary_revised": "Salary revision saved successfully",
+  "finance.department": "Department",
 
 } as const;
 

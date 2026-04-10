@@ -4047,6 +4047,7 @@ export const ur: Record<TranslationKey, string> = {
   "finance.effective_date": "مؤثر تاریخ",
   "finance.reason": "وجہ",
   "finance.salary_revised": "تنخواہ نظرثانی کامیابی سے محفوظ ہو گئی",
+  "finance.department": "شعبہ",
 
 };
 
