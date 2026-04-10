@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -8,19 +8,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Play, RefreshCw } from "lucide-react";
+import { Plus, Play } from "lucide-react";
 import { useRecurringTemplates, useCreateRecurringTemplate, useGenerateRecurringEntries } from "@/hooks/useRecurringEntries";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
-import { useTranslation } from "@/hooks/useTranslation";
+import { useTranslation } from "@/lib/i18n";
 
 export default function RecurringEntriesPage() {
   const { t } = useTranslation();
   const { data: templates, isLoading } = useRecurringTemplates();
   const createMutation = useCreateRecurringTemplate();
   const generateMutation = useGenerateRecurringEntries();
-  const { formatCurrency } = useCurrencyFormatter();
+  
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
     template_name: "",

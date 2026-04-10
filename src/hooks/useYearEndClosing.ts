@@ -115,8 +115,6 @@ export function usePostYearEndClosing() {
           entry_number: "",
           reference_type: "manual",
           description: `Year-End Closing Entry for fiscal year ending ${fiscalYearEnd}`,
-          total_debit: 0,
-          total_credit: 0,
           is_posted: true,
           posted_at: new Date().toISOString(),
           posted_by: profile!.id,
@@ -181,11 +179,7 @@ export function usePostYearEndClosing() {
         .insert(lines);
       if (linesErr) throw linesErr;
 
-      // Update journal totals
-      await supabase
-        .from("journal_entries")
-        .update({ total_debit: totalDebit, total_credit: totalCredit })
-        .eq("id", journalId);
+      // Journal totals are tracked on lines, no separate update needed
 
       return journalId;
     },

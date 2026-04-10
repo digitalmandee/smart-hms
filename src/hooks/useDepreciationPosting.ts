@@ -94,8 +94,6 @@ export function useDepreciationPosting() {
           reference_type: "depreciation" as any,
           reference_number: periodKey,
           description: `Monthly Depreciation for ${periodKey} (${depEntries.length} assets)`,
-          total_debit: totalDep,
-          total_credit: totalDep,
           is_posted: true,
           posted_at: new Date().toISOString(),
           posted_by: profile!.id,
