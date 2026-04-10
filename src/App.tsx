@@ -621,6 +621,9 @@ const CashToBankReportPage = React.lazy(() => import("./pages/app/accounts/CashT
 const DetailedPnLPage = React.lazy(() => import("./pages/app/accounts/DetailedPnLPage"));
 const DepartmentPnLPage = React.lazy(() => import("./pages/app/accounts/DepartmentPnLPage"));
 const ARReconciliationPage = React.lazy(() => import("./pages/app/accounts/ARReconciliationPage"));
+const YearEndClosingPage = React.lazy(() => import("./pages/app/accounts/YearEndClosingPage"));
+const RecurringEntriesPage = React.lazy(() => import("./pages/app/accounts/RecurringEntriesPage"));
+const PDCRegisterPage = React.lazy(() => import("./pages/app/accounts/PDCRegisterPage"));
 
 import AdmissionHistoryPage from "./pages/app/ipd/AdmissionHistoryPage";
 import IPDVitalsPage from "./pages/app/ipd/IPDVitalsPage";
