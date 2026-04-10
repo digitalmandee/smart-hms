@@ -1273,6 +1273,10 @@ function App() {
                 <Route path="accounts/reports/ar-reconciliation" element={<ARReconciliationPage />} />
                 <Route path="accounts/reports/revenue-drilldown" element={<RevenueDrillDownPage />} />
 
+                <Route path="accounts/year-end-closing" element={<YearEndClosingPage />} />
+                <Route path="accounts/recurring-entries" element={<RecurringEntriesPage />} />
+                <Route path="accounts/pdc-register" element={<PDCRegisterPage />} />
+
                {/* Donation Management routes */}
                <Route path="donations" element={<FinDonationDashboard />} />
                <Route path="donations/donors" element={<FinDonorsListPage />} />
