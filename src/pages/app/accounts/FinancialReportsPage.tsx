@@ -62,6 +62,13 @@ export default function FinancialReportsPage() {
       color: "text-cyan-500",
     },
     {
+      title: "Revenue Drill-Down",
+      description: "Trace GL revenue to invoices, doctors, patients, and services",
+      icon: FileText,
+      path: "/app/accounts/reports/revenue-drilldown",
+      color: "text-emerald-500",
+    },
+    {
       title: "Cost Center P&L",
       description: "Profit & Loss by department / cost center",
       icon: Building2,
