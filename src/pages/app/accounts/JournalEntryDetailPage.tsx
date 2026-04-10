@@ -216,6 +216,23 @@ const JournalEntryDetailPage = () => {
                 <p className="font-medium">{entry.reference_id ? `${entry.reference_type || "ref"}: ${String(entry.reference_id).slice(0, 8)}...` : "-"}</p>
               </div>
             </div>
+            {entry.reference_type && entry.reference_id && (() => {
+              const pathMap: Record<string, string> = {
+                invoice: `/app/billing/invoices/${entry.reference_id}`,
+                payment: `/app/billing/invoices/${entry.reference_id}`,
+                payroll: `/app/hr/payroll/${entry.reference_id}`,
+                expense: `/app/accounts/expenses`,
+                vendor_payment: `/app/accounts/vendor-payments/${entry.reference_id}`,
+                grn: `/app/warehouse/grn/${entry.reference_id}`,
+                patient_deposit: `/app/accounts/patient-deposits`,
+              };
+              const path = pathMap[entry.reference_type];
+              return path ? (
+                <Button variant="link" size="sm" className="mt-1 p-0 h-auto text-xs" onClick={() => navigate(path)}>
+                  View Source →
+                </Button>
+              ) : null;
+            })()}
           </CardContent>
         </Card>
         <Card>
