@@ -18329,6 +18329,115 @@ export type Database = {
           },
         ]
       }
+      pdc_register: {
+        Row: {
+          amount: number
+          bank_account_id: string | null
+          bounced_at: string | null
+          branch_id: string | null
+          cheque_date: string
+          cheque_number: string
+          cleared_at: string | null
+          created_at: string
+          created_by: string | null
+          deposited_at: string | null
+          id: string
+          journal_entry_id: string | null
+          notes: string | null
+          organization_id: string
+          party_name: string
+          pdc_type: string
+          reversal_journal_id: string | null
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          bank_account_id?: string | null
+          bounced_at?: string | null
+          branch_id?: string | null
+          cheque_date: string
+          cheque_number: string
+          cleared_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          deposited_at?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          notes?: string | null
+          organization_id: string
+          party_name: string
+          pdc_type?: string
+          reversal_journal_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          bank_account_id?: string | null
+          bounced_at?: string | null
+          branch_id?: string | null
+          cheque_date?: string
+          cheque_number?: string
+          cleared_at?: string | null
+          created_at?: string
+          created_by?: string | null
+          deposited_at?: string | null
+          id?: string
+          journal_entry_id?: string | null
+          notes?: string | null
+          organization_id?: string
+          party_name?: string
+          pdc_type?: string
+          reversal_journal_id?: string | null
+          status?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "pdc_register_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pdc_register_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pdc_register_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pdc_register_journal_entry_id_fkey"
+            columns: ["journal_entry_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pdc_register_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pdc_register_reversal_journal_id_fkey"
+            columns: ["reversal_journal_id"]
+            isOneToOne: false
+            referencedRelation: "journal_entries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       permissions: {
         Row: {
           code: string
@@ -20913,6 +21022,72 @@ export type Database = {
           supports_worklist?: boolean | null
         }
         Relationships: []
+      }
+      recurring_journal_templates: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          description: string | null
+          end_date: string | null
+          frequency: string
+          id: string
+          is_active: boolean
+          last_run_date: string | null
+          lines: Json
+          next_run_date: string | null
+          organization_id: string
+          start_date: string
+          template_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_run_date?: string | null
+          lines?: Json
+          next_run_date?: string | null
+          organization_id: string
+          start_date: string
+          template_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          end_date?: string | null
+          frequency?: string
+          id?: string
+          is_active?: boolean
+          last_run_date?: string | null
+          lines?: Json
+          next_run_date?: string | null
+          organization_id?: string
+          start_date?: string
+          template_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "recurring_journal_templates_created_by_fkey"
+            columns: ["created_by"]
+            isOneToOne: false
+            referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "recurring_journal_templates_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       report_templates: {
         Row: {

@@ -9,18 +9,28 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Package, Calculator } from "lucide-react";
+import { Plus, Calculator, PlayCircle } from "lucide-react";
 import { useFixedAssets, useCreateFixedAsset, calculateDepreciation } from "@/hooks/useFixedAssets";
+import { useDepreciationPosting } from "@/hooks/useDepreciationPosting";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
+import { useTranslation } from "@/lib/i18n";
 
 export default function FixedAssetsPage() {
+  const { t } = useTranslation();
   const { data: assets, isLoading } = useFixedAssets();
   const createMutation = useCreateFixedAsset();
+  const depPosting = useDepreciationPosting();
   const { formatCurrency } = useCurrencyFormatter();
   const [open, setOpen] = useState(false);
+  const [depOpen, setDepOpen] = useState(false);
   const [scheduleAsset, setScheduleAsset] = useState<any>(null);
+  const now = new Date();
+  const [depMonth, setDepMonth] = useState(String(now.getMonth() + 1));
+  const [depYear, setDepYear] = useState(String(now.getFullYear()));
+  const [depExpAcct, setDepExpAcct] = useState("");
+  const [depAccumAcct, setDepAccumAcct] = useState("");
   const [form, setForm] = useState({
     name: "", category: "", purchase_date: "", purchase_cost: "",
     useful_life_months: "60", depreciation_method: "straight_line", salvage_value: "0",
@@ -58,41 +68,86 @@ export default function FixedAssetsPage() {
           { label: "Fixed Assets" },
         ]}
         actions={
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger asChild>
-              <Button><Plus className="h-4 w-4 mr-2" />Register Asset</Button>
-            </DialogTrigger>
-            <DialogContent className="max-w-lg">
-              <DialogHeader><DialogTitle>Register Fixed Asset</DialogTitle></DialogHeader>
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div><Label>Asset Name</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="MRI Machine" /></div>
-                  <div><Label>Category</Label><Input value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} placeholder="Medical Equipment" /></div>
+          <div className="flex gap-2">
+            <Dialog open={depOpen} onOpenChange={setDepOpen}>
+              <DialogTrigger asChild>
+                <Button variant="outline"><PlayCircle className="h-4 w-4 mr-2" />{t("finance.runDepreciation")}</Button>
+              </DialogTrigger>
+              <DialogContent>
+                <DialogHeader><DialogTitle>{t("finance.runDepreciation")}</DialogTitle></DialogHeader>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <Label>{t("finance.depreciationMonth")}</Label>
+                      <Select value={depMonth} onValueChange={setDepMonth}>
+                        <SelectTrigger><SelectValue /></SelectTrigger>
+                        <SelectContent>
+                          {Array.from({ length: 12 }, (_, i) => (
+                            <SelectItem key={i + 1} value={String(i + 1)}>{format(new Date(2024, i), "MMMM")}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div>
+                      <Label>{t("finance.depreciationYear")}</Label>
+                      <Input type="number" value={depYear} onChange={e => setDepYear(e.target.value)} />
+                    </div>
+                  </div>
+                  <div><Label>{t("finance.depExpenseAccount")}</Label><Input value={depExpAcct} onChange={e => setDepExpAcct(e.target.value)} placeholder="Account ID for Depreciation Expense" /></div>
+                  <div><Label>{t("finance.accumDepAccount")}</Label><Input value={depAccumAcct} onChange={e => setDepAccumAcct(e.target.value)} placeholder="Account ID for Accumulated Depreciation" /></div>
+                  <Button
+                    onClick={() => {
+                      depPosting.mutate({
+                        month: parseInt(depMonth),
+                        year: parseInt(depYear),
+                        depreciationExpenseAccountId: depExpAcct,
+                        accumulatedDepAccountId: depAccumAcct,
+                      }, { onSuccess: () => setDepOpen(false) });
+                    }}
+                    disabled={!depExpAcct || !depAccumAcct || depPosting.isPending}
+                    className="w-full"
+                  >
+                    {depPosting.isPending ? t("common.loading") : t("finance.postDepreciation")}
+                  </Button>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div><Label>Purchase Date</Label><Input type="date" value={form.purchase_date} onChange={e => setForm(p => ({ ...p, purchase_date: e.target.value }))} /></div>
-                  <div><Label>Purchase Cost</Label><Input type="number" value={form.purchase_cost} onChange={e => setForm(p => ({ ...p, purchase_cost: e.target.value }))} placeholder="0.00" /></div>
+              </DialogContent>
+            </Dialog>
+            <Dialog open={open} onOpenChange={setOpen}>
+              <DialogTrigger asChild>
+                <Button><Plus className="h-4 w-4 mr-2" />Register Asset</Button>
+              </DialogTrigger>
+              <DialogContent className="max-w-lg">
+                <DialogHeader><DialogTitle>Register Fixed Asset</DialogTitle></DialogHeader>
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <div><Label>Asset Name</Label><Input value={form.name} onChange={e => setForm(p => ({ ...p, name: e.target.value }))} placeholder="MRI Machine" /></div>
+                    <div><Label>Category</Label><Input value={form.category} onChange={e => setForm(p => ({ ...p, category: e.target.value }))} placeholder="Medical Equipment" /></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div><Label>Purchase Date</Label><Input type="date" value={form.purchase_date} onChange={e => setForm(p => ({ ...p, purchase_date: e.target.value }))} /></div>
+                    <div><Label>Purchase Cost</Label><Input type="number" value={form.purchase_cost} onChange={e => setForm(p => ({ ...p, purchase_cost: e.target.value }))} placeholder="0.00" /></div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div><Label>Useful Life (months)</Label><Input type="number" value={form.useful_life_months} onChange={e => setForm(p => ({ ...p, useful_life_months: e.target.value }))} /></div>
+                    <div><Label>Salvage Value</Label><Input type="number" value={form.salvage_value} onChange={e => setForm(p => ({ ...p, salvage_value: e.target.value }))} placeholder="0.00" /></div>
+                  </div>
+                  <div>
+                    <Label>Depreciation Method</Label>
+                    <Select value={form.depreciation_method} onValueChange={v => setForm(p => ({ ...p, depreciation_method: v }))}>
+                      <SelectTrigger><SelectValue /></SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="straight_line">Straight Line</SelectItem>
+                        <SelectItem value="reducing_balance">Reducing Balance</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <Button onClick={handleCreate} disabled={!form.name || !form.purchase_date || !form.purchase_cost || createMutation.isPending} className="w-full">
+                    {createMutation.isPending ? "Registering..." : "Register Asset"}
+                  </Button>
                 </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div><Label>Useful Life (months)</Label><Input type="number" value={form.useful_life_months} onChange={e => setForm(p => ({ ...p, useful_life_months: e.target.value }))} /></div>
-                  <div><Label>Salvage Value</Label><Input type="number" value={form.salvage_value} onChange={e => setForm(p => ({ ...p, salvage_value: e.target.value }))} placeholder="0.00" /></div>
-                </div>
-                <div>
-                  <Label>Depreciation Method</Label>
-                  <Select value={form.depreciation_method} onValueChange={v => setForm(p => ({ ...p, depreciation_method: v }))}>
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="straight_line">Straight Line</SelectItem>
-                      <SelectItem value="reducing_balance">Reducing Balance</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
-                <Button onClick={handleCreate} disabled={!form.name || !form.purchase_date || !form.purchase_cost || createMutation.isPending} className="w-full">
-                  {createMutation.isPending ? "Registering..." : "Register Asset"}
-                </Button>
-              </div>
-            </DialogContent>
-          </Dialog>
+              </DialogContent>
+            </Dialog>
+          </div>
         }
       />
 

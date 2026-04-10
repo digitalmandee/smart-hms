@@ -1269,6 +1269,9 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Patient Deposits", path: "/app/accounts/patient-deposits", icon: "Wallet" },
           { name: "Cost Centers", path: "/app/accounts/cost-centers", icon: "Target" },
           { name: "Fiscal Periods", path: "/app/accounts/fiscal-periods", icon: "Calendar" },
+          { name: "Year-End Closing", path: "/app/accounts/year-end-closing", icon: "Lock" },
+          { name: "Recurring Entries", path: "/app/accounts/recurring-entries", icon: "RefreshCw" },
+          { name: "PDC Register", path: "/app/accounts/pdc-register", icon: "FileCheck" },
           { name: "Financial Audit Log", path: "/app/accounts/audit-log", icon: "ScrollText" },
         ]
       },
@@ -1393,6 +1396,9 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Patient Deposits", path: "/app/accounts/patient-deposits", icon: "Wallet" },
           { name: "Cost Centers", path: "/app/accounts/cost-centers", icon: "Target" },
           { name: "Fiscal Periods", path: "/app/accounts/fiscal-periods", icon: "Calendar" },
+          { name: "Year-End Closing", path: "/app/accounts/year-end-closing", icon: "Lock" },
+          { name: "Recurring Entries", path: "/app/accounts/recurring-entries", icon: "RefreshCw" },
+          { name: "PDC Register", path: "/app/accounts/pdc-register", icon: "FileCheck" },
           { name: "Financial Audit Log", path: "/app/accounts/audit-log", icon: "ScrollText" },
         ]
       },

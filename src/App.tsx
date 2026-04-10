@@ -621,6 +621,9 @@ const CashToBankReportPage = React.lazy(() => import("./pages/app/accounts/CashT
 const DetailedPnLPage = React.lazy(() => import("./pages/app/accounts/DetailedPnLPage"));
 const DepartmentPnLPage = React.lazy(() => import("./pages/app/accounts/DepartmentPnLPage"));
 const ARReconciliationPage = React.lazy(() => import("./pages/app/accounts/ARReconciliationPage"));
+const YearEndClosingPage = React.lazy(() => import("./pages/app/accounts/YearEndClosingPage"));
+const RecurringEntriesPage = React.lazy(() => import("./pages/app/accounts/RecurringEntriesPage"));
+const PDCRegisterPage = React.lazy(() => import("./pages/app/accounts/PDCRegisterPage"));
 
 import AdmissionHistoryPage from "./pages/app/ipd/AdmissionHistoryPage";
 import IPDVitalsPage from "./pages/app/ipd/IPDVitalsPage";
@@ -1269,6 +1272,10 @@ function App() {
                 <Route path="accounts/reports/department-pnl" element={<DepartmentPnLPage />} />
                 <Route path="accounts/reports/ar-reconciliation" element={<ARReconciliationPage />} />
                 <Route path="accounts/reports/revenue-drilldown" element={<RevenueDrillDownPage />} />
+
+                <Route path="accounts/year-end-closing" element={<YearEndClosingPage />} />
+                <Route path="accounts/recurring-entries" element={<RecurringEntriesPage />} />
+                <Route path="accounts/pdc-register" element={<PDCRegisterPage />} />
 
                {/* Donation Management routes */}
                <Route path="donations" element={<FinDonationDashboard />} />
