@@ -21,13 +21,13 @@ export function usePatientStatement(patientId: string) {
     queryFn: async (): Promise<{ entries: PatientStatementEntry[]; totalDebit: number; totalCredit: number; closingBalance: number }> => {
       if (!profile?.organization_id || !patientId) return { entries: [], totalDebit: 0, totalCredit: 0, closingBalance: 0 };
 
-      const { data: invoices } = await (supabase
+      const { data: invoices } = await (supabase as any)
         .from("invoices")
         .select("id, invoice_number, invoice_date, total_amount, status, notes")
         .eq("patient_id", patientId)
         .eq("organization_id", profile.organization_id)
         .neq("status", "cancelled")
-        .order("invoice_date", { ascending: true }) as any);
+        .order("invoice_date", { ascending: true });
 
       const { data: payments } = await (supabase
         .from("payments")
