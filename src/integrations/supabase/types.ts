@@ -12626,11 +12626,15 @@ export type Database = {
       }
       invoices: {
         Row: {
+          admission_id: string | null
+          appointment_id: string | null
           balance_amount: number | null
           branch_id: string
           created_at: string
           created_by: string | null
+          department: string | null
           discount_amount: number | null
+          doctor_id: string | null
           id: string
           invoice_date: string | null
           invoice_number: string
@@ -12655,11 +12659,15 @@ export type Database = {
           zatca_xml: string | null
         }
         Insert: {
+          admission_id?: string | null
+          appointment_id?: string | null
           balance_amount?: number | null
           branch_id: string
           created_at?: string
           created_by?: string | null
+          department?: string | null
           discount_amount?: number | null
+          doctor_id?: string | null
           id?: string
           invoice_date?: string | null
           invoice_number: string
@@ -12684,11 +12692,15 @@ export type Database = {
           zatca_xml?: string | null
         }
         Update: {
+          admission_id?: string | null
+          appointment_id?: string | null
           balance_amount?: number | null
           branch_id?: string
           created_at?: string
           created_by?: string | null
+          department?: string | null
           discount_amount?: number | null
+          doctor_id?: string | null
           id?: string
           invoice_date?: string | null
           invoice_number?: string
@@ -12714,6 +12726,20 @@ export type Database = {
         }
         Relationships: [
           {
+            foreignKeyName: "invoices_admission_id_fkey"
+            columns: ["admission_id"]
+            isOneToOne: false
+            referencedRelation: "admissions"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_appointment_id_fkey"
+            columns: ["appointment_id"]
+            isOneToOne: false
+            referencedRelation: "appointments"
+            referencedColumns: ["id"]
+          },
+          {
             foreignKeyName: "invoices_branch_id_fkey"
             columns: ["branch_id"]
             isOneToOne: false
@@ -12725,6 +12751,13 @@ export type Database = {
             columns: ["created_by"]
             isOneToOne: false
             referencedRelation: "profiles"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
             referencedColumns: ["id"]
           },
           {
@@ -18884,6 +18917,7 @@ export type Database = {
           notes: string | null
           organization_id: string
           patient_id: string | null
+          payment_method_id: string | null
           prescription_id: string | null
           session_id: string | null
           status: string
@@ -18912,6 +18946,7 @@ export type Database = {
           notes?: string | null
           organization_id: string
           patient_id?: string | null
+          payment_method_id?: string | null
           prescription_id?: string | null
           session_id?: string | null
           status?: string
@@ -18940,6 +18975,7 @@ export type Database = {
           notes?: string | null
           organization_id?: string
           patient_id?: string | null
+          payment_method_id?: string | null
           prescription_id?: string | null
           session_id?: string | null
           status?: string
@@ -18980,6 +19016,13 @@ export type Database = {
             columns: ["patient_id"]
             isOneToOne: false
             referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "pharmacy_pos_transactions_payment_method_id_fkey"
+            columns: ["payment_method_id"]
+            isOneToOne: false
+            referencedRelation: "payment_methods"
             referencedColumns: ["id"]
           },
           {
