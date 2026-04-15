@@ -14,6 +14,7 @@ import { BarChart, Bar, XAxis, YAxis, ResponsiveContainer, PieChart, Pie, Cell, 
 import { CalendarIcon, DollarSign, Clock, AlertTriangle, TrendingUp, Loader2, FileText, ChevronRight } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useTranslation } from "@/lib/i18n";
 
 const COLORS = ["hsl(var(--primary))", "hsl(var(--chart-2))", "hsl(var(--chart-3))", "hsl(var(--chart-4))", "hsl(var(--chart-5))", "hsl(var(--muted))"];
 const AGING_COLORS = ["hsl(var(--success))", "hsl(var(--warning))", "hsl(var(--destructive))"];
@@ -21,6 +22,7 @@ const AGING_COLORS = ["hsl(var(--success))", "hsl(var(--warning))", "hsl(var(--d
 export default function BillingReportsPage() {
   const navigate = useNavigate();
   const { formatCurrency } = useCurrencyFormatter();
+  const { t } = useTranslation();
   const [dateRange, setDateRange] = useState({
     from: subDays(new Date(), 30),
     to: new Date(),
@@ -41,8 +43,8 @@ export default function BillingReportsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Billing Reports"
-        description="Revenue analytics and financial insights"
+        title={t("billing.reports" as any, "Billing Reports")}
+        description={t("billing.reportsDescription" as any, "Revenue analytics and financial insights")}
         actions={
           <Popover>
             <PopoverTrigger asChild>
@@ -71,7 +73,7 @@ export default function BillingReportsPage() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("billing.totalRevenue" as any, "Total Revenue")}</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -86,7 +88,7 @@ export default function BillingReportsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Outstanding</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("billing.outstanding" as any, "Outstanding")}</CardTitle>
             <AlertTriangle className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -98,7 +100,7 @@ export default function BillingReportsPage() {
                   {formatCurrency(outstandingData?.total || 0)}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {outstandingData?.count || 0} pending invoices
+                  {outstandingData?.count || 0} {t("billing.pendingInvoices" as any, "pending invoices")}
                 </p>
               </>
             )}
@@ -107,7 +109,7 @@ export default function BillingReportsPage() {
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Collection Rate</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("billing.collectionRate" as any, "Collection Rate")}</CardTitle>
             <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -115,14 +117,14 @@ export default function BillingReportsPage() {
               {outstandingData?.collectionRate?.toFixed(1) || 0}%
             </div>
             <p className="text-xs text-muted-foreground">
-              Of total billed amount
+              {t("billing.ofTotalBilled" as any, "Of total billed amount")}
             </p>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="flex flex-row items-center justify-between pb-2">
-            <CardTitle className="text-sm font-medium">Avg Daily</CardTitle>
+            <CardTitle className="text-sm font-medium">{t("billing.avgDaily" as any, "Avg Daily")}</CardTitle>
             <Clock className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
@@ -130,7 +132,7 @@ export default function BillingReportsPage() {
               {formatCurrency(dailyData?.length ? Math.round(totalRevenue / dailyData.length) : 0)}
             </div>
             <p className="text-xs text-muted-foreground">
-              Average collection per day
+              {t("billing.avgCollectionPerDay" as any, "Average collection per day")}
             </p>
           </CardContent>
         </Card>
@@ -141,7 +143,7 @@ export default function BillingReportsPage() {
         {/* Daily Collections */}
         <Card className="col-span-2">
           <CardHeader>
-            <CardTitle>Daily Collections</CardTitle>
+            <CardTitle>{t("billing.dailyCollections" as any, "Daily Collections")}</CardTitle>
           </CardHeader>
           <CardContent>
             {dailyLoading ? (
@@ -167,7 +169,7 @@ export default function BillingReportsPage() {
         {/* Revenue by Category */}
         <Card>
           <CardHeader>
-            <CardTitle>Revenue by Category</CardTitle>
+            <CardTitle>{t("billing.revenueByCategory" as any, "Revenue by Category")}</CardTitle>
           </CardHeader>
           <CardContent>
             {categoryLoading ? (
@@ -186,6 +188,11 @@ export default function BillingReportsPage() {
                       cy="50%"
                       outerRadius={80}
                       label={({ category, percent }) => `${category} (${(percent * 100).toFixed(0)}%)`}
+                      onClick={(_, idx) => {
+                        const cat = categoryData?.[idx]?.category;
+                        if (cat) navigate(`/app/accounts/department-revenue?department=${cat}`);
+                      }}
+                      className="cursor-pointer"
                     >
                       {categoryData.map((_, index) => (
                         <Cell key={index} fill={COLORS[index % COLORS.length]} />
@@ -196,7 +203,7 @@ export default function BillingReportsPage() {
               </div>
             ) : (
               <div className="flex h-[250px] items-center justify-center text-muted-foreground">
-                No data available
+                {t("common.noData" as any, "No data available")}
               </div>
             )}
           </CardContent>
@@ -205,7 +212,7 @@ export default function BillingReportsPage() {
         {/* Payment Methods */}
         <Card>
           <CardHeader>
-            <CardTitle>Payment Methods</CardTitle>
+            <CardTitle>{t("billing.paymentMethods" as any, "Payment Methods")}</CardTitle>
           </CardHeader>
           <CardContent>
             {paymentLoading ? (
@@ -234,7 +241,7 @@ export default function BillingReportsPage() {
               </div>
             ) : (
               <div className="flex h-[250px] items-center justify-center text-muted-foreground">
-                No data available
+                {t("common.noData" as any, "No data available")}
               </div>
             )}
           </CardContent>
@@ -246,10 +253,10 @@ export default function BillingReportsPage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <AlertTriangle className="h-5 w-5 text-warning" />
-            Accounts Receivable Aging
+            Accounts Receivable {t("billing.aging" as any, "Aging")}
           </CardTitle>
           <CardDescription>
-            Outstanding invoices grouped by age
+            {t("billing.agingDescription" as any, "Outstanding invoices grouped by age")}
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -282,7 +289,7 @@ export default function BillingReportsPage() {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm font-medium">Total Outstanding</p>
+                  <p className="text-sm font-medium">{t("billing.totalOutstanding" as any, "Total Outstanding")}</p>
                   <p className="text-lg font-bold text-destructive">
                     {formatCurrency(agingData.totalOutstanding)}
                   </p>
@@ -343,7 +350,7 @@ export default function BillingReportsPage() {
             </div>
           ) : (
             <div className="flex items-center justify-center py-8 text-muted-foreground">
-              No outstanding invoices
+              {t("billing.noOutstanding" as any, "No outstanding invoices")}
             </div>
           )}
         </CardContent>
@@ -352,7 +359,7 @@ export default function BillingReportsPage() {
       {/* Top Services */}
       <Card>
         <CardHeader>
-          <CardTitle>Top Services by Revenue</CardTitle>
+          <CardTitle>{t("billing.topServices" as any, "Top Services by Revenue")}</CardTitle>
         </CardHeader>
         <CardContent>
           {topLoading ? (
@@ -386,7 +393,7 @@ export default function BillingReportsPage() {
             </div>
           ) : (
             <div className="flex items-center justify-center py-8 text-muted-foreground">
-              No services data available
+              {t("common.noData" as any, "No services data available")}
             </div>
           )}
         </CardContent>
