@@ -225,7 +225,8 @@ export function useCreateLabOrder() {
             status: "pending",
             notes: `Invoice for Lab Order ${order.order_number}`,
             created_by: labOrder.ordered_by,
-          })
+            department: 'lab',
+          } as any)
           .select()
           .single();
 
