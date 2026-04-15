@@ -47,8 +47,11 @@ export default function ReceivablesPage() {
   const [agingFilter, setAgingFilter] = useState("all");
   const [insurerFilter, setInsurerFilter] = useState("all");
   const [claimStatusFilter, setClaimStatusFilter] = useState("all");
+  const [writeOffTarget, setWriteOffTarget] = useState<{ id: string; patient_name: string; outstanding: number } | null>(null);
+  const [writeOffReason, setWriteOffReason] = useState("");
 
   const { data, isLoading, refetch } = useAgingReport();
+  const writeOffMutation = useWriteOff();
 
   const arInvoices = data?.arInvoices || [];
   const insuranceClaims = data?.insuranceClaims || [];
