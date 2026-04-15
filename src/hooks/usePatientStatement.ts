@@ -21,34 +21,30 @@ export function usePatientStatement(patientId: string) {
     queryFn: async (): Promise<{ entries: PatientStatementEntry[]; totalDebit: number; totalCredit: number; closingBalance: number }> => {
       if (!profile?.organization_id || !patientId) return { entries: [], totalDebit: 0, totalCredit: 0, closingBalance: 0 };
 
-      // Fetch invoices
-      const { data: invoices } = await supabase
-        .from("invoices" as any)
+      const { data: invoices } = await (supabase
+        .from("invoices")
         .select("id, invoice_number, invoice_date, total_amount, status, notes")
         .eq("patient_id", patientId)
         .eq("organization_id", profile.organization_id)
         .neq("status", "cancelled")
-        .order("invoice_date", { ascending: true });
+        .order("invoice_date", { ascending: true }) as any);
 
-      // Fetch payments
-      const { data: payments } = await supabase
+      const { data: payments } = await (supabase
         .from("payments")
-        .select("id, reference_number, payment_date, amount, payment_method_id, invoice_id")
+        .select("id, reference_number, payment_date, amount, invoice_id")
         .eq("patient_id", patientId)
         .eq("organization_id", profile.organization_id)
-        .order("payment_date", { ascending: true });
+        .order("payment_date", { ascending: true }) as any);
 
-      // Fetch deposits
-      const { data: deposits } = await supabase
+      const { data: deposits } = await (supabase
         .from("patient_deposits")
         .select("id, reference_number, created_at, amount, type, status, notes")
         .eq("patient_id", patientId)
         .eq("organization_id", profile.organization_id)
         .eq("status", "completed")
-        .order("created_at", { ascending: true });
+        .order("created_at", { ascending: true }) as any);
 
-      // Fetch credit notes linked to patient's invoices
-      const invoiceIds = (invoices || []).map(i => i.id);
+      const invoiceIds = (invoices || []).map((i: any) => i.id);
       let creditNotes: any[] = [];
       if (invoiceIds.length > 0) {
         const { data: cn } = await supabase
@@ -59,10 +55,9 @@ export function usePatientStatement(patientId: string) {
         creditNotes = cn || [];
       }
 
-      // Build entries
       const entries: Omit<PatientStatementEntry, "balance">[] = [];
 
-      (invoices || []).forEach(inv => {
+      (invoices || []).forEach((inv: any) => {
         entries.push({
           id: inv.id,
           date: inv.invoice_date || "",
@@ -80,7 +75,7 @@ export function usePatientStatement(patientId: string) {
           date: p.payment_date,
           type: "payment",
           reference: p.reference_number || "-",
-          description: `Payment received`,
+          description: "Payment received",
           debit: 0,
           credit: Number(p.amount || 0),
         });
@@ -88,54 +83,20 @@ export function usePatientStatement(patientId: string) {
 
       (deposits || []).forEach((d: any) => {
         if (d.type === "deposit") {
-          entries.push({
-            id: d.id,
-            date: d.created_at?.slice(0, 10) || "",
-            type: "deposit",
-            reference: d.reference_number || "-",
-            description: "Advance Deposit",
-            debit: 0,
-            credit: Number(d.amount || 0),
-          });
+          entries.push({ id: d.id, date: d.created_at?.slice(0, 10) || "", type: "deposit", reference: d.reference_number || "-", description: "Advance Deposit", debit: 0, credit: Number(d.amount || 0) });
         } else if (d.type === "applied") {
-          entries.push({
-            id: d.id,
-            date: d.created_at?.slice(0, 10) || "",
-            type: "deposit_applied",
-            reference: d.reference_number || "-",
-            description: d.notes || "Deposit Applied",
-            debit: 0,
-            credit: Number(d.amount || 0),
-          });
+          entries.push({ id: d.id, date: d.created_at?.slice(0, 10) || "", type: "deposit_applied", reference: d.reference_number || "-", description: d.notes || "Deposit Applied", debit: 0, credit: Number(d.amount || 0) });
         } else if (d.type === "refund") {
-          entries.push({
-            id: d.id,
-            date: d.created_at?.slice(0, 10) || "",
-            type: "deposit_refund",
-            reference: d.reference_number || "-",
-            description: "Deposit Refund",
-            debit: Number(d.amount || 0),
-            credit: 0,
-          });
+          entries.push({ id: d.id, date: d.created_at?.slice(0, 10) || "", type: "deposit_refund", reference: d.reference_number || "-", description: "Deposit Refund", debit: Number(d.amount || 0), credit: 0 });
         }
       });
 
-      creditNotes.forEach((cn: any) => {
-        entries.push({
-          id: cn.id,
-          date: cn.issue_date,
-          type: "credit_note",
-          reference: cn.credit_note_number,
-          description: cn.reason || "Credit Note",
-          debit: 0,
-          credit: Number(cn.total_amount || 0),
-        });
+      (creditNotes || []).forEach((cn: any) => {
+        entries.push({ id: cn.id, date: cn.issue_date, type: "credit_note", reference: cn.credit_note_number, description: cn.reason || "Credit Note", debit: 0, credit: Number(cn.total_amount || 0) });
       });
 
-      // Sort by date
       entries.sort((a, b) => a.date.localeCompare(b.date));
 
-      // Calculate running balance
       let balance = 0;
       const finalEntries: PatientStatementEntry[] = entries.map(e => {
         balance += e.debit - e.credit;
