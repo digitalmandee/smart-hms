@@ -33,7 +33,7 @@ export function usePatientStatement(patientId: string) {
       // Fetch payments
       const { data: payments } = await supabase
         .from("payments")
-        .select("id, payment_number, payment_date, amount, payment_method, invoice_id")
+        .select("id, reference_number, payment_date, amount, payment_method_id, invoice_id")
         .eq("patient_id", patientId)
         .eq("organization_id", profile.organization_id)
         .order("payment_date", { ascending: true });
@@ -41,7 +41,7 @@ export function usePatientStatement(patientId: string) {
       // Fetch deposits
       const { data: deposits } = await supabase
         .from("patient_deposits")
-        .select("id, deposit_number, created_at, amount, type, status, notes")
+        .select("id, reference_number, created_at, amount, type, status, notes")
         .eq("patient_id", patientId)
         .eq("organization_id", profile.organization_id)
         .eq("status", "completed")
@@ -65,7 +65,7 @@ export function usePatientStatement(patientId: string) {
       (invoices || []).forEach(inv => {
         entries.push({
           id: inv.id,
-          date: inv.invoice_date || inv.id,
+          date: inv.invoice_date || "",
           type: "invoice",
           reference: inv.invoice_number,
           description: inv.notes || "Invoice",
@@ -74,25 +74,25 @@ export function usePatientStatement(patientId: string) {
         });
       });
 
-      (payments || []).forEach(p => {
+      (payments || []).forEach((p: any) => {
         entries.push({
           id: p.id,
           date: p.payment_date,
           type: "payment",
-          reference: p.payment_number || "-",
-          description: `Payment via ${p.payment_method || "Cash"}`,
+          reference: p.reference_number || "-",
+          description: `Payment received`,
           debit: 0,
           credit: Number(p.amount || 0),
         });
       });
 
-      (deposits || []).forEach(d => {
+      (deposits || []).forEach((d: any) => {
         if (d.type === "deposit") {
           entries.push({
             id: d.id,
             date: d.created_at?.slice(0, 10) || "",
             type: "deposit",
-            reference: d.deposit_number || "-",
+            reference: d.reference_number || "-",
             description: "Advance Deposit",
             debit: 0,
             credit: Number(d.amount || 0),
@@ -102,7 +102,7 @@ export function usePatientStatement(patientId: string) {
             id: d.id,
             date: d.created_at?.slice(0, 10) || "",
             type: "deposit_applied",
-            reference: d.deposit_number || "-",
+            reference: d.reference_number || "-",
             description: d.notes || "Deposit Applied",
             debit: 0,
             credit: Number(d.amount || 0),
@@ -112,7 +112,7 @@ export function usePatientStatement(patientId: string) {
             id: d.id,
             date: d.created_at?.slice(0, 10) || "",
             type: "deposit_refund",
-            reference: d.deposit_number || "-",
+            reference: d.reference_number || "-",
             description: "Deposit Refund",
             debit: Number(d.amount || 0),
             credit: 0,
@@ -120,7 +120,7 @@ export function usePatientStatement(patientId: string) {
         }
       });
 
-      creditNotes.forEach(cn => {
+      creditNotes.forEach((cn: any) => {
         entries.push({
           id: cn.id,
           date: cn.issue_date,

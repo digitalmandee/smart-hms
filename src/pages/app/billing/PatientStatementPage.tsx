@@ -6,7 +6,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Skeleton } from "@/components/ui/skeleton";
 import { ArrowLeft, FileText, CreditCard, Wallet, Receipt, MinusCircle } from "lucide-react";
@@ -14,7 +13,7 @@ import { format } from "date-fns";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { usePatientStatement } from "@/hooks/usePatientStatement";
 import { ReportExportButton } from "@/components/reports/ReportExportButton";
-import { PatientSearch } from "@/components/billing/PatientSearch";
+import { PatientSearch } from "@/components/appointments/PatientSearch";
 
 const TYPE_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
   invoice: { label: "Invoice", color: "bg-blue-100 text-blue-800", icon: FileText },
