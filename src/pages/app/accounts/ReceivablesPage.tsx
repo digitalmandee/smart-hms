@@ -1,6 +1,6 @@
-import { useState, useMemo } from "react";
+import { useState, useMemo, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, RefreshCw, Users, Building2, Clock, AlertTriangle, FileText } from "lucide-react";
+import { Search, RefreshCw, Users, Building2, Clock, AlertTriangle, FileText, Ban } from "lucide-react";
 import { formatCurrency as exportFmtCurrency } from "@/lib/exportUtils";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart as RPieChart, Pie } from "recharts";
 import { useTranslation } from "@/lib/i18n";
@@ -318,6 +318,18 @@ export default function ReceivablesPage() {
                         <TableCell className="text-right space-x-1">
                           <Button variant="ghost" size="sm" onClick={() => navigate(`/app/billing/invoices/${inv.id}`)}>View</Button>
                           <Button variant="ghost" size="sm" onClick={() => navigate(`/app/billing/invoices/${inv.id}/pay`)}>Collect</Button>
+                          {inv.aging_bucket === "90+ Days" && (
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              className="text-destructive hover:text-destructive"
+                              onClick={() => navigate(`/app/billing/patient-statement/${inv.patient_id || ''}`)}
+                              title="View patient statement"
+                            >
+                              <Ban className="h-3 w-3 mr-1" />
+                              Statement
+                            </Button>
+                          )}
                         </TableCell>
                       </TableRow>
                     ))}
