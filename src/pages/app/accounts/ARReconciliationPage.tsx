@@ -1,4 +1,4 @@
-import { useState, useRef, useMemo } from "react";
+import { useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -7,8 +7,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { CheckCircle, AlertTriangle, ShieldCheck, ShieldAlert, Scale, ListChecks, RefreshCw, TrendingUp } from "lucide-react";
-import { useARReconciliation, ARReconciliationRow } from "@/hooks/useFinancialReports";
+import { CheckCircle, AlertTriangle, ShieldCheck, ShieldAlert, Scale, ListChecks, RefreshCw } from "lucide-react";
+import { useARReconciliation } from "@/hooks/useFinancialReports";
 import { ReportExportButton } from "@/components/reports/ReportExportButton";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useTranslation } from "@/lib/i18n";
@@ -17,11 +17,25 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 
+interface RevenueReconResult {
+  invoiceTotal: number;
+  invoiceTax: number;
+  invoiceDiscount: number;
+  invoiceCount: number;
+  glNetRevenue: number;
+  glCredits: number;
+  glDebits: number;
+  glAccountCount: number;
+  variance: number;
+  isMatched: boolean;
+  accounts: { account_number: string; name: string; balance: number }[];
+}
+
 function useRevenueReconciliation() {
   const { profile } = useAuth();
-  return useQuery({
+  return useQuery<RevenueReconResult | null>({
     queryKey: ["revenue-reconciliation", profile?.organization_id],
-    queryFn: async () => {
+    queryFn: async (): Promise<RevenueReconResult | null> => {
       if (!profile?.organization_id) return [];
 
       // 1. Get invoice totals by status (exclude cancelled)
@@ -49,7 +63,7 @@ function useRevenueReconciliation() {
         a.account_type?.category?.toLowerCase() === "revenue"
       );
 
-      const glRevenueTotal = revAccounts.reduce((s, a) => s + Number(a.current_balance || 0), 0);
+      const _glRevenueTotal = revAccounts.reduce((s, a) => s + Number(a.current_balance || 0), 0);
 
       // 3. Get journal line totals for revenue accounts
       const revAccountIds = revAccounts.map(a => a.id);
