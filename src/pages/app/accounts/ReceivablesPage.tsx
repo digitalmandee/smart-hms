@@ -542,6 +542,63 @@ export default function ReceivablesPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Write-Off Dialog */}
+      <Dialog open={!!writeOffTarget} onOpenChange={(open) => { if (!open) setWriteOffTarget(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("aging.writeOffTitle" as any, "Write Off Bad Debt")}</DialogTitle>
+            <DialogDescription>
+              {t("aging.writeOffDesc" as any, "This will post a journal entry: DR Bad Debt Expense, CR Accounts Receivable")}
+            </DialogDescription>
+          </DialogHeader>
+          {writeOffTarget && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4 p-3 bg-muted rounded-md">
+                <div>
+                  <p className="text-sm text-muted-foreground">{t("aging.patient" as any, "Patient")}</p>
+                  <p className="font-medium">{writeOffTarget.patient_name}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">{t("aging.writeOffAmount" as any, "Amount")}</p>
+                  <p className="font-bold text-destructive">{formatCurrency(writeOffTarget.outstanding)}</p>
+                </div>
+              </div>
+              <div>
+                <Label>{t("aging.writeOffReason" as any, "Write-off Reason")}</Label>
+                <Textarea
+                  value={writeOffReason}
+                  onChange={(e) => setWriteOffReason(e.target.value)}
+                  placeholder="Enter reason for write-off..."
+                  rows={3}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWriteOffTarget(null)}>
+              {t("common.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={!writeOffReason.trim() || writeOffMutation.isPending}
+              onClick={() => {
+                if (!writeOffTarget) return;
+                writeOffMutation.mutate({
+                  invoiceId: writeOffTarget.id,
+                  patientName: writeOffTarget.patient_name,
+                  amount: writeOffTarget.outstanding,
+                  reason: writeOffReason,
+                }, {
+                  onSuccess: () => setWriteOffTarget(null),
+                });
+              }}
+            >
+              {writeOffMutation.isPending ? t("common.loading") : t("aging.writeOffConfirm" as any, "Post Write-Off")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
