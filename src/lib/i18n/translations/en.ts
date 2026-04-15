@@ -3673,7 +3673,25 @@ export const en = {
   "admission.procedureAndRoom": "Procedure & Room Assignment",
 
   // Split Payment
-  "billing.splitPayment": "Split Payment",
+ "billing.splitPayment": "Split Payment",
+ "billing.reports": "Billing Reports",
+ "billing.reportsDescription": "Revenue analytics and financial insights",
+ "billing.totalRevenue": "Total Revenue",
+ "billing.outstanding": "Outstanding",
+ "billing.collectionRate": "Collection Rate",
+ "billing.ofTotalBilled": "Of total billed amount",
+ "billing.avgDaily": "Avg Daily",
+ "billing.avgCollectionPerDay": "Average collection per day",
+ "billing.dailyCollections": "Daily Collections",
+ "billing.revenueByCategory": "Revenue by Category",
+ "billing.paymentMethods": "Payment Methods",
+ "billing.aging": "Aging",
+ "billing.agingDescription": "Outstanding invoices grouped by age",
+ "billing.totalOutstanding": "Total Outstanding",
+ "billing.noOutstanding": "No outstanding invoices",
+ "billing.topServices": "Top Services by Revenue",
+ "billing.pendingInvoices": "pending invoices",
+ "billing.revenueBySourceDesc": "GL-sourced breakdown of revenue by service category",
   "billing.addPaymentMethod": "Add Another Method",
 
   // Department P&L
