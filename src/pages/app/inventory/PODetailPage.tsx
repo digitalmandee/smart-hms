@@ -44,7 +44,6 @@ import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { usePrint } from "@/hooks/usePrint";
 import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
-import { useMemo } from "react";
 
 export default function PODetailPage() {
   const navigate = useNavigate();
@@ -88,6 +87,16 @@ export default function PODetailPage() {
   const canMarkOrdered = po.status === "approved";
   const canReceive = ["ordered", "partially_received"].includes(po.status);
   const canCancel = ["draft", "pending_approval", "approved"].includes(po.status);
+
+  // Fulfillment summary
+  const fulfillment = (() => {
+    const items = po.items || [];
+    const totalOrdered = items.reduce((s, i) => s + (i.quantity || 0), 0);
+    const totalReceived = items.reduce((s, i) => s + (i.received_quantity || 0), 0);
+    const pendingItems = items.filter(i => (i.received_quantity || 0) < i.quantity).length;
+    const pct = totalOrdered > 0 ? Math.round((totalReceived / totalOrdered) * 100) : 0;
+    return { totalOrdered, totalReceived, pendingItems, pct, totalItems: items.length };
+  })();
 
   return (
     <div className="space-y-6">
