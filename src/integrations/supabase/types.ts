@@ -12636,6 +12636,8 @@ export type Database = {
           discount_amount: number | null
           doctor_id: string | null
           id: string
+          insurance_amount: number | null
+          insurance_id: string | null
           invoice_date: string | null
           invoice_number: string
           notes: string | null
@@ -12669,6 +12671,8 @@ export type Database = {
           discount_amount?: number | null
           doctor_id?: string | null
           id?: string
+          insurance_amount?: number | null
+          insurance_id?: string | null
           invoice_date?: string | null
           invoice_number: string
           notes?: string | null
@@ -12702,6 +12706,8 @@ export type Database = {
           discount_amount?: number | null
           doctor_id?: string | null
           id?: string
+          insurance_amount?: number | null
+          insurance_id?: string | null
           invoice_date?: string | null
           invoice_number?: string
           notes?: string | null
@@ -12758,6 +12764,13 @@ export type Database = {
             columns: ["doctor_id"]
             isOneToOne: false
             referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "invoices_insurance_id_fkey"
+            columns: ["insurance_id"]
+            isOneToOne: false
+            referencedRelation: "insurance_companies"
             referencedColumns: ["id"]
           },
           {
