@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { format } from "date-fns";
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -13,6 +14,7 @@ import { formatCurrency } from "@/lib/currency";
 import { exportToCSV, formatCurrency as exportFmtCurrency } from "@/lib/exportUtils";
 
 export default function BalanceSheetPage() {
+  const navigate = useNavigate();
   const [asOfDate, setAsOfDate] = useState<Date>(new Date());
   
   const { data: balanceSheet, isLoading } = useBalanceSheet(format(asOfDate, 'yyyy-MM-dd'));
@@ -33,8 +35,12 @@ export default function BalanceSheetPage() {
         </h4>
         <div className="space-y-1">
           {accounts.map((account) => (
-            <div key={account.id} className="flex justify-between py-1 text-sm">
-              <span className="text-muted-foreground">{account.name}</span>
+            <div
+              key={account.id}
+              className="flex justify-between py-1 text-sm cursor-pointer hover:bg-muted/50 rounded px-2 -mx-2"
+              onClick={() => navigate(`/app/accounts/general-ledger?accountId=${account.id}`)}
+            >
+              <span className="text-muted-foreground hover:text-foreground">{account.name}</span>
               <span>{formatCurrency(account.balance || 0)}</span>
             </div>
           ))}
