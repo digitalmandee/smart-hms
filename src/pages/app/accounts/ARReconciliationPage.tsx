@@ -36,7 +36,7 @@ function useRevenueReconciliation() {
   return useQuery<RevenueReconResult | null>({
     queryKey: ["revenue-reconciliation", profile?.organization_id],
     queryFn: async (): Promise<RevenueReconResult | null> => {
-      if (!profile?.organization_id) return [];
+      if (!profile?.organization_id) return null;
 
       // 1. Get invoice totals by status (exclude cancelled)
       const { data: invoices, error: invErr } = await supabase

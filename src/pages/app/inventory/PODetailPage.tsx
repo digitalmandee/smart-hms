@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { 
   ArrowLeft, Printer, Edit, CheckCircle, XCircle, Send, 
-  PackageCheck, Loader2, Package, AlertCircle
+  PackageCheck, Loader2
 } from "lucide-react";
 import { 
   usePurchaseOrder, 
@@ -40,7 +40,6 @@ import { PrintablePO } from "@/components/inventory/PrintablePO";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Progress } from "@/components/ui/progress";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { usePrint } from "@/hooks/usePrint";
