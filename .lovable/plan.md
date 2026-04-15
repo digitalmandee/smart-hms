@@ -1,88 +1,94 @@
 
 
-# Reports Breakdown & Shortcomings Analysis
+# Accounting System — Current State Audit & Remaining Shortcomings
 
-## What's Working Well
+## Live Database Findings
 
-| Report | GL-Sourced | Drill-Down | Export | Filters |
-|--------|-----------|------------|--------|---------|
-| Revenue Drill-Down | Yes (GL) | GL → Invoice → Items (clickable to invoice detail) | CSV/PDF | Account, Date, Doctor, Department |
-| Department P&L | Yes (GL) | Department → Transaction list with search | CSV/PDF | Period preset, Branch, Custom dates |
-| Department Revenue | Yes (GL) | Department → Invoice list | CSV/PDF | Date, Branch, Department |
-| Trial Balance | Yes (GL) | Account-level balances | CSV | Date range |
-| P&L Statement | Yes (GL) | Account-level with period comparison | CSV | Date range, Compare toggle |
-| General Ledger | Yes (GL) | Source document badges (clickable) | Yes | Account, Date |
-| AR Reconciliation | Yes (GL) | Revenue recon tab added | Yes | - |
-| Receivables/Aging | Yes | Invoice-level with Pay/Write-off actions | Yes | Aging buckets |
+I queried the production database and found the following:
 
-## Identified Shortcomings (8 Issues)
-
-### Issue 1 — CRITICAL: `BillingReportsPage` Revenue by Category Sources from `invoice_items`, NOT GL
-`useRevenueByCategory()` (line 1139 of `useBilling.ts`) queries `invoice_items` directly. This can diverge from GL if triggers failed or invoices were cancelled. Same problem with `useTopServices`.
-
-### Issue 2 — CRITICAL: `RevenueBySourcePage` Sources from `invoice_items`, NOT GL
-Queries `invoice_items` with service_type join — completely bypasses the General Ledger. Totals here won't match P&L or Trial Balance.
-
-### Issue 3 — HIGH: No Clickable Drill-Down on BillingReportsPage Charts
-The pie charts for "Revenue by Category" and "Payment Methods" are static visualizations. Clicking a pie slice (e.g., "Lab") doesn't navigate to a filtered invoice list. Only the aging section at the bottom has clickable invoices.
-
-### Issue 4 — HIGH: Department Revenue Detail Table Limits to 100 Invoices
-`useDepartmentRevenueDetails` line 196: `.in("id", invoiceIds.slice(0, 100))` — silently truncates results for high-volume departments.
-
-### Issue 5 — HIGH: Balance Sheet Has No Drill-Down
-`BalanceSheetPage` renders flat account balances with no ability to click an account and see its transactions/journal entries.
-
-### Issue 6 — HIGH: P&L Statement Has No Account-Level Drill-Down
-Shows grouped totals per account but clicking an account doesn't navigate to the General Ledger filtered for that account.
-
-### Issue 7 — MEDIUM: No Doctor-Wise Revenue Report (Standalone)
-Revenue Drill-Down supports doctor filtering, but there's no dedicated "Doctor Revenue Summary" showing all doctors ranked by revenue with drill-down to their invoices.
-
-### Issue 8 — MEDIUM: BillingReportsPage Not Translated
-Hardcoded English strings: "Total Revenue", "Outstanding", "Collection Rate", "Daily Collections", etc. Not using `useTranslation()`.
+### What's Working Perfectly
+- **Zero imbalanced journals**: All 418 journal entries across 10 reference types have DR = CR (zero imbalance)
+- **100% invoice coverage**: 143/144 active invoices have journal entries (2 missing are zero-amount IPD invoices — correct to skip)
+- **Account balances correct**: The `update_account_balance` trigger properly applies `opening_balance + normal-side GL activity`. All account `current_balance` values match their GL-computed balances
+- **Full trigger coverage**: invoice, payment, expense, POS, GRN, vendor payment, deposit, credit note, donation, payroll, surgery — all auto-post to GL
+- **Cancellation reversal**: Trigger exists and is active
+- **Year-End Closing, Recurring Entries, PDC Register**: All implemented and routed
 
 ---
 
-## Fix Plan
+## Remaining Shortcomings (5 Issues Found)
 
-### Fix 1: Migrate `useRevenueByCategory` to GL source
-- Edit `useBilling.ts` — rewrite `useRevenueByCategory()` to query `journal_entry_lines` with revenue account category, grouped by account name/number (same pattern as `useDepartmentRevenue`)
+### ISSUE 1 — CRITICAL: Active Invoice Trigger Checks for Invalid Status `issued`
 
-### Fix 2: Migrate `RevenueBySourcePage` to GL source
-- Edit `RevenueBySourcePage.tsx` — replace `invoice_items` query with GL-sourced data from `useDepartmentRevenue` hook (reuse existing)
+The currently active `post_invoice_to_journal()` (Phase 4-5 version) filters:
+```sql
+IF NEW.status NOT IN ('issued', 'paid', 'partially_paid') THEN RETURN NEW;
+```
+But `issued` is NOT a valid invoice status. Valid statuses are: `pending`, `paid`, `partially_paid`, `cancelled`.
 
-### Fix 3: Add clickable drill-down on BillingReportsPage
-- Make pie chart slices clickable → navigate to Department Revenue Report filtered by that category
-- Add click handlers on "Revenue by Category" and "Payment Methods" charts
+**Impact**: Invoices created with status `pending` get NO journal entry until they change to `paid`. This breaks accrual accounting — AR and revenue should be recognized at invoice creation.
 
-### Fix 4: Remove 100-invoice limit in `useDepartmentRevenueDetails`
-- Edit `useDepartmentRevenue.ts` — batch invoice lookups (500 per batch) instead of slicing to 100
+**Fix**: Change `'issued'` to `'pending'` in the status check.
 
-### Fix 5: Add Balance Sheet drill-down
-- Make each account row clickable → navigate to `/app/accounts/general-ledger?accountId={id}`
+### ISSUE 2 — CRITICAL: Insurance AR Split is Dead Code
 
-### Fix 6: Add P&L drill-down
-- Make each account line clickable → navigate to General Ledger filtered by that account and date range
+The trigger references `NEW.insurance_id` and `NEW.insurance_amount`, but these columns do NOT exist on the `invoices` table. Confirmed via schema query — only `discount_amount`, `subtotal`, `tax_amount` exist.
 
-### Fix 7: (Skip — Revenue Drill-Down already covers doctor filtering adequately)
+**Impact**: The entire insurance receivable split (DR AR-001 patient portion, DR AR-INS-001 insurance portion) never fires. All invoices post to AR-001 only.
 
-### Fix 8: Translate BillingReportsPage
-- Add translation keys to `en.ts`, `ar.ts`, `ur.ts`
-- Replace all hardcoded strings in `BillingReportsPage.tsx`
+**Fix**: Add `insurance_id` (FK to insurance_plans or patient_insurance) and `insurance_amount` columns to invoices. Populate during invoice creation for insured patients.
+
+### ISSUE 3 — HIGH: Traceability Columns Not Backfilled
+
+Database shows:
+- **0/144** invoices have `doctor_id`
+- **0/144** invoices have `department`  
+- **0/144** invoices have `admission_id`
+- **33/144** invoices have `appointment_id` (backfilled from appointments table)
+
+The code changes to populate these only affect NEW invoices. All historical data has no traceability linkage.
+
+**Fix**: Write a backfill migration that:
+1. Populates `doctor_id` from `invoice_items.doctor_id` (first non-null)
+2. Populates `admission_id` from linked IPD invoices (prefix `IPD-`)
+3. Populates `department` from invoice prefix or service_type category
+
+### ISSUE 4 — MEDIUM: Missing Default Accounts Not Pre-Created
+
+`DISC-001` (Discounts Allowed), `AR-INS-001` (Insurance Receivables), and `BAD-DEBT-001` (Bad Debt Expense) are not pre-seeded. They rely on `get_or_create_default_account()` at trigger runtime, which works but means:
+- No account exists until the first transaction that needs it
+- Account type assignment depends on the fallback parameter which may not match the CoA structure
+
+**Fix**: Pre-create these accounts in each organization's CoA via migration.
+
+### ISSUE 5 — LOW: Historical Journals Lack Tax/Discount Granularity
+
+All 143 existing invoice journals were posted as 2-line entries (DR AR, CR Revenue) under the old trigger. None have separate Tax Payable or Discount Allowed lines, even if tax/discount amounts existed.
+
+**Fix**: Optional retroactive re-posting script that deletes old journal + lines and re-fires the trigger. Low priority since existing data appears to have zero tax/discount amounts.
 
 ---
+
+## Implementation Plan
+
+### Migration 1: Fix trigger + add insurance columns + backfill
+1. Fix `post_invoice_to_journal()` — change `'issued'` to `'pending'`
+2. Add `insurance_id UUID` and `insurance_amount NUMERIC` to invoices
+3. Backfill `doctor_id` from invoice_items
+4. Backfill `department` from invoice prefix mapping
+5. Backfill `admission_id` from admissions table matching
+6. Pre-create DISC-001, AR-INS-001, BAD-DEBT-001 accounts for all organizations
+
+### Code Changes
+1. Update `useBilling.ts` — populate `insurance_id` and `insurance_amount` during invoice creation when patient has insurance
+2. Update invoice form to pass insurance details
 
 ## File Summary
 
 | File | Change |
 |------|--------|
-| `src/hooks/useBilling.ts` | Rewrite `useRevenueByCategory` to GL source |
-| `src/pages/app/accounts/RevenueBySourcePage.tsx` | Reuse `useDepartmentRevenue` instead of raw `invoice_items` |
-| `src/pages/app/billing/BillingReportsPage.tsx` | Add chart click handlers + translate all strings |
-| `src/hooks/useDepartmentRevenue.ts` | Remove 100-row invoice limit, batch to 500 |
-| `src/pages/app/accounts/BalanceSheetPage.tsx` | Make account rows clickable → GL |
-| `src/pages/app/accounts/ProfitLossPage.tsx` | Make account lines clickable → GL |
-| `src/lib/i18n/translations/{en,ar,ur}.ts` | Add billing report translation keys |
+| Migration (new) | Fix trigger status, add columns, backfill traceability, seed accounts |
+| `src/hooks/useBilling.ts` | Populate insurance_id/insurance_amount on invoice creation |
 
-**Total: 0 migrations, 0 new files, ~8 file edits**
+**Total: 1 migration, 1 file edit**
 
