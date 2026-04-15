@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, RefreshCw, Users, Building2, Clock, AlertTriangle, FileText, Ban } from "lucide-react";
+import { Search, RefreshCw, Users, Building2, Clock, AlertTriangle, FileText, Ban, Trash2 } from "lucide-react";
 import { formatCurrency as exportFmtCurrency } from "@/lib/exportUtils";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart as RPieChart, Pie } from "recharts";
 import { useTranslation } from "@/lib/i18n";
@@ -17,8 +17,12 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { ReportExportButton } from "@/components/reports/ReportExportButton";
 import { useAgingReport } from "@/hooks/useAgingReport";
+import { useWriteOff } from "@/hooks/useWriteOff";
 import { format } from "date-fns";
 import { formatCurrencyFull as formatCurrency } from "@/lib/currency";
 
