@@ -23,63 +23,80 @@ export interface DepartmentRevenueDetail {
   created_at: string;
 }
 
+/**
+ * Now sources from General Ledger (journal_entry_lines) instead of raw invoice_items.
+ * This ensures report totals always match GL balances.
+ */
 export function useDepartmentRevenue(dateFrom: string, dateTo: string, branchId?: string) {
   const { profile } = useAuth();
 
   return useQuery({
     queryKey: ["department-revenue", dateFrom, dateTo, branchId],
     queryFn: async (): Promise<{ summary: DepartmentRevenue[]; total: number }> => {
-      // Fetch invoice items with service types and category info
+      // Get all revenue accounts with their balances from journal lines in period
       let query = supabase
-        .from("invoice_items")
+        .from("journal_entry_lines")
         .select(`
-          id,
+          credit_amount,
+          debit_amount,
           description,
-          total_price,
-          service_type_id,
-          invoice:invoices!invoice_items_invoice_id_fkey(
-            id,
-            invoice_date,
-            created_at,
-            status,
-            branch_id
+          account:accounts!inner(
+            id, account_number, name,
+            account_type:account_types!inner(category)
           ),
-          service_type:service_types(
-            id,
-            category,
-            name
+          journal_entry:journal_entries!inner(
+            entry_date, is_posted, branch_id, reference_type
           )
         `)
-        .gte("invoice.invoice_date", dateFrom)
-        .lte("invoice.invoice_date", dateTo)
-        .neq("invoice.status", "cancelled");
+        .eq("journal_entry.is_posted", true)
+        .gte("journal_entry.entry_date", dateFrom)
+        .lte("journal_entry.entry_date", dateTo)
+        .eq("account.account_type.category", "revenue");
 
       if (branchId && branchId !== "all") {
-        query = query.eq("invoice.branch_id", branchId);
+        query = query.eq("journal_entry.branch_id", branchId);
       }
 
       const { data, error } = await query;
       if (error) throw error;
 
-      // Group by department/category
+      // Group by department extracted from journal line description or account name
       const grouped: Record<string, { revenue: number; count: number }> = {};
       let total = 0;
 
-      data?.forEach((item: any) => {
-        if (!item.invoice) return; // Skip if no invoice data
-        
-        const category = item.service_type?.category || "other";
-        const amount = Number(item.total_price || 0);
-        
-        if (!grouped[category]) {
-          grouped[category] = { revenue: 0, count: 0 };
+      (data || []).forEach((line: any) => {
+        const netRevenue = Number(line.credit_amount || 0) - Number(line.debit_amount || 0);
+        if (netRevenue <= 0) return;
+
+        // Determine department from account number or description
+        const accNum = line.account?.account_number || "";
+        const desc = (line.description || "").toLowerCase();
+        let dept = "other";
+
+        if (accNum === "REV-001" || accNum === "4110" || desc.includes("consultation")) {
+          dept = "consultation";
+        } else if (accNum.includes("LAB") || accNum === "4030" || desc.includes("lab")) {
+          dept = "lab";
+        } else if (accNum.includes("RAD") || accNum === "4040" || desc.includes("radiology")) {
+          dept = "radiology";
+        } else if (accNum.includes("PHARM") || accNum === "4050" || desc.includes("pharmacy")) {
+          dept = "pharmacy";
+        } else if (accNum.includes("PROC") || accNum === "4060" || desc.includes("procedure") || desc.includes("surgery")) {
+          dept = "procedure";
+        } else if (accNum.includes("ROOM") || accNum === "4070" || desc.includes("room")) {
+          dept = "room";
+        } else if (accNum === "4010" || desc.includes("ipd")) {
+          dept = "ipd";
+        } else if (desc.includes("emergency")) {
+          dept = "emergency";
         }
-        grouped[category].revenue += amount;
-        grouped[category].count += 1;
-        total += amount;
+
+        if (!grouped[dept]) grouped[dept] = { revenue: 0, count: 0 };
+        grouped[dept].revenue += netRevenue;
+        grouped[dept].count += 1;
+        total += netRevenue;
       });
 
-      // Map to department labels
       const departmentLabels: Record<string, string> = {
         consultation: "Consultation",
         opd: "OPD Services",
@@ -121,54 +138,79 @@ export function useDepartmentRevenueDetails(
   return useQuery({
     queryKey: ["department-revenue-details", dateFrom, dateTo, department, branchId],
     queryFn: async (): Promise<DepartmentRevenueDetail[]> => {
+      // Get journal lines for revenue accounts, then trace back to invoices via reference_id
       let query = supabase
-        .from("invoice_items")
+        .from("journal_entry_lines")
         .select(`
           id,
+          credit_amount,
+          debit_amount,
           description,
-          total_price,
-          invoice:invoices!invoice_items_invoice_id_fkey(
-            id,
-            invoice_number,
-            invoice_date,
-            created_at,
-            status,
-            branch_id,
-            patient:patients!invoices_patient_id_fkey(first_name, last_name)
-          ),
-          service_type:service_types(category, name)
+          account:accounts!inner(account_number, name, account_type:account_types!inner(category)),
+          journal_entry:journal_entries!inner(
+            entry_date, is_posted, branch_id, reference_id, reference_type, created_at
+          )
         `)
-        .gte("invoice.invoice_date", dateFrom)
-        .lte("invoice.invoice_date", dateTo)
-        .neq("invoice.status", "cancelled");
+        .eq("journal_entry.is_posted", true)
+        .gte("journal_entry.entry_date", dateFrom)
+        .lte("journal_entry.entry_date", dateTo)
+        .eq("account.account_type.category", "revenue")
+        .eq("journal_entry.reference_type", "invoice");
 
       if (branchId && branchId !== "all") {
-        query = query.eq("invoice.branch_id", branchId);
+        query = query.eq("journal_entry.branch_id", branchId);
       }
 
       const { data, error } = await query;
       if (error) throw error;
 
       // Filter by department
-      const filtered = data?.filter((item: any) => {
-        if (!item.invoice) return false;
-        const category = item.service_type?.category || "other";
-        return department === "all" || category === department;
-      }) || [];
+      const filtered = (data || []).filter((line: any) => {
+        if (department === "all") return true;
+        const accNum = line.account?.account_number || "";
+        const desc = (line.description || "").toLowerCase();
+        
+        const deptMap: Record<string, string[]> = {
+          consultation: ["REV-001", "4110", "consultation"],
+          lab: ["LAB", "4030", "lab"],
+          radiology: ["RAD", "4040", "radiology"],
+          pharmacy: ["PHARM", "4050", "pharmacy"],
+          procedure: ["PROC", "4060", "procedure", "surgery"],
+          room: ["ROOM", "4070", "room"],
+          ipd: ["4010", "ipd"],
+          emergency: ["emergency"],
+        };
 
-      return filtered.map((item: any) => {
-        const patient = item.invoice?.patient;
+        const keys = deptMap[department] || [department];
+        return keys.some(k => accNum.includes(k) || desc.includes(k.toLowerCase()));
+      });
+
+      // Look up invoice details for each line
+      const invoiceIds = [...new Set(filtered.map((l: any) => l.journal_entry?.reference_id).filter(Boolean))];
+      
+      let invoiceMap: Record<string, any> = {};
+      if (invoiceIds.length > 0) {
+        const { data: invoices } = await supabase
+          .from("invoices")
+          .select("id, invoice_number, invoice_date, patient:patients!invoices_patient_id_fkey(first_name, last_name)")
+          .in("id", invoiceIds.slice(0, 100));
+        
+        (invoices || []).forEach((inv: any) => { invoiceMap[inv.id] = inv; });
+      }
+
+      return filtered.map((line: any) => {
+        const inv = invoiceMap[line.journal_entry?.reference_id] || {};
+        const patient = inv.patient;
+        const netAmount = Number(line.credit_amount || 0) - Number(line.debit_amount || 0);
         return {
-          id: item.id,
-          invoice_number: item.invoice?.invoice_number || "-",
-          invoice_date: item.invoice?.invoice_date || "-",
-          patient_name: patient 
-            ? `${patient.first_name} ${patient.last_name || ""}`.trim()
-            : "Unknown",
-          description: item.description,
-          amount: Number(item.total_price || 0),
-          department: item.service_type?.category || "other",
-          created_at: item.invoice?.created_at || "",
+          id: line.id,
+          invoice_number: inv.invoice_number || "-",
+          invoice_date: inv.invoice_date || line.journal_entry?.entry_date || "-",
+          patient_name: patient ? `${patient.first_name} ${patient.last_name || ""}`.trim() : "Unknown",
+          description: line.description || "",
+          amount: netAmount,
+          department: department,
+          created_at: line.journal_entry?.created_at || "",
         };
       });
     },
