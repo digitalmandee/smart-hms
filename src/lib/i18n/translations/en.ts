@@ -3690,7 +3690,7 @@ export const en = {
  "billing.totalOutstanding": "Total Outstanding",
  "billing.noOutstanding": "No outstanding invoices",
  "billing.topServices": "Top Services by Revenue",
- "billing.pendingInvoices": "pending invoices",
+ "billing.pendingInvoicesCount": "pending invoices",
  "billing.revenueBySourceDesc": "GL-sourced breakdown of revenue by service category",
   "billing.addPaymentMethod": "Add Another Method",
 
