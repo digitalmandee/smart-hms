@@ -179,6 +179,10 @@ export function useCreateInvoice() {
       discountAmount = 0,
       taxAmount = 0,
       status = "pending",
+      doctorId,
+      admissionId,
+      appointmentId,
+      department,
     }: {
       patientId: string;
       branchId: string;
@@ -187,6 +191,10 @@ export function useCreateInvoice() {
       discountAmount?: number;
       taxAmount?: number;
       status?: InvoiceStatus;
+      doctorId?: string;
+      admissionId?: string;
+      appointmentId?: string;
+      department?: string;
     }) => {
       if (!profile?.organization_id) throw new Error("No organization");
 
@@ -219,6 +227,10 @@ export function useCreateInvoice() {
           status,
           notes,
           created_by: profile.id,
+          ...(doctorId && { doctor_id: doctorId }),
+          ...(admissionId && { admission_id: admissionId }),
+          ...(appointmentId && { appointment_id: appointmentId }),
+          ...(department && { department }),
         })
         .select()
         .single();

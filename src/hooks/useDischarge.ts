@@ -508,7 +508,9 @@ export const useGenerateIPDInvoice = () => {
           status: applyAmount >= totalAmount ? "paid" : "pending",
           notes: `IPD Invoice for Admission - ${daysAdmitted} day(s) stay`,
           created_by: profile.id,
-        })
+          admission_id: admissionId,
+          department: 'ipd',
+        } as any)
         .select()
         .single();
 
