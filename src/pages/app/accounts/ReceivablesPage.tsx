@@ -326,16 +326,31 @@ export default function ReceivablesPage() {
                           <Button variant="ghost" size="sm" onClick={() => navigate(`/app/billing/invoices/${inv.id}`)}>View</Button>
                           <Button variant="ghost" size="sm" onClick={() => navigate(`/app/billing/invoices/${inv.id}/pay`)}>Collect</Button>
                           {inv.aging_bucket === "90+ Days" && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => navigate(`/app/billing/patient-statement/${inv.patient_id || ''}`)}
-                              title="View patient statement"
-                            >
-                              <Ban className="h-3 w-3 mr-1" />
-                              Statement
-                            </Button>
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => navigate(`/app/billing/patient-statement/${inv.patient_id || ''}`)}
+                                title="View patient statement"
+                              >
+                                <Ban className="h-3 w-3 mr-1" />
+                                Statement
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => {
+                                  setWriteOffTarget({ id: inv.id, patient_name: inv.patient_name, outstanding: inv.outstanding });
+                                  setWriteOffReason("");
+                                }}
+                                title={t("aging.writeOff" as any, "Write Off")}
+                              >
+                                <Trash2 className="h-3 w-3 mr-1" />
+                                {t("aging.writeOff" as any, "Write Off")}
+                              </Button>
+                            </>
                           )}
                         </TableCell>
                       </TableRow>
