@@ -4112,6 +4112,28 @@ export const ur: Record<TranslationKey, string> = {
   "finance.bounce": "واپسی",
   "finance.noPDCs": "کوئی پوسٹ ڈیٹڈ چیک رجسٹرڈ نہیں",
 
+  "recon.revenueRecon": "آمدنی کی مطابقت",
+  "recon.revenueReconDesc": "انوائس ٹوٹل کا جنرل لیجر آمدنی اکاؤنٹس بیلنس سے موازنہ",
+  "recon.invoiceTotal": "انوائس ٹوٹل",
+  "recon.glTotal": "جی ایل ٹوٹل",
+  "recon.revenueVariance": "آمدنی فرق",
+
+  "aging.writeOff": "رائٹ آف",
+  "aging.writeOffTitle": "ناقابل وصول قرض رائٹ آف",
+  "aging.writeOffDesc": "جرنل انٹری پوسٹ ہوگی: ڈیبٹ نقصان اکاؤنٹ، کریڈٹ قابل وصول اکاؤنٹ",
+  "aging.writeOffReason": "رائٹ آف کی وجہ",
+  "aging.writeOffAmount": "رائٹ آف رقم",
+  "aging.writeOffConfirm": "رائٹ آف پوسٹ کریں",
+  "aging.writeOffSuccess": "رائٹ آف کامیابی سے پوسٹ ہو گیا",
+
+  "po.fulfillmentStatus": "تکمیل کی حالت",
+  "po.totalOrdered": "کل آرڈر",
+  "po.totalReceived": "کل موصول",
+  "po.pendingItems": "زیر التوا آئٹمز",
+  "po.fullyReceived": "مکمل موصول",
+  "po.partiallyReceived": "جزوی موصول",
+  "po.nothingReceived": "کچھ موصول نہیں",
+
 };
 
 

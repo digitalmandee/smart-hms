@@ -4112,6 +4112,28 @@ export const ar: Record<TranslationKey, string> = {
   "finance.bounce": "ارتجاع",
   "finance.noPDCs": "لا توجد شيكات مؤجلة مسجلة",
 
+  "recon.revenueRecon": "مطابقة الإيرادات",
+  "recon.revenueReconDesc": "مقارنة إجمالي الفواتير مع أرصدة حسابات الإيرادات في دفتر الأستاذ",
+  "recon.invoiceTotal": "إجمالي الفواتير",
+  "recon.glTotal": "إجمالي دفتر الأستاذ",
+  "recon.revenueVariance": "فرق الإيرادات",
+
+  "aging.writeOff": "شطب",
+  "aging.writeOffTitle": "شطب ديون معدومة",
+  "aging.writeOffDesc": "سيتم ترحيل قيد: مدين حساب الديون المعدومة، دائن حساب المدينين",
+  "aging.writeOffReason": "سبب الشطب",
+  "aging.writeOffAmount": "مبلغ الشطب",
+  "aging.writeOffConfirm": "ترحيل الشطب",
+  "aging.writeOffSuccess": "تم ترحيل الشطب بنجاح",
+
+  "po.fulfillmentStatus": "حالة التنفيذ",
+  "po.totalOrdered": "إجمالي المطلوب",
+  "po.totalReceived": "إجمالي المستلم",
+  "po.pendingItems": "أصناف معلقة",
+  "po.fullyReceived": "مستلم بالكامل",
+  "po.partiallyReceived": "مستلم جزئياً",
+  "po.nothingReceived": "لم يتم الاستلام",
+
 };
 
 
