@@ -1,6 +1,6 @@
 import { useState, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { Search, RefreshCw, Users, Building2, Clock, AlertTriangle, FileText, Ban } from "lucide-react";
+import { Search, RefreshCw, Users, Building2, Clock, AlertTriangle, FileText, Ban, Trash2 } from "lucide-react";
 import { formatCurrency as exportFmtCurrency } from "@/lib/exportUtils";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell, PieChart as RPieChart, Pie } from "recharts";
 import { useTranslation } from "@/lib/i18n";
@@ -17,8 +17,12 @@ import {
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import { ReportExportButton } from "@/components/reports/ReportExportButton";
 import { useAgingReport } from "@/hooks/useAgingReport";
+import { useWriteOff } from "@/hooks/useWriteOff";
 import { format } from "date-fns";
 import { formatCurrencyFull as formatCurrency } from "@/lib/currency";
 
@@ -43,8 +47,11 @@ export default function ReceivablesPage() {
   const [agingFilter, setAgingFilter] = useState("all");
   const [insurerFilter, setInsurerFilter] = useState("all");
   const [claimStatusFilter, setClaimStatusFilter] = useState("all");
+  const [writeOffTarget, setWriteOffTarget] = useState<{ id: string; patient_name: string; outstanding: number } | null>(null);
+  const [writeOffReason, setWriteOffReason] = useState("");
 
   const { data, isLoading, refetch } = useAgingReport();
+  const writeOffMutation = useWriteOff();
 
   const arInvoices = data?.arInvoices || [];
   const insuranceClaims = data?.insuranceClaims || [];
@@ -319,16 +326,31 @@ export default function ReceivablesPage() {
                           <Button variant="ghost" size="sm" onClick={() => navigate(`/app/billing/invoices/${inv.id}`)}>View</Button>
                           <Button variant="ghost" size="sm" onClick={() => navigate(`/app/billing/invoices/${inv.id}/pay`)}>Collect</Button>
                           {inv.aging_bucket === "90+ Days" && (
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              className="text-destructive hover:text-destructive"
-                              onClick={() => navigate(`/app/billing/patient-statement/${inv.patient_id || ''}`)}
-                              title="View patient statement"
-                            >
-                              <Ban className="h-3 w-3 mr-1" />
-                              Statement
-                            </Button>
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => navigate(`/app/billing/patient-statement/${inv.patient_id || ''}`)}
+                                title="View patient statement"
+                              >
+                                <Ban className="h-3 w-3 mr-1" />
+                                Statement
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                className="text-destructive hover:text-destructive"
+                                onClick={() => {
+                                  setWriteOffTarget({ id: inv.id, patient_name: inv.patient_name, outstanding: inv.outstanding });
+                                  setWriteOffReason("");
+                                }}
+                                title={t("aging.writeOff" as any, "Write Off")}
+                              >
+                                <Trash2 className="h-3 w-3 mr-1" />
+                                {t("aging.writeOff" as any, "Write Off")}
+                              </Button>
+                            </>
                           )}
                         </TableCell>
                       </TableRow>
@@ -520,6 +542,63 @@ export default function ReceivablesPage() {
           </Card>
         </TabsContent>
       </Tabs>
+
+      {/* Write-Off Dialog */}
+      <Dialog open={!!writeOffTarget} onOpenChange={(open) => { if (!open) setWriteOffTarget(null); }}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>{t("aging.writeOffTitle" as any, "Write Off Bad Debt")}</DialogTitle>
+            <DialogDescription>
+              {t("aging.writeOffDesc" as any, "This will post a journal entry: DR Bad Debt Expense, CR Accounts Receivable")}
+            </DialogDescription>
+          </DialogHeader>
+          {writeOffTarget && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-4 p-3 bg-muted rounded-md">
+                <div>
+                  <p className="text-sm text-muted-foreground">{t("aging.patient" as any, "Patient")}</p>
+                  <p className="font-medium">{writeOffTarget.patient_name}</p>
+                </div>
+                <div>
+                  <p className="text-sm text-muted-foreground">{t("aging.writeOffAmount" as any, "Amount")}</p>
+                  <p className="font-bold text-destructive">{formatCurrency(writeOffTarget.outstanding)}</p>
+                </div>
+              </div>
+              <div>
+                <Label>{t("aging.writeOffReason" as any, "Write-off Reason")}</Label>
+                <Textarea
+                  value={writeOffReason}
+                  onChange={(e) => setWriteOffReason(e.target.value)}
+                  placeholder="Enter reason for write-off..."
+                  rows={3}
+                />
+              </div>
+            </div>
+          )}
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setWriteOffTarget(null)}>
+              {t("common.cancel")}
+            </Button>
+            <Button
+              variant="destructive"
+              disabled={!writeOffReason.trim() || writeOffMutation.isPending}
+              onClick={() => {
+                if (!writeOffTarget) return;
+                writeOffMutation.mutate({
+                  invoiceId: writeOffTarget.id,
+                  patientName: writeOffTarget.patient_name,
+                  amount: writeOffTarget.outstanding,
+                  reason: writeOffReason,
+                }, {
+                  onSuccess: () => setWriteOffTarget(null),
+                });
+              }}
+            >
+              {writeOffMutation.isPending ? t("common.loading") : t("aging.writeOffConfirm" as any, "Post Write-Off")}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }

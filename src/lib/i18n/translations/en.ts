@@ -4202,6 +4202,31 @@ export const en = {
   "finance.bounce": "Bounce",
   "finance.noPDCs": "No post-dated cheques registered",
 
+  // Revenue Reconciliation
+  "recon.revenueRecon": "Revenue Reconciliation",
+  "recon.revenueReconDesc": "Compare invoice totals vs GL revenue account balances",
+  "recon.invoiceTotal": "Invoice Total",
+  "recon.glTotal": "GL Total",
+  "recon.revenueVariance": "Revenue Variance",
+
+  // Write-Off
+  "aging.writeOff": "Write Off",
+  "aging.writeOffTitle": "Write Off Bad Debt",
+  "aging.writeOffDesc": "This will post a journal entry: DR Bad Debt Expense, CR Accounts Receivable",
+  "aging.writeOffReason": "Write-off Reason",
+  "aging.writeOffAmount": "Amount to Write Off",
+  "aging.writeOffConfirm": "Post Write-Off",
+  "aging.writeOffSuccess": "Write-off posted successfully",
+
+  // PO Fulfillment
+  "po.fulfillmentStatus": "Fulfillment Status",
+  "po.totalOrdered": "Total Ordered",
+  "po.totalReceived": "Total Received",
+  "po.pendingItems": "Pending Items",
+  "po.fullyReceived": "Fully Received",
+  "po.partiallyReceived": "Partially Received",
+  "po.nothingReceived": "Nothing Received",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

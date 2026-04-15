@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { 
   ArrowLeft, Printer, Edit, CheckCircle, XCircle, Send, 
-  PackageCheck, Loader2 
+  PackageCheck, Loader2
 } from "lucide-react";
 import { 
   usePurchaseOrder, 
@@ -39,6 +39,7 @@ import { POStatusBadge } from "@/components/inventory/POStatusBadge";
 import { PrintablePO } from "@/components/inventory/PrintablePO";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { usePrint } from "@/hooks/usePrint";
@@ -86,6 +87,16 @@ export default function PODetailPage() {
   const canMarkOrdered = po.status === "approved";
   const canReceive = ["ordered", "partially_received"].includes(po.status);
   const canCancel = ["draft", "pending_approval", "approved"].includes(po.status);
+
+  // Fulfillment summary
+  const fulfillment = (() => {
+    const items = po.items || [];
+    const totalOrdered = items.reduce((s, i) => s + (i.quantity || 0), 0);
+    const totalReceived = items.reduce((s, i) => s + (i.received_quantity || 0), 0);
+    const pendingItems = items.filter(i => (i.received_quantity || 0) < i.quantity).length;
+    const pct = totalOrdered > 0 ? Math.round((totalReceived / totalOrdered) * 100) : 0;
+    return { totalOrdered, totalReceived, pendingItems, pct, totalItems: items.length };
+  })();
 
   return (
     <div className="space-y-6">
@@ -190,6 +201,40 @@ export default function PODetailPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Fulfillment Status */}
+      {["ordered", "partially_received", "received", "completed"].includes(po.status) && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Fulfillment Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Ordered</p>
+                <p className="text-xl font-bold">{fulfillment.totalOrdered}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Received</p>
+                <p className="text-xl font-bold text-green-600">{fulfillment.totalReceived}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Pending Items</p>
+                <p className="text-xl font-bold text-amber-600">{fulfillment.pendingItems} / {fulfillment.totalItems}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Fulfillment</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xl font-bold">{fulfillment.pct}%</p>
+                  <Badge variant={fulfillment.pct >= 100 ? "default" : fulfillment.pct > 0 ? "secondary" : "outline"}>
+                    {fulfillment.pct >= 100 ? "Complete" : fulfillment.pct > 0 ? "Partial" : "Pending"}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* PO Details */}
       <div className="grid gap-6 lg:grid-cols-3">
