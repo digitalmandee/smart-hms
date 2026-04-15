@@ -26,7 +26,7 @@ import {
 } from "@/components/ui/alert-dialog";
 import { 
   ArrowLeft, Printer, Edit, CheckCircle, XCircle, Send, 
-  PackageCheck, Loader2 
+  PackageCheck, Loader2, Package, AlertCircle
 } from "lucide-react";
 import { 
   usePurchaseOrder, 
@@ -39,10 +39,13 @@ import { POStatusBadge } from "@/components/inventory/POStatusBadge";
 import { PrintablePO } from "@/components/inventory/PrintablePO";
 import { PageHeader } from "@/components/PageHeader";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Badge } from "@/components/ui/badge";
+import { Progress } from "@/components/ui/progress";
 import { format } from "date-fns";
 import { Link } from "react-router-dom";
 import { usePrint } from "@/hooks/usePrint";
 import { useOrganizationBranding } from "@/hooks/useOrganizationBranding";
+import { useMemo } from "react";
 
 export default function PODetailPage() {
   const navigate = useNavigate();
