@@ -198,6 +198,7 @@ import InvoicesListPage from "./pages/app/billing/InvoicesListPage";
 import InvoiceFormPage from "./pages/app/billing/InvoiceFormPage";
 import InvoiceDetailPage from "./pages/app/billing/InvoiceDetailPage";
 import DepositDetailPage from "./pages/app/billing/DepositDetailPage";
+const PatientStatementPage = React.lazy(() => import("./pages/app/billing/PatientStatementPage"));
 import PaymentCollectionPage from "./pages/app/billing/PaymentCollectionPage";
 import PaymentHistoryPage from "./pages/app/billing/PaymentHistoryPage";
 import BillingReportsPage from "./pages/app/billing/BillingReportsPage";
@@ -1180,6 +1181,8 @@ function App() {
               <Route path="billing/invoices/:id/pay" element={<PaymentCollectionPage />} />
               <Route path="billing/payments" element={<PaymentHistoryPage />} />
               <Route path="billing/daily-closing" element={<DailyClosingPage />} />
+              <Route path="billing/patient-statement" element={<React.Suspense fallback={<div>Loading...</div>}><PatientStatementPage /></React.Suspense>} />
+              <Route path="billing/patient-statement/:patientId" element={<React.Suspense fallback={<div>Loading...</div>}><PatientStatementPage /></React.Suspense>} />
               <Route path="billing/daily-closing/history" element={<React.Suspense fallback={<div>Loading...</div>}><DailyClosingHistoryPage /></React.Suspense>} />
               <Route path="reports/day-end-summary" element={<DayEndSummaryReport />} />
               <Route path="reports/opd-departments" element={<OPDDepartmentReport />} />
