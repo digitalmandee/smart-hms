@@ -202,6 +202,40 @@ export default function PODetailPage() {
         </CardContent>
       </Card>
 
+      {/* Fulfillment Status */}
+      {["ordered", "partially_received", "received", "completed"].includes(po.status) && (
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-base">Fulfillment Status</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+              <div>
+                <p className="text-sm text-muted-foreground">Total Ordered</p>
+                <p className="text-xl font-bold">{fulfillment.totalOrdered}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Total Received</p>
+                <p className="text-xl font-bold text-green-600">{fulfillment.totalReceived}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Pending Items</p>
+                <p className="text-xl font-bold text-amber-600">{fulfillment.pendingItems} / {fulfillment.totalItems}</p>
+              </div>
+              <div>
+                <p className="text-sm text-muted-foreground">Fulfillment</p>
+                <div className="flex items-center gap-2">
+                  <p className="text-xl font-bold">{fulfillment.pct}%</p>
+                  <Badge variant={fulfillment.pct >= 100 ? "default" : fulfillment.pct > 0 ? "secondary" : "outline"}>
+                    {fulfillment.pct >= 100 ? "Complete" : fulfillment.pct > 0 ? "Partial" : "Pending"}
+                  </Badge>
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* PO Details */}
       <div className="grid gap-6 lg:grid-cols-3">
         <Card className="lg:col-span-2">
