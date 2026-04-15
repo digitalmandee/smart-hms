@@ -23,7 +23,7 @@ export function usePatientStatement(patientId: string) {
 
       // Fetch invoices
       const { data: invoices } = await supabase
-        .from("invoices")
+        .from("invoices" as any)
         .select("id, invoice_number, invoice_date, total_amount, status, notes")
         .eq("patient_id", patientId)
         .eq("organization_id", profile.organization_id)

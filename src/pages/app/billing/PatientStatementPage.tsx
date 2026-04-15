@@ -78,7 +78,6 @@ export default function PatientStatementPage() {
             <Label>{t("finance.select_patient" as any, "Select Patient")}</Label>
             <PatientSearch
               onSelect={(patient: any) => setSelectedPatientId(patient.id)}
-              placeholder={t("finance.search_patient" as any, "Search patient by name or ID...")}
             />
           </CardContent>
         </Card>
