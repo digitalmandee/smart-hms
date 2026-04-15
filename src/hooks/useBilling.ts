@@ -183,6 +183,8 @@ export function useCreateInvoice() {
       admissionId,
       appointmentId,
       department,
+      insuranceId,
+      insuranceAmount = 0,
     }: {
       patientId: string;
       branchId: string;
@@ -195,6 +197,8 @@ export function useCreateInvoice() {
       admissionId?: string;
       appointmentId?: string;
       department?: string;
+      insuranceId?: string;
+      insuranceAmount?: number;
     }) => {
       if (!profile?.organization_id) throw new Error("No organization");
 
@@ -231,7 +235,9 @@ export function useCreateInvoice() {
           ...(admissionId && { admission_id: admissionId }),
           ...(appointmentId && { appointment_id: appointmentId }),
           ...(department && { department }),
-        })
+          ...(insuranceId && { insurance_id: insuranceId }),
+          ...(insuranceAmount > 0 && { insurance_amount: insuranceAmount }),
+        } as any)
         .select()
         .single();
 
