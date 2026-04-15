@@ -100,7 +100,7 @@ export default function BillingReportsPage() {
                   {formatCurrency(outstandingData?.total || 0)}
                 </div>
                 <p className="text-xs text-muted-foreground">
-                  {outstandingData?.count || 0} {t("billing.pendingInvoices" as any, "pending invoices")}
+                  {outstandingData?.count || 0} {t("billing.pendingInvoicesCount" as any, "pending invoices")}
                 </p>
               </>
             )}
