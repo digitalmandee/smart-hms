@@ -190,12 +190,15 @@ export function useDepartmentRevenueDetails(
       
       let invoiceMap: Record<string, any> = {};
       if (invoiceIds.length > 0) {
-        const { data: invoices } = await supabase
-          .from("invoices")
-          .select("id, invoice_number, invoice_date, patient:patients!invoices_patient_id_fkey(first_name, last_name)")
-          .in("id", invoiceIds.slice(0, 100));
-        
-        (invoices || []).forEach((inv: any) => { invoiceMap[inv.id] = inv; });
+        // Batch in chunks of 500 to avoid query limits
+        for (let i = 0; i < invoiceIds.length; i += 500) {
+          const batch = invoiceIds.slice(i, i + 500);
+          const { data: invoices } = await supabase
+            .from("invoices")
+            .select("id, invoice_number, invoice_date, patient:patients!invoices_patient_id_fkey(first_name, last_name)")
+            .in("id", batch);
+          (invoices || []).forEach((inv: any) => { invoiceMap[inv.id] = inv; });
+        }
       }
 
       return filtered.map((line: any) => {

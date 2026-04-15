@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -14,6 +15,7 @@ import { exportToCSV, formatCurrency as exportFormatCurrency } from "@/lib/expor
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 export default function ProfitLossPage() {
+  const navigate = useNavigate();
   const [startDate, setStartDate] = useState(
     format(new Date(new Date().getFullYear(), 0, 1), "yyyy-MM-dd")
   );
@@ -153,8 +155,12 @@ export default function ProfitLossPage() {
                   const prevItem = prevData?.revenue.items.find(p => p.account_id === item.account_id);
                   const change = prevItem ? getChangePercent(item.amount, prevItem.amount) : 0;
                   return (
-                    <div key={item.account_id} className="flex justify-between py-1">
-                      <span>{item.account_name}</span>
+                    <div
+                      key={item.account_id}
+                      className="flex justify-between py-1 cursor-pointer hover:bg-muted/50 rounded px-2 -mx-2"
+                      onClick={() => navigate(`/app/accounts/general-ledger?accountId=${item.account_id}&from=${startDate}&to=${endDate}`)}
+                    >
+                      <span className="hover:text-primary">{item.account_name}</span>
                       <div className="flex gap-8 items-center">
                         <span className="font-mono">{formatCurrency(item.amount)}</span>
                         {compareMode && (
@@ -202,8 +208,12 @@ export default function ProfitLossPage() {
                     const prevItem = prevData?.cogs?.items.find(p => p.account_id === item.account_id);
                     const change = prevItem ? getChangePercent(item.amount, prevItem.amount) : 0;
                     return (
-                      <div key={item.account_id} className="flex justify-between py-1">
-                        <span>{item.account_name}</span>
+                      <div
+                        key={item.account_id}
+                        className="flex justify-between py-1 cursor-pointer hover:bg-muted/50 rounded px-2 -mx-2"
+                        onClick={() => navigate(`/app/accounts/general-ledger?accountId=${item.account_id}&from=${startDate}&to=${endDate}`)}
+                      >
+                        <span className="hover:text-primary">{item.account_name}</span>
                         <div className="flex gap-8 items-center">
                           <span className="font-mono">{formatCurrency(item.amount)}</span>
                           {compareMode && (
@@ -250,8 +260,12 @@ export default function ProfitLossPage() {
                   const prevItem = prevData?.expenses.items.find(p => p.account_id === item.account_id);
                   const change = prevItem ? getChangePercent(item.amount, prevItem.amount) : 0;
                   return (
-                    <div key={item.account_id} className="flex justify-between py-1">
-                      <span>{item.account_name}</span>
+                    <div
+                      key={item.account_id}
+                      className="flex justify-between py-1 cursor-pointer hover:bg-muted/50 rounded px-2 -mx-2"
+                      onClick={() => navigate(`/app/accounts/general-ledger?accountId=${item.account_id}&from=${startDate}&to=${endDate}`)}
+                    >
+                      <span className="hover:text-primary">{item.account_name}</span>
                       <div className="flex gap-8 items-center">
                         <span className="font-mono">{formatCurrency(item.amount)}</span>
                         {compareMode && (

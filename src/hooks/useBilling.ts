@@ -1138,30 +1138,47 @@ export function useDailyCollections(dateFrom: string, dateTo: string, branchId?:
 
 export function useRevenueByCategory(dateFrom: string, dateTo: string) {
   return useQuery({
-    queryKey: ["revenue-by-category", dateFrom, dateTo],
+    queryKey: ["revenue-by-category-gl", dateFrom, dateTo],
     queryFn: async () => {
       const { data, error } = await supabase
-        .from("invoice_items")
+        .from("journal_entry_lines")
         .select(`
-          total_price,
-          service_type:service_types(category),
-          invoice:invoices!invoice_items_invoice_id_fkey(invoice_date)
+          credit_amount,
+          debit_amount,
+          account:accounts!inner(
+            name, account_number,
+            account_type:account_types!inner(category)
+          ),
+          journal_entry:journal_entries!inner(entry_date, is_posted)
         `)
-        .gte("invoice.invoice_date", dateFrom)
-        .lte("invoice.invoice_date", dateTo);
+        .eq("journal_entry.is_posted", true)
+        .gte("journal_entry.entry_date", dateFrom)
+        .lte("journal_entry.entry_date", dateTo)
+        .eq("account.account_type.category", "revenue");
 
       if (error) throw error;
 
-      // Group by category
       const grouped: Record<string, number> = {};
-      data?.forEach((item) => {
-        const category = (item.service_type as any)?.category || "other";
-        grouped[category] = (grouped[category] || 0) + Number(item.total_price || 0);
+      (data || []).forEach((line: any) => {
+        const net = Number(line.credit_amount || 0) - Number(line.debit_amount || 0);
+        if (net <= 0) return;
+        const accName = line.account?.name || "Other";
+        const accNum = (line.account?.account_number || "").toLowerCase();
+        let category = "other";
+        if (accNum.includes("lab") || accNum === "4030") category = "lab";
+        else if (accNum.includes("pharm") || accNum === "4050") category = "pharmacy";
+        else if (accNum.includes("rad") || accNum === "4040") category = "imaging";
+        else if (accNum.includes("rev-001") || accNum === "4110" || accName.toLowerCase().includes("consultation")) category = "consultation";
+        else if (accNum === "4010" || accName.toLowerCase().includes("ipd")) category = "ipd";
+        else if (accNum.includes("proc") || accNum === "4060") category = "procedure";
+        else if (accNum.includes("room") || accNum === "4070") category = "room";
+        grouped[category] = (grouped[category] || 0) + net;
       });
 
       return Object.entries(grouped)
         .map(([category, amount]) => ({ category, amount }))
-        .filter((c) => c.amount > 0);
+        .filter((c) => c.amount > 0)
+        .sort((a, b) => b.amount - a.amount);
     },
   });
 }
