@@ -63,8 +63,11 @@ const GeneralLedgerPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const journalParam = searchParams.get("journal");
-  const [selectedAccountId, setSelectedAccountId] = useState<string>("");
-  const [dateRange, setDateRange] = useState<{ from: string; to: string }>({ from: "", to: "" });
+  const accountIdParam = searchParams.get("accountId");
+  const fromParam = searchParams.get("from");
+  const toParam = searchParams.get("to");
+  const [selectedAccountId, setSelectedAccountId] = useState<string>(accountIdParam || "");
+  const [dateRange, setDateRange] = useState<{ from: string; to: string }>({ from: fromParam || "", to: toParam || "" });
 
   const { data: allAccounts = [], isLoading: accountsLoading } = useAccounts({ isActive: true });
 
