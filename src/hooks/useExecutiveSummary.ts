@@ -54,7 +54,7 @@ export function useExecutiveSummary(options: { startDate?: Date; endDate?: Date 
       const employeesPromise = supabase.from("employees").select("id", { count: "exact" }).eq("organization_id", orgId).eq("employment_status", "active");
       const attendancePromise = supabase.from("attendance_records").select("id, status").eq("organization_id", orgId).eq("attendance_date", today);
       const overdueInvPromise = supabase.from("invoices").select("id").eq("organization_id", orgId).eq("status", "pending").lt("due_date", today);
-      const labRevenuePromise = supabase.from("invoice_items").select("total_price, service_type:service_types!inner(category)").eq("service_types.category", "lab").gte("created_at", startStr).lte("created_at", endStr + "T23:59:59");
+      const labRevenuePromise = supabase.from("journal_entry_lines").select("credit_amount, account:accounts!inner(account_number)").in("accounts.account_number", ["REV-LAB-001", "4030"]).gte("created_at", startStr).lte("created_at", endStr + "T23:59:59");
       const expensesPromise = supabase.from("journal_entry_lines").select("debit_amount, account:accounts!inner(account_type:account_types!inner(category))").eq("accounts.account_types.category", "expense").gte("created_at", startStr).lte("created_at", endStr + "T23:59:59");
       const imagingOrdersPromise = supabase.from("imaging_orders").select("id, status").gte("created_at", startStr).lte("created_at", endStr + "T23:59:59");
       const surgeriesPromise = supabase.from("surgeries").select("id, status").gte("scheduled_date", startStr).lte("scheduled_date", endStr);
@@ -87,8 +87,8 @@ export function useExecutiveSummary(options: { startDate?: Date; endDate?: Date 
       const pendingLab = labs.filter((l: any) => l.status === "ordered" || l.status === "processing");
       const urgentPending = pendingLab.filter((l: any) => l.priority === "urgent" || l.priority === "stat").length;
 
-      // Calculate lab revenue from invoice items
-      const labRevenueTotal = (labRevenue.data || []).reduce((s: number, item: any) => s + (item.total_price || 0), 0);
+      // Calculate lab revenue from GL (credit side of lab revenue accounts)
+      const labRevenueTotal = (labRevenue.data || []).reduce((s: number, item: any) => s + (item.credit_amount || 0), 0);
 
       // Calculate total expenses
       const totalExpenses = (expenses.data || []).reduce((s: number, item: any) => s + (item.debit_amount || 0), 0);

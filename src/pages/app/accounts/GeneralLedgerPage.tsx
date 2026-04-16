@@ -52,6 +52,9 @@ function getSourceDocumentPath(referenceType: string | null, referenceId: string
     case "grn": return `/app/warehouse/grn/${referenceId}`;
     case "patient_deposit": return `/app/accounts/patient-deposits`;
     case "donation": return `/app/donations`;
+    case "pharmacy_pos": return `/app/pharmacy/pos`;
+    case "credit_note": return `/app/accounts/credit-notes`;
+    case "surgery": return `/app/clinical/surgeries/${referenceId}`;
     default: return null;
   }
 }
@@ -60,8 +63,11 @@ const GeneralLedgerPage = () => {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
   const journalParam = searchParams.get("journal");
-  const [selectedAccountId, setSelectedAccountId] = useState<string>("");
-  const [dateRange, setDateRange] = useState<{ from: string; to: string }>({ from: "", to: "" });
+  const accountIdParam = searchParams.get("accountId");
+  const fromParam = searchParams.get("from");
+  const toParam = searchParams.get("to");
+  const [selectedAccountId, setSelectedAccountId] = useState<string>(accountIdParam || "");
+  const [dateRange, setDateRange] = useState<{ from: string; to: string }>({ from: fromParam || "", to: toParam || "" });
 
   const { data: allAccounts = [], isLoading: accountsLoading } = useAccounts({ isActive: true });
 

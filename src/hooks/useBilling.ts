@@ -1259,12 +1259,22 @@ export function useTopServices(dateFrom: string, dateTo: string, limit = 10) {
   return useQuery({
     queryKey: ["top-services", dateFrom, dateTo, limit],
     queryFn: async () => {
+      // First get invoice IDs that have been posted to GL
+      const { data: postedJournals } = await supabase
+        .from("journal_entries")
+        .select("reference_id")
+        .eq("reference_type", "invoice")
+        .eq("status", "posted");
+
+      const postedInvoiceIds = new Set((postedJournals || []).map(j => j.reference_id).filter(Boolean));
+
       const { data, error } = await supabase
         .from("invoice_items")
         .select(`
           description,
           quantity,
           total_price,
+          invoice_id,
           invoice:invoices!invoice_items_invoice_id_fkey(invoice_date)
         `)
         .gte("invoice.invoice_date", dateFrom)
@@ -1272,9 +1282,10 @@ export function useTopServices(dateFrom: string, dateTo: string, limit = 10) {
 
       if (error) throw error;
 
-      // Group by description
+      // Group by description, only include GL-posted invoices
       const grouped: Record<string, { revenue: number; count: number }> = {};
       data?.forEach((item) => {
+        if (!postedInvoiceIds.has(item.invoice_id)) return;
         const name = item.description;
         if (!grouped[name]) {
           grouped[name] = { revenue: 0, count: 0 };
