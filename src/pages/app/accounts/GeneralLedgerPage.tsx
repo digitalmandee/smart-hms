@@ -52,6 +52,9 @@ function getSourceDocumentPath(referenceType: string | null, referenceId: string
     case "grn": return `/app/warehouse/grn/${referenceId}`;
     case "patient_deposit": return `/app/accounts/patient-deposits`;
     case "donation": return `/app/donations`;
+    case "pharmacy_pos": return `/app/pharmacy/pos`;
+    case "credit_note": return `/app/accounts/credit-notes`;
+    case "surgery": return `/app/clinical/surgeries/${referenceId}`;
     default: return null;
   }
 }

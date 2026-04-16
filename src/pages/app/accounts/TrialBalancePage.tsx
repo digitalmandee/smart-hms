@@ -1,4 +1,5 @@
 import { useState, useMemo } from "react";
+import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -58,6 +59,7 @@ function getPresetDates(preset: DatePreset): { start: string; end: string } {
 }
 
 export default function TrialBalancePage() {
+  const navigate = useNavigate();
   const { t } = useTranslation();
   const [startDate, setStartDate] = useState(
     format(startOfYear(new Date()), "yyyy-MM-dd")
@@ -370,8 +372,12 @@ export default function TrialBalancePage() {
                               </CollapsibleTrigger>
                               <CollapsibleContent asChild>
                                 <>
-                                  {rows.map((row) => (
-                                    <TableRow key={row.account_id}>
+                                   {rows.map((row) => (
+                                    <TableRow
+                                      key={row.account_id}
+                                      className="cursor-pointer hover:bg-muted/40"
+                                      onClick={() => navigate(`/app/accounts/general-ledger?accountId=${row.account_id}&from=${startDate}&to=${endDate}`)}
+                                    >
                                       <TableCell className="font-mono pl-8 border-r">{row.account_number}</TableCell>
                                       <TableCell className="border-r">{row.account_name}</TableCell>
                                       <TableCell className="text-right">{fmtVal(row.openingDebit)}</TableCell>
