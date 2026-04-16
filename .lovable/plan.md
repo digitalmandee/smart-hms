@@ -1,94 +1,63 @@
 
 
-# Accounting System — Current State Audit & Remaining Shortcomings
+# Report Backtracking & Ledger Audit — Current State
 
-## Live Database Findings
+## What's Working (Full Backtrack Chain)
 
-I queried the production database and found the following:
+| Report | Source | Drill-Down Path | Backtrack |
+|--------|--------|-----------------|-----------|
+| **P&L Statement** | GL | Account row → General Ledger (filtered by account+dates) → Reference badge → Source document (Invoice/Expense/GRN/etc.) | Full |
+| **Balance Sheet** | GL | Account row → General Ledger → Reference badge → Source document | Full |
+| **General Ledger** | GL | Clickable reference badges route to: Invoice, Payment, Payroll, Expense, Vendor Payment, GRN, Patient Deposit, Donation | Full |
+| **Trial Balance** | GL | Account-level balances with date range | Partial (no click-to-GL) |
+| **Revenue Drill-Down** | GL | Account → GL lines → Invoice → Invoice items (expandable) | Full |
+| **Department P&L** | GL | Department → Transaction list with search | Full |
+| **Department Revenue** | GL | Department → Invoice list (batched up to 500) | Full |
+| **Revenue by Category** | GL | Pie chart slices → Department Revenue filtered | Full |
+| **AR Reconciliation** | GL+Invoices | Revenue recon tab compares GL vs invoice totals | Full |
+| **Receivables/Aging** | Invoices | Invoice rows with Pay/Write-off actions | Full |
 
-### What's Working Perfectly
-- **Zero imbalanced journals**: All 418 journal entries across 10 reference types have DR = CR (zero imbalance)
-- **100% invoice coverage**: 143/144 active invoices have journal entries (2 missing are zero-amount IPD invoices — correct to skip)
-- **Account balances correct**: The `update_account_balance` trigger properly applies `opening_balance + normal-side GL activity`. All account `current_balance` values match their GL-computed balances
-- **Full trigger coverage**: invoice, payment, expense, POS, GRN, vendor payment, deposit, credit note, donation, payroll, surgery — all auto-post to GL
-- **Cancellation reversal**: Trigger exists and is active
-- **Year-End Closing, Recurring Entries, PDC Register**: All implemented and routed
+## Remaining Shortcomings (4 Issues)
 
----
+### Issue 1 — MEDIUM: `useTopServices` Still Sources from `invoice_items`
+The "Top Services" widget in `BillingReportsPage` queries `invoice_items` directly (line 1262 of `useBilling.ts`), not the GL. This is an operational report (service volume/count), so GL sourcing isn't strictly required — but for consistency, it should at least cross-reference GL-posted invoices only.
 
-## Remaining Shortcomings (5 Issues Found)
+### Issue 2 — MEDIUM: `useExecutiveSummary` Lab Revenue Sources from `invoice_items`
+Line 57 of `useExecutiveSummary.ts` queries `invoice_items` with `service_types.category = 'lab'` for the dashboard "Lab Revenue" KPI. Should source from GL revenue accounts matching lab (e.g., `REV-LAB-001` / `4030`).
 
-### ISSUE 1 — CRITICAL: Active Invoice Trigger Checks for Invalid Status `issued`
+### Issue 3 — MEDIUM: GL Reference Badge Missing Routes for `pharmacy_pos`, `credit_note`, `surgery`
+The `getSourceDocumentPath()` function (GeneralLedgerPage.tsx line 44-56) handles: invoice, payment, payroll, expense, vendor_payment, grn, patient_deposit, donation. But triggers also post journals for `pharmacy_pos`, `credit_note`, and `surgery` — these reference types have no clickable route, so the badge shows but doesn't navigate.
 
-The currently active `post_invoice_to_journal()` (Phase 4-5 version) filters:
-```sql
-IF NEW.status NOT IN ('issued', 'paid', 'partially_paid') THEN RETURN NEW;
-```
-But `issued` is NOT a valid invoice status. Valid statuses are: `pending`, `paid`, `partially_paid`, `cancelled`.
-
-**Impact**: Invoices created with status `pending` get NO journal entry until they change to `paid`. This breaks accrual accounting — AR and revenue should be recognized at invoice creation.
-
-**Fix**: Change `'issued'` to `'pending'` in the status check.
-
-### ISSUE 2 — CRITICAL: Insurance AR Split is Dead Code
-
-The trigger references `NEW.insurance_id` and `NEW.insurance_amount`, but these columns do NOT exist on the `invoices` table. Confirmed via schema query — only `discount_amount`, `subtotal`, `tax_amount` exist.
-
-**Impact**: The entire insurance receivable split (DR AR-001 patient portion, DR AR-INS-001 insurance portion) never fires. All invoices post to AR-001 only.
-
-**Fix**: Add `insurance_id` (FK to insurance_plans or patient_insurance) and `insurance_amount` columns to invoices. Populate during invoice creation for insured patients.
-
-### ISSUE 3 — HIGH: Traceability Columns Not Backfilled
-
-Database shows:
-- **0/144** invoices have `doctor_id`
-- **0/144** invoices have `department`  
-- **0/144** invoices have `admission_id`
-- **33/144** invoices have `appointment_id` (backfilled from appointments table)
-
-The code changes to populate these only affect NEW invoices. All historical data has no traceability linkage.
-
-**Fix**: Write a backfill migration that:
-1. Populates `doctor_id` from `invoice_items.doctor_id` (first non-null)
-2. Populates `admission_id` from linked IPD invoices (prefix `IPD-`)
-3. Populates `department` from invoice prefix or service_type category
-
-### ISSUE 4 — MEDIUM: Missing Default Accounts Not Pre-Created
-
-`DISC-001` (Discounts Allowed), `AR-INS-001` (Insurance Receivables), and `BAD-DEBT-001` (Bad Debt Expense) are not pre-seeded. They rely on `get_or_create_default_account()` at trigger runtime, which works but means:
-- No account exists until the first transaction that needs it
-- Account type assignment depends on the fallback parameter which may not match the CoA structure
-
-**Fix**: Pre-create these accounts in each organization's CoA via migration.
-
-### ISSUE 5 — LOW: Historical Journals Lack Tax/Discount Granularity
-
-All 143 existing invoice journals were posted as 2-line entries (DR AR, CR Revenue) under the old trigger. None have separate Tax Payable or Discount Allowed lines, even if tax/discount amounts existed.
-
-**Fix**: Optional retroactive re-posting script that deletes old journal + lines and re-fires the trigger. Low priority since existing data appears to have zero tax/discount amounts.
+### Issue 4 — LOW: Trial Balance Has No Click-to-GL
+Unlike P&L and Balance Sheet (which navigate to GL on row click), the Trial Balance page shows flat account balances with no clickable navigation to the General Ledger.
 
 ---
 
-## Implementation Plan
+## Fix Plan
 
-### Migration 1: Fix trigger + add insurance columns + backfill
-1. Fix `post_invoice_to_journal()` — change `'issued'` to `'pending'`
-2. Add `insurance_id UUID` and `insurance_amount NUMERIC` to invoices
-3. Backfill `doctor_id` from invoice_items
-4. Backfill `department` from invoice prefix mapping
-5. Backfill `admission_id` from admissions table matching
-6. Pre-create DISC-001, AR-INS-001, BAD-DEBT-001 accounts for all organizations
+### Fix 1: Migrate `useTopServices` to filter GL-posted invoices only
+- Edit `useBilling.ts` — add an inner join filter to only include items from invoices that have a matching journal entry (status posted)
 
-### Code Changes
-1. Update `useBilling.ts` — populate `insurance_id` and `insurance_amount` during invoice creation when patient has insurance
-2. Update invoice form to pass insurance details
+### Fix 2: Migrate Executive Summary Lab Revenue to GL
+- Edit `useExecutiveSummary.ts` — replace `invoice_items` query with `journal_entry_lines` filtered by lab revenue accounts
+
+### Fix 3: Add missing GL reference routes
+- Edit `GeneralLedgerPage.tsx` `getSourceDocumentPath()` — add:
+  - `pharmacy_pos` → `/app/pharmacy/pos`
+  - `credit_note` → `/app/accounts/credit-notes`
+  - `surgery` → `/app/clinical/surgeries/${referenceId}`
+
+### Fix 4: Add Trial Balance click-to-GL
+- Edit Trial Balance rendering in `FinancialReportsPage.tsx` — make account rows clickable → navigate to `/app/accounts/general-ledger?accountId={id}&from=&to=`
 
 ## File Summary
 
 | File | Change |
 |------|--------|
-| Migration (new) | Fix trigger status, add columns, backfill traceability, seed accounts |
-| `src/hooks/useBilling.ts` | Populate insurance_id/insurance_amount on invoice creation |
+| `src/hooks/useBilling.ts` | Filter `useTopServices` to GL-posted invoices |
+| `src/hooks/useExecutiveSummary.ts` | Lab revenue from GL instead of `invoice_items` |
+| `src/pages/app/accounts/GeneralLedgerPage.tsx` | Add pharmacy_pos, credit_note, surgery routes |
+| `src/pages/app/accounts/FinancialReportsPage.tsx` | Make Trial Balance rows clickable → GL |
 
-**Total: 1 migration, 1 file edit**
+**Total: 0 migrations, 0 new files, 4 file edits**
 
