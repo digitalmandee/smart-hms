@@ -40,8 +40,8 @@ export default function BudgetVariancePage() {
     { key: "account_number", header: t("accounts.accountNumber" as any, "Account #") },
     { key: "account_name", header: t("accounts.accountName" as any, "Account") },
     { key: "category", header: t("common.category" as any, "Category") },
-    { key: "budgeted", header: t("accounts.budgeted" as any, "Budgeted"), format: (v: number) => v.toFixed(2) },
-    { key: "actual", header: t("accounts.actual" as any, "Actual"), format: (v: number) => v.toFixed(2) },
+    { key: "budgeted", header: t("accounts.budgetedAmount" as any, "Budgeted"), format: (v: number) => v.toFixed(2) },
+    { key: "actual", header: t("accounts.actualAmount" as any, "Actual"), format: (v: number) => v.toFixed(2) },
     { key: "variance", header: t("accounts.variance" as any, "Variance"), format: (v: number) => v.toFixed(2) },
     { key: "variance_pct", header: t("accounts.variancePct" as any, "Variance %"), format: (v: number) => `${v}%` },
     { key: "status", header: t("common.status" as any, "Status") },
@@ -170,8 +170,8 @@ export default function BudgetVariancePage() {
                 <TableRow>
                   <TableHead>{t("accounts.account" as any, "Account")}</TableHead>
                   <TableHead>{t("common.category" as any, "Category")}</TableHead>
-                  <TableHead className="text-right">{t("accounts.budgeted" as any, "Budgeted")}</TableHead>
-                  <TableHead className="text-right">{t("accounts.actual" as any, "Actual")}</TableHead>
+                  <TableHead className="text-right">{t("accounts.budgetedAmount" as any, "Budgeted")}</TableHead>
+                  <TableHead className="text-right">{t("accounts.actualAmount" as any, "Actual")}</TableHead>
                   <TableHead className="text-right">{t("accounts.variance" as any, "Variance")}</TableHead>
                   <TableHead className="text-right">%</TableHead>
                   <TableHead>{t("common.status" as any, "Status")}</TableHead>
