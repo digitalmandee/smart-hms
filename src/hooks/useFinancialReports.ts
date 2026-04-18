@@ -492,137 +492,153 @@ export function useBalanceSheet(asOfDate?: string) {
 }
 
 // =====================
-// Cash Flow Statement
+// Cash Flow Statement (GL-sourced, direct method)
 // =====================
+// Sourced exclusively from movements on cash & bank GL accounts.
+// Categorizes each movement by the COUNTERPART account/reference type:
+//  - Operating: revenue, AR, expenses, AP, payroll, tax
+//  - Investing: fixed/intangible assets
+//  - Financing: long-term liabilities, equity, owner contributions
 
 export function useCashFlow(startDate?: string, endDate?: string) {
   const { profile } = useAuth();
-  
+
   return useQuery({
-    queryKey: ["cash-flow", profile?.organization_id, startDate, endDate],
+    queryKey: ["cash-flow-gl", profile?.organization_id, startDate, endDate],
     queryFn: async () => {
-      // Fetch journal entry lines with account info for the date range
-      let query = supabase
-        .from("journal_entry_lines")
-        .select(`
-          debit_amount,
-          credit_amount,
-          description,
-          account:accounts!inner(
-            name,
-            account_number,
-            account_type:account_types(
-              category,
-              name
-            )
-          ),
-          journal_entry:journal_entries!inner(
-            entry_date,
-            is_posted,
-            reference_type,
-            description
-          )
-        `)
-        .eq("journal_entry.is_posted", true);
+      // 1. Identify all cash & bank accounts for this org
+      const { data: cashAccounts, error: caErr } = await supabase
+        .from("accounts")
+        .select("id, account_number, name")
+        .eq("organization_id", profile!.organization_id!)
+        .eq("is_active", true)
+        .or("account_number.in.(CASH-001,1010,1020,1000),name.ilike.%cash%,name.ilike.%bank%");
+      if (caErr) throw caErr;
 
-      if (startDate) query = query.gte("journal_entry.entry_date", startDate);
-      if (endDate) query = query.lte("journal_entry.entry_date", endDate);
-
-      const { data: lines, error } = await query;
-      if (error) throw error;
-
-      // Also fetch payments for the date range
-      let paymentsQuery = supabase
-        .from("payments")
-        .select("amount, payment_date");
-      if (startDate) paymentsQuery = paymentsQuery.gte("payment_date", startDate);
-      if (endDate) paymentsQuery = paymentsQuery.lte("payment_date", endDate);
-
-      const { data: payments, error: paymentsError } = await paymentsQuery;
-      if (paymentsError) throw paymentsError;
-
-      // Also fetch vendor payments
-      let vpQuery = supabase
-        .from("vendor_payments")
-        .select("amount, payment_date");
-      if (startDate) vpQuery = vpQuery.gte("payment_date", startDate);
-      if (endDate) vpQuery = vpQuery.lte("payment_date", endDate);
-
-      const { data: vendorPayments, error: vpError } = await vpQuery;
-      if (vpError) throw vpError;
-
-      // Also fetch payroll runs
-      let payrollQuery = supabase
-        .from("payroll_runs")
-        .select("total_net, created_at")
-        .eq("status", "completed");
-      if (startDate) payrollQuery = payrollQuery.gte("created_at", startDate);
-      if (endDate) payrollQuery = payrollQuery.lte("created_at", endDate);
-
-      const { data: payrollRuns, error: payrollError } = await payrollQuery;
-      if (payrollError) throw payrollError;
-
-      // Calculate totals
-      const totalCollections = (payments || []).reduce((sum, p) => sum + Number(p.amount), 0);
-      const totalVendorPayments = (vendorPayments || []).reduce((sum, p) => sum + Number(p.amount), 0);
-      const totalSalaries = (payrollRuns || []).reduce((sum, p) => sum + Number(p.total_net), 0);
-
-      // Aggregate expense lines by account type for investing/financing
-      const linesByRefType: Record<string, number> = {};
-      for (const line of lines || []) {
-        const category = line.account?.account_type?.category;
-        const refType = line.journal_entry?.reference_type || 'manual';
-        const key = `${category}_${refType}`;
-        if (!linesByRefType[key]) linesByRefType[key] = 0;
-        linesByRefType[key] += (Number(line.debit_amount) || 0) - (Number(line.credit_amount) || 0);
+      const cashAccountIds = (cashAccounts || []).map((a) => a.id);
+      if (cashAccountIds.length === 0) {
+        return {
+          operating: [], investing: [], financing: [],
+          operatingTotal: 0, investingTotal: 0, financingTotal: 0,
+          netCashFlow: 0, openingCash: 0, closingCash: 0,
+        };
       }
 
-      // Aggregate shipping costs from journal entries
-      const shippingCosts = (lines || [])
-        .filter(l => l.account?.account_number === 'EXP-SHIP-001' && (Number(l.debit_amount) || 0) > 0)
-        .reduce((sum, l) => sum + (Number(l.debit_amount) || 0), 0);
-
-      const operating: CashFlowItem[] = ([
-        { description: "Collections from Patients", amount: totalCollections, category: "operating" as const },
-        { description: "Payments to Suppliers", amount: -totalVendorPayments, category: "operating" as const },
-        { description: "Salaries & Wages", amount: -totalSalaries, category: "operating" as const },
-        { description: "Shipping Costs", amount: -shippingCosts, category: "operating" as const },
-      ] as CashFlowItem[]).filter(i => i.amount !== 0);
-
-      // Investing: fixed asset account movements (debit = purchase, credit = disposal)
-      const investingLines = (lines || []).filter(l => {
-        const cat = l.account?.account_type?.category;
-        const name = (l.account?.account_type?.name || '').toLowerCase();
-        return cat === 'asset' && (name.includes('fixed') || name.includes('equipment'));
-      });
-      const equipmentPurchases = investingLines.reduce(
-        (sum, l) => sum + ((Number(l.debit_amount) || 0) - (Number(l.credit_amount) || 0)), 0
+      // 2. Opening cash = sum of all posted JE lines on cash accounts BEFORE startDate
+      let openingQ = supabase
+        .from("journal_entry_lines")
+        .select(`debit_amount, credit_amount, journal_entry:journal_entries!inner(entry_date, is_posted, organization_id)`)
+        .in("account_id", cashAccountIds)
+        .eq("journal_entry.is_posted", true)
+        .eq("journal_entry.organization_id", profile!.organization_id!);
+      if (startDate) openingQ = openingQ.lt("journal_entry.entry_date", startDate);
+      const { data: openingLines, error: oErr } = await openingQ;
+      if (oErr) throw oErr;
+      const openingCash = (openingLines || []).reduce(
+        (s: number, l: any) => s + (Number(l.debit_amount) || 0) - (Number(l.credit_amount) || 0), 0
       );
 
-      const investing: CashFlowItem[] = ([
-        { description: "Equipment & Fixed Asset Purchases", amount: -equipmentPurchases, category: "investing" as const },
-      ] as CashFlowItem[]).filter(i => i.amount !== 0);
+      // 3. Period: every JE that touches a cash account — load full entry + all lines so we can categorize
+      let cashJeQ = supabase
+        .from("journal_entry_lines")
+        .select(`journal_entry_id, debit_amount, credit_amount, journal_entry:journal_entries!inner(id, entry_date, is_posted, reference_type, description, organization_id)`)
+        .in("account_id", cashAccountIds)
+        .eq("journal_entry.is_posted", true)
+        .eq("journal_entry.organization_id", profile!.organization_id!);
+      if (startDate) cashJeQ = cashJeQ.gte("journal_entry.entry_date", startDate);
+      if (endDate) cashJeQ = cashJeQ.lte("journal_entry.entry_date", endDate);
+      const { data: cashLines, error: cErr } = await cashJeQ;
+      if (cErr) throw cErr;
 
-      // Financing: liability and equity account movements
-      const financingLines = (lines || []).filter(l => {
-        const cat = l.account?.account_type?.category;
-        return cat === 'liability' || cat === 'equity';
-      });
-      const loanReceipts = financingLines.reduce(
-        (sum, l) => sum + (Number(l.credit_amount) || 0), 0
-      );
-      const loanRepayments = financingLines.reduce(
-        (sum, l) => sum + (Number(l.debit_amount) || 0), 0
-      );
+      // Sum cash effect per JE (DR cash = inflow positive; CR cash = outflow negative)
+      const jeCashEffect: Record<string, { net: number; refType: string; description: string }> = {};
+      for (const l of cashLines || []) {
+        const jeId = (l as any).journal_entry_id;
+        const eff = (Number(l.debit_amount) || 0) - (Number(l.credit_amount) || 0);
+        if (!jeCashEffect[jeId]) {
+          jeCashEffect[jeId] = {
+            net: 0,
+            refType: (l as any).journal_entry?.reference_type || "manual",
+            description: (l as any).journal_entry?.description || "",
+          };
+        }
+        jeCashEffect[jeId].net += eff;
+      }
 
-      const financing: CashFlowItem[] = ([
-        { description: "Loan / Equity Receipts", amount: loanReceipts, category: "financing" as const },
-        { description: "Loan / Liability Repayments", amount: -loanRepayments, category: "financing" as const },
-      ] as CashFlowItem[]).filter(i => i.amount !== 0);
+      // 4. Categorize each cash-touching JE by its reference type / counterpart
+      const operatingMap: Record<string, number> = {};
+      const investingMap: Record<string, number> = {};
+      const financingMap: Record<string, number> = {};
 
-      const operatingTotal = operating.reduce((sum, i) => sum + i.amount, 0);
-      const investingTotal = investing.reduce((sum, i) => sum + i.amount, 0);
-      const financingTotal = financing.reduce((sum, i) => sum + i.amount, 0);
+      const FINANCING_REFS = new Set(["loan", "owner_contribution", "dividend", "equity", "borrowing"]);
+      const INVESTING_REFS = new Set(["asset_purchase", "asset_disposal", "fixed_asset"]);
+
+      for (const jeId of Object.keys(jeCashEffect)) {
+        const { net, refType } = jeCashEffect[jeId];
+        if (Math.abs(net) < 0.01) continue;
+
+        let bucket: "operating" | "investing" | "financing" = "operating";
+        let label = "";
+
+        if (FINANCING_REFS.has(refType)) {
+          bucket = "financing";
+          label = net > 0 ? "Financing Inflows (Loans / Equity)" : "Financing Outflows (Repayments / Dividends)";
+        } else if (INVESTING_REFS.has(refType)) {
+          bucket = "investing";
+          label = net > 0 ? "Asset Disposals" : "Asset Purchases";
+        } else {
+          bucket = "operating";
+          switch (refType) {
+            case "invoice":
+            case "payment":
+              label = "Collections from Patients / Customers";
+              break;
+            case "patient_deposit":
+              label = "Patient Deposits Received";
+              break;
+            case "vendor_payment":
+              label = "Payments to Suppliers";
+              break;
+            case "expense":
+              label = "Operating Expenses Paid";
+              break;
+            case "payroll":
+              label = "Salaries & Wages Paid";
+              break;
+            case "grn":
+              label = "Goods Received (Cash purchases)";
+              break;
+            case "pharmacy_pos":
+              label = "Pharmacy POS Cash Sales";
+              break;
+            case "donation":
+              label = "Donations Received";
+              break;
+            case "credit_note":
+              label = "Refunds / Credit Notes";
+              break;
+            default:
+              label = net > 0 ? "Other Operating Receipts" : "Other Operating Payments";
+          }
+        }
+
+        const target = bucket === "operating" ? operatingMap : bucket === "investing" ? investingMap : financingMap;
+        target[label] = (target[label] || 0) + net;
+      }
+
+      const toItems = (m: Record<string, number>, cat: "operating" | "investing" | "financing"): CashFlowItem[] =>
+        Object.entries(m)
+          .filter(([, v]) => Math.abs(v) > 0.01)
+          .map(([description, amount]) => ({ description, amount, category: cat }));
+
+      const operating = toItems(operatingMap, "operating");
+      const investing = toItems(investingMap, "investing");
+      const financing = toItems(financingMap, "financing");
+
+      const operatingTotal = operating.reduce((s, i) => s + i.amount, 0);
+      const investingTotal = investing.reduce((s, i) => s + i.amount, 0);
+      const financingTotal = financing.reduce((s, i) => s + i.amount, 0);
+      const netCashFlow = operatingTotal + investingTotal + financingTotal;
 
       return {
         operating,
@@ -631,7 +647,47 @@ export function useCashFlow(startDate?: string, endDate?: string) {
         operatingTotal,
         investingTotal,
         financingTotal,
-        netCashFlow: operatingTotal + investingTotal + financingTotal,
+        netCashFlow,
+        openingCash,
+        closingCash: openingCash + netCashFlow,
+      };
+    },
+    enabled: !!profile?.organization_id,
+  });
+}
+
+// =====================
+// IPD Work-In-Progress (Unbilled Revenue) — accrual visibility
+// =====================
+
+export function useIPDWorkInProgress() {
+  const { profile } = useAuth();
+  return useQuery({
+    queryKey: ["ipd-wip", profile?.organization_id],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("ipd_charges")
+        .select("id, admission_id, total_amount, charge_date, charge_type, is_billed, admissions!inner(admission_number, patients(first_name, last_name))")
+        .eq("is_billed", false)
+        .eq("admissions.organization_id", profile!.organization_id!);
+      if (error) throw error;
+      const charges = data || [];
+      const total = charges.reduce((s: number, c: any) => s + Number(c.total_amount || 0), 0);
+      const byAdmission: Record<string, { admission: string; patient: string; amount: number; count: number }> = {};
+      for (const c of charges as any[]) {
+        const adm = c.admissions?.admission_number || c.admission_id;
+        const pat = c.admissions?.patients
+          ? `${c.admissions.patients.first_name} ${c.admissions.patients.last_name}`
+          : "—";
+        if (!byAdmission[adm]) byAdmission[adm] = { admission: adm, patient: pat, amount: 0, count: 0 };
+        byAdmission[adm].amount += Number(c.total_amount || 0);
+        byAdmission[adm].count += 1;
+      }
+      return {
+        totalUnbilled: total,
+        chargeCount: charges.length,
+        admissionCount: Object.keys(byAdmission).length,
+        byAdmission: Object.values(byAdmission).sort((a, b) => b.amount - a.amount),
       };
     },
     enabled: !!profile?.organization_id,
