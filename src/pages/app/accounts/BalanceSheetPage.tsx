@@ -108,6 +108,11 @@ export default function BalanceSheetPage() {
         }
       />
 
+      <div className="flex items-center gap-2 mb-4">
+        <Switch checked={hideZero} onCheckedChange={setHideZero} />
+        <Label className="cursor-pointer">Hide zero-balance accounts</Label>
+      </div>
+
       {isLoading ? (
         <div className="grid gap-6 md:grid-cols-2">
           <Card>
