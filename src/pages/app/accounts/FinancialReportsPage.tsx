@@ -6,7 +6,7 @@ import {
   BarChart3, FileSpreadsheet, PieChart, 
   TrendingUp, ArrowRight, DollarSign, Scale,
   FileText, Building2, Package, Wallet, Receipt, Landmark,
-  Users, Lock, Shield
+  Users, Lock, Shield, Target, Truck
 } from "lucide-react";
 import { useFinancialSummary } from "@/hooks/useFinancialReports";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -109,6 +109,20 @@ export default function FinancialReportsPage() {
       icon: Shield,
       path: "/app/accounts/reports/ar-reconciliation",
       color: "text-yellow-600",
+    },
+    {
+      title: "Budget vs Actual Variance",
+      description: "Compare budgeted amounts against actual GL postings with drill-down",
+      icon: Target,
+      path: "/app/accounts/reports/budget-variance",
+      color: "text-fuchsia-500",
+    },
+    {
+      title: "Vendor Statement",
+      description: "Per-vendor payable ledger with GRNs, payments, and running balance",
+      icon: Truck,
+      path: "/app/accounts/vendor-statement",
+      color: "text-sky-500",
     },
   ];
 

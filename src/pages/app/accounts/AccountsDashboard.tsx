@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/lib/i18n";
 import { Progress } from "@/components/ui/progress";
 import { IPDWorkInProgressWidget } from "@/components/finance/IPDWorkInProgressWidget";
+import { CFOKPIWidget } from "@/components/finance/CFOKPIWidget";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell,
@@ -395,6 +396,9 @@ export default function AccountsDashboard() {
           </Card>
         )}
       </div>
+
+      {/* CFO Liquidity & Efficiency KPIs */}
+      <CFOKPIWidget />
 
       {/* IPD WIP / Unbilled Revenue accrual visibility */}
       {!isWarehouse && (
