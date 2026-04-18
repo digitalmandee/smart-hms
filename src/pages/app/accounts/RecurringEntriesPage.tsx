@@ -22,6 +22,7 @@ export default function RecurringEntriesPage() {
   const { data: templates, isLoading } = useRecurringTemplates();
   const createMutation = useCreateRecurringTemplate();
   const generateMutation = useGenerateRecurringEntries();
+  const autoPostMutation = useAutoPostRecurring();
   
   const [open, setOpen] = useState(false);
   const [form, setForm] = useState({
