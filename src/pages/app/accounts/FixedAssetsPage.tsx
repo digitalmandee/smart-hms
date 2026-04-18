@@ -9,10 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Calculator, PlayCircle } from "lucide-react";
+import { Plus, Calculator, PlayCircle, Settings2 } from "lucide-react";
 import { useFixedAssets, useCreateFixedAsset, calculateDepreciation } from "@/hooks/useFixedAssets";
-import { useDepreciationPosting } from "@/hooks/useDepreciationPosting";
+import { usePostPerAssetDepreciation, useUpdateAssetAccounts } from "@/hooks/useDepreciationPostingV2";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { AccountPicker } from "@/components/accounts/AccountPicker";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/lib/i18n";
@@ -21,16 +22,20 @@ export default function FixedAssetsPage() {
   const { t } = useTranslation();
   const { data: assets, isLoading } = useFixedAssets();
   const createMutation = useCreateFixedAsset();
-  const depPosting = useDepreciationPosting();
+  const depPosting = usePostPerAssetDepreciation();
+  const updateAcctMutation = useUpdateAssetAccounts();
   const { formatCurrency } = useCurrencyFormatter();
   const [open, setOpen] = useState(false);
   const [depOpen, setDepOpen] = useState(false);
   const [scheduleAsset, setScheduleAsset] = useState<any>(null);
+  const [acctAsset, setAcctAsset] = useState<any>(null);
+  const [acctForm, setAcctForm] = useState<{ account_id: string; depreciation_account_id: string }>({
+    account_id: "",
+    depreciation_account_id: "",
+  });
   const now = new Date();
   const [depMonth, setDepMonth] = useState(String(now.getMonth() + 1));
   const [depYear, setDepYear] = useState(String(now.getFullYear()));
-  const [depExpAcct, setDepExpAcct] = useState("");
-  const [depAccumAcct, setDepAccumAcct] = useState("");
   const [form, setForm] = useState({
     name: "", category: "", purchase_date: "", purchase_cost: "",
     useful_life_months: "60", depreciation_method: "straight_line", salvage_value: "0",
@@ -76,6 +81,11 @@ export default function FixedAssetsPage() {
               <DialogContent>
                 <DialogHeader><DialogTitle>{t("finance.runDepreciation")}</DialogTitle></DialogHeader>
                 <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Posts depreciation using each asset's own configured GL accounts.
+                    Assets without configured accounts are skipped — set them via the
+                    <Settings2 className="inline h-3 w-3 mx-1" />button on each row.
+                  </p>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label>{t("finance.depreciationMonth")}</Label>
@@ -93,18 +103,14 @@ export default function FixedAssetsPage() {
                       <Input type="number" value={depYear} onChange={e => setDepYear(e.target.value)} />
                     </div>
                   </div>
-                  <div><Label>{t("finance.depExpenseAccount")}</Label><Input value={depExpAcct} onChange={e => setDepExpAcct(e.target.value)} placeholder="Account ID for Depreciation Expense" /></div>
-                  <div><Label>{t("finance.accumDepAccount")}</Label><Input value={depAccumAcct} onChange={e => setDepAccumAcct(e.target.value)} placeholder="Account ID for Accumulated Depreciation" /></div>
                   <Button
                     onClick={() => {
-                      depPosting.mutate({
-                        month: parseInt(depMonth),
-                        year: parseInt(depYear),
-                        depreciationExpenseAccountId: depExpAcct,
-                        accumulatedDepAccountId: depAccumAcct,
-                      }, { onSuccess: () => setDepOpen(false) });
+                      depPosting.mutate(
+                        { month: parseInt(depMonth), year: parseInt(depYear) },
+                        { onSuccess: () => setDepOpen(false) }
+                      );
                     }}
-                    disabled={!depExpAcct || !depAccumAcct || depPosting.isPending}
+                    disabled={depPosting.isPending}
                     className="w-full"
                   >
                     {depPosting.isPending ? t("common.loading") : t("finance.postDepreciation")}
@@ -194,9 +200,25 @@ export default function FixedAssetsPage() {
                           <TableCell className="capitalize">{(asset.depreciation_method || "").replace("_", " ")}</TableCell>
                           <TableCell><Badge variant={asset.status === "active" ? "default" : "secondary"}>{asset.status}</Badge></TableCell>
                           <TableCell>
-                            <Button size="sm" variant="ghost" onClick={() => setScheduleAsset(asset)}>
-                              <Calculator className="h-3 w-3 mr-1" />Schedule
-                            </Button>
+                            <div className="flex gap-1">
+                              <Button size="sm" variant="ghost" onClick={() => setScheduleAsset(asset)}>
+                                <Calculator className="h-3 w-3 mr-1" />Schedule
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant={asset.account_id && asset.depreciation_account_id ? "ghost" : "outline"}
+                                onClick={() => {
+                                  setAcctAsset(asset);
+                                  setAcctForm({
+                                    account_id: asset.account_id || "",
+                                    depreciation_account_id: asset.depreciation_account_id || "",
+                                  });
+                                }}
+                                title={asset.account_id && asset.depreciation_account_id ? "Edit GL accounts" : "Set GL accounts (required for auto-depreciation)"}
+                              >
+                                <Settings2 className={`h-3 w-3 ${asset.account_id && asset.depreciation_account_id ? "" : "text-amber-600"}`} />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -251,6 +273,63 @@ export default function FixedAssetsPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Per-asset GL accounts dialog */}
+      <Dialog open={!!acctAsset} onOpenChange={(o) => !o && setAcctAsset(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>GL Accounts — {acctAsset?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Configure the General Ledger accounts used when posting monthly depreciation
+              for this asset. Both must be set for the asset to be included in auto-depreciation.
+            </p>
+            <div>
+              <Label>Asset / Accumulated Depreciation Account</Label>
+              <AccountPicker
+                value={acctForm.account_id || undefined}
+                onChange={(id) => setAcctForm((p) => ({ ...p, account_id: id || "" }))}
+                category="asset"
+                postingOnly
+                placeholder="Select asset GL account"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Credited monthly with the depreciation amount.
+              </p>
+            </div>
+            <div>
+              <Label>Depreciation Expense Account</Label>
+              <AccountPicker
+                value={acctForm.depreciation_account_id || undefined}
+                onChange={(id) => setAcctForm((p) => ({ ...p, depreciation_account_id: id || "" }))}
+                category="expense"
+                postingOnly
+                placeholder="Select expense GL account"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Debited monthly with the depreciation amount.
+              </p>
+            </div>
+            <Button
+              className="w-full"
+              disabled={!acctForm.account_id || !acctForm.depreciation_account_id || updateAcctMutation.isPending}
+              onClick={() => {
+                updateAcctMutation.mutate(
+                  {
+                    id: acctAsset!.id,
+                    account_id: acctForm.account_id,
+                    depreciation_account_id: acctForm.depreciation_account_id,
+                  },
+                  { onSuccess: () => setAcctAsset(null) }
+                );
+              }}
+            >
+              {updateAcctMutation.isPending ? "Saving..." : "Save GL Accounts"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
