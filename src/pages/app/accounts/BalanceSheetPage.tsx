@@ -1,4 +1,4 @@
-import { useState, useMemo } from "react";
+import { useState } from "react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
@@ -59,9 +59,9 @@ export default function BalanceSheetPage() {
     );
   };
 
-  const assetsArray = balanceSheet?.assets ? Object.values(balanceSheet.assets) : [];
-  const liabilitiesArray = balanceSheet?.liabilities ? Object.values(balanceSheet.liabilities) : [];
-  const equityArray = balanceSheet?.equity ? Object.values(balanceSheet.equity) : [];
+  const assetsArray = filterZero(balanceSheet?.assets ? Object.values(balanceSheet.assets) : []);
+  const liabilitiesArray = filterZero(balanceSheet?.liabilities ? Object.values(balanceSheet.liabilities) : []);
+  const equityArray = filterZero(balanceSheet?.equity ? Object.values(balanceSheet.equity) : []);
 
   return (
     <div className="space-y-6">
