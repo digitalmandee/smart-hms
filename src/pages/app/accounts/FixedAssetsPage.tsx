@@ -81,6 +81,11 @@ export default function FixedAssetsPage() {
               <DialogContent>
                 <DialogHeader><DialogTitle>{t("finance.runDepreciation")}</DialogTitle></DialogHeader>
                 <div className="space-y-4">
+                  <p className="text-sm text-muted-foreground">
+                    Posts depreciation using each asset's own configured GL accounts.
+                    Assets without configured accounts are skipped — set them via the
+                    <Settings2 className="inline h-3 w-3 mx-1" />button on each row.
+                  </p>
                   <div className="grid grid-cols-2 gap-4">
                     <div>
                       <Label>{t("finance.depreciationMonth")}</Label>
@@ -98,18 +103,14 @@ export default function FixedAssetsPage() {
                       <Input type="number" value={depYear} onChange={e => setDepYear(e.target.value)} />
                     </div>
                   </div>
-                  <div><Label>{t("finance.depExpenseAccount")}</Label><Input value={depExpAcct} onChange={e => setDepExpAcct(e.target.value)} placeholder="Account ID for Depreciation Expense" /></div>
-                  <div><Label>{t("finance.accumDepAccount")}</Label><Input value={depAccumAcct} onChange={e => setDepAccumAcct(e.target.value)} placeholder="Account ID for Accumulated Depreciation" /></div>
                   <Button
                     onClick={() => {
-                      depPosting.mutate({
-                        month: parseInt(depMonth),
-                        year: parseInt(depYear),
-                        depreciationExpenseAccountId: depExpAcct,
-                        accumulatedDepAccountId: depAccumAcct,
-                      }, { onSuccess: () => setDepOpen(false) });
+                      depPosting.mutate(
+                        { month: parseInt(depMonth), year: parseInt(depYear) },
+                        { onSuccess: () => setDepOpen(false) }
+                      );
                     }}
-                    disabled={!depExpAcct || !depAccumAcct || depPosting.isPending}
+                    disabled={depPosting.isPending}
                     className="w-full"
                   >
                     {depPosting.isPending ? t("common.loading") : t("finance.postDepreciation")}
