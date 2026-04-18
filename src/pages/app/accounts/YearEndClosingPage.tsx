@@ -8,12 +8,14 @@ import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { AlertTriangle, CheckCircle, Lock } from "lucide-react";
 import { useYearEndAccountTotals, usePostYearEndClosing } from "@/hooks/useYearEndClosing";
+import { useFiscalYears, useLockFiscalYear } from "@/hooks/useFiscalYearLock";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useQuery } from "@tanstack/react-query";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/lib/i18n";
+import { format } from "date-fns";
 
 export default function YearEndClosingPage() {
   const { t } = useTranslation();
@@ -28,6 +30,13 @@ export default function YearEndClosingPage() {
 
   const { data: totals, isLoading } = useYearEndAccountTotals(fiscalStart, fiscalEnd);
   const postClosing = usePostYearEndClosing();
+  const { data: fiscalYears } = useFiscalYears();
+  const lockFY = useLockFiscalYear();
+
+  // Find the fiscal year matching the selected year (by start_date year)
+  const matchingFY = (fiscalYears || []).find(
+    (fy: any) => new Date(fy.start_date).getFullYear() === parseInt(selectedYear)
+  );
 
   // Get equity accounts for Retained Earnings selection
   const { data: equityAccounts } = useQuery({
@@ -165,19 +174,42 @@ export default function YearEndClosingPage() {
                   </TableBody>
                 </Table>
 
-                <div className="flex items-center justify-between mt-6">
+                <div className="flex items-center justify-between mt-6 gap-3 flex-wrap">
                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                     <AlertTriangle className="h-4 w-4" />
                     {t("finance.closingWarning")}
                   </div>
-                  <Button
-                    onClick={handlePost}
-                    disabled={!retainedEarningsId || postClosing.isPending}
-                    size="lg"
-                  >
-                    <CheckCircle className="h-4 w-4 mr-2" />
-                    {postClosing.isPending ? t("common.loading") : t("finance.postClosingEntry")}
-                  </Button>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handlePost}
+                      disabled={!retainedEarningsId || postClosing.isPending}
+                      size="lg"
+                    >
+                      <CheckCircle className="h-4 w-4 mr-2" />
+                      {postClosing.isPending ? t("common.loading") : t("finance.postClosingEntry")}
+                    </Button>
+                    {matchingFY && !matchingFY.is_closed && (
+                      <Button
+                        variant="destructive"
+                        size="lg"
+                        onClick={() => {
+                          if (confirm(`Lock fiscal year ${matchingFY.name}? No further entries can be posted to this period.`)) {
+                            lockFY.mutate(matchingFY.id);
+                          }
+                        }}
+                        disabled={lockFY.isPending}
+                      >
+                        <Lock className="h-4 w-4 mr-2" />
+                        {lockFY.isPending ? t("common.loading") : `Lock FY ${selectedYear}`}
+                      </Button>
+                    )}
+                    {matchingFY?.is_closed && (
+                      <Badge variant="secondary" className="self-center">
+                        <Lock className="h-3 w-3 mr-1" />
+                        Locked {matchingFY.closed_at ? format(new Date(matchingFY.closed_at), "dd MMM yyyy") : ""}
+                      </Badge>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             </Card>
