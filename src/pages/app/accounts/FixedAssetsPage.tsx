@@ -200,9 +200,25 @@ export default function FixedAssetsPage() {
                           <TableCell className="capitalize">{(asset.depreciation_method || "").replace("_", " ")}</TableCell>
                           <TableCell><Badge variant={asset.status === "active" ? "default" : "secondary"}>{asset.status}</Badge></TableCell>
                           <TableCell>
-                            <Button size="sm" variant="ghost" onClick={() => setScheduleAsset(asset)}>
-                              <Calculator className="h-3 w-3 mr-1" />Schedule
-                            </Button>
+                            <div className="flex gap-1">
+                              <Button size="sm" variant="ghost" onClick={() => setScheduleAsset(asset)}>
+                                <Calculator className="h-3 w-3 mr-1" />Schedule
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant={asset.account_id && asset.depreciation_account_id ? "ghost" : "outline"}
+                                onClick={() => {
+                                  setAcctAsset(asset);
+                                  setAcctForm({
+                                    account_id: asset.account_id || "",
+                                    depreciation_account_id: asset.depreciation_account_id || "",
+                                  });
+                                }}
+                                title={asset.account_id && asset.depreciation_account_id ? "Edit GL accounts" : "Set GL accounts (required for auto-depreciation)"}
+                              >
+                                <Settings2 className={`h-3 w-3 ${asset.account_id && asset.depreciation_account_id ? "" : "text-amber-600"}`} />
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
@@ -257,6 +273,63 @@ export default function FixedAssetsPage() {
           </TabsContent>
         </Tabs>
       </div>
+
+      {/* Per-asset GL accounts dialog */}
+      <Dialog open={!!acctAsset} onOpenChange={(o) => !o && setAcctAsset(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>GL Accounts — {acctAsset?.name}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Configure the General Ledger accounts used when posting monthly depreciation
+              for this asset. Both must be set for the asset to be included in auto-depreciation.
+            </p>
+            <div>
+              <Label>Asset / Accumulated Depreciation Account</Label>
+              <AccountPicker
+                value={acctForm.account_id || undefined}
+                onChange={(id) => setAcctForm((p) => ({ ...p, account_id: id || "" }))}
+                category="asset"
+                postingOnly
+                placeholder="Select asset GL account"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Credited monthly with the depreciation amount.
+              </p>
+            </div>
+            <div>
+              <Label>Depreciation Expense Account</Label>
+              <AccountPicker
+                value={acctForm.depreciation_account_id || undefined}
+                onChange={(id) => setAcctForm((p) => ({ ...p, depreciation_account_id: id || "" }))}
+                category="expense"
+                postingOnly
+                placeholder="Select expense GL account"
+              />
+              <p className="text-xs text-muted-foreground mt-1">
+                Debited monthly with the depreciation amount.
+              </p>
+            </div>
+            <Button
+              className="w-full"
+              disabled={!acctForm.account_id || !acctForm.depreciation_account_id || updateAcctMutation.isPending}
+              onClick={() => {
+                updateAcctMutation.mutate(
+                  {
+                    id: acctAsset!.id,
+                    account_id: acctForm.account_id,
+                    depreciation_account_id: acctForm.depreciation_account_id,
+                  },
+                  { onSuccess: () => setAcctAsset(null) }
+                );
+              }}
+            >
+              {updateAcctMutation.isPending ? "Saving..." : "Save GL Accounts"}
+            </Button>
+          </div>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
