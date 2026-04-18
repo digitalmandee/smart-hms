@@ -10,7 +10,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
 import { Label } from "@/components/ui/label";
-import { ArrowLeft, Target, TrendingUp, TrendingDown, AlertTriangle } from "lucide-react";
+import { ArrowLeft, Target, TrendingUp, AlertTriangle } from "lucide-react";
 import { useFiscalYears, useCurrentFiscalYear } from "@/hooks/useAccounts";
 import { useBudgetVariance } from "@/hooks/useBudgetVariance";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
