@@ -17,6 +17,7 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/lib/i18n";
 import { Progress } from "@/components/ui/progress";
+import { IPDWorkInProgressWidget } from "@/components/finance/IPDWorkInProgressWidget";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
   BarChart, Bar, PieChart, Pie, Cell,
@@ -394,6 +395,13 @@ export default function AccountsDashboard() {
           </Card>
         )}
       </div>
+
+      {/* IPD WIP / Unbilled Revenue accrual visibility */}
+      {!isWarehouse && (
+        <div className="grid grid-cols-1 gap-4">
+          <IPDWorkInProgressWidget />
+        </div>
+      )}
 
       {/* Pending Vendor Payments */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
