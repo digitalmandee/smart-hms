@@ -25378,6 +25378,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      auto_post_due_recurring_templates: {
+        Args: { _organization_id: string }
+        Returns: Json
+      }
       create_coa_hierarchy: { Args: { p_org_id: string }; Returns: undefined }
       create_kiosk_session: {
         Args: {
@@ -25462,6 +25466,7 @@ export type Database = {
       }
       hash_kiosk_password: { Args: { password: string }; Returns: string }
       is_super_admin: { Args: never; Returns: boolean }
+      lock_fiscal_year: { Args: { _fiscal_year_id: string }; Returns: Json }
       log_kiosk_token: {
         Args: {
           p_appointment_id: string
@@ -25476,6 +25481,10 @@ export type Database = {
           p_token_number: number
         }
         Returns: string
+      }
+      post_monthly_depreciation_per_asset: {
+        Args: { _month: number; _organization_id: string; _year: number }
+        Returns: Json
       }
       set_org_language: {
         Args: { p_language: string; p_supported_languages: string[] }
