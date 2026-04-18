@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { format } from "date-fns";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useBalanceSheet } from "@/hooks/useFinancialReports";
 import { CalendarIcon, Download, Printer, Scale } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,8 +18,12 @@ import { exportToCSV, formatCurrency as exportFmtCurrency } from "@/lib/exportUt
 export default function BalanceSheetPage() {
   const navigate = useNavigate();
   const [asOfDate, setAsOfDate] = useState<Date>(new Date());
-  
+  const [hideZero, setHideZero] = useState(true);
+
   const { data: balanceSheet, isLoading } = useBalanceSheet(format(asOfDate, 'yyyy-MM-dd'));
+
+  const filterZero = (arr: any[]) =>
+    hideZero ? (arr || []).filter((a) => Math.abs(Number(a.balance) || 0) > 0.01) : (arr || []);
 
 
   const renderAccountGroup = (accounts: any[], title: string, isSubGroup = false) => {
