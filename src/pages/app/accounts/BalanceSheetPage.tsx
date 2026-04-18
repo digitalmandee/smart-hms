@@ -7,6 +7,8 @@ import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Switch } from "@/components/ui/switch";
+import { Label } from "@/components/ui/label";
 import { useBalanceSheet } from "@/hooks/useFinancialReports";
 import { CalendarIcon, Download, Printer, Scale } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -16,8 +18,12 @@ import { exportToCSV, formatCurrency as exportFmtCurrency } from "@/lib/exportUt
 export default function BalanceSheetPage() {
   const navigate = useNavigate();
   const [asOfDate, setAsOfDate] = useState<Date>(new Date());
-  
+  const [hideZero, setHideZero] = useState(true);
+
   const { data: balanceSheet, isLoading } = useBalanceSheet(format(asOfDate, 'yyyy-MM-dd'));
+
+  const filterZero = (arr: any[]) =>
+    hideZero ? (arr || []).filter((a) => Math.abs(Number(a.balance) || 0) > 0.01) : (arr || []);
 
 
   const renderAccountGroup = (accounts: any[], title: string, isSubGroup = false) => {
@@ -53,9 +59,9 @@ export default function BalanceSheetPage() {
     );
   };
 
-  const assetsArray = balanceSheet?.assets ? Object.values(balanceSheet.assets) : [];
-  const liabilitiesArray = balanceSheet?.liabilities ? Object.values(balanceSheet.liabilities) : [];
-  const equityArray = balanceSheet?.equity ? Object.values(balanceSheet.equity) : [];
+  const assetsArray = filterZero(balanceSheet?.assets ? Object.values(balanceSheet.assets) : []);
+  const liabilitiesArray = filterZero(balanceSheet?.liabilities ? Object.values(balanceSheet.liabilities) : []);
+  const equityArray = filterZero(balanceSheet?.equity ? Object.values(balanceSheet.equity) : []);
 
   return (
     <div className="space-y-6">
@@ -101,6 +107,11 @@ export default function BalanceSheetPage() {
           </div>
         }
       />
+
+      <div className="flex items-center gap-2 mb-4">
+        <Switch checked={hideZero} onCheckedChange={setHideZero} />
+        <Label className="cursor-pointer">Hide zero-balance accounts</Label>
+      </div>
 
       {isLoading ? (
         <div className="grid gap-6 md:grid-cols-2">

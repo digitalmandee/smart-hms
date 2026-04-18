@@ -137,10 +137,14 @@ export default function CashFlowPage() {
           </div>
 
           <Card className="bg-muted/50">
-            <CardContent className="pt-6">
-              <div className="flex items-center justify-between">
+            <CardContent className="pt-6 space-y-3">
+              <div className="flex items-center justify-between text-sm">
+                <span className="text-muted-foreground">Opening Cash & Bank Balance</span>
+                <span className="font-mono">{formatCurrency(cashFlow?.openingCash || 0)}</span>
+              </div>
+              <div className="flex items-center justify-between border-t pt-3">
                 <div>
-                  <p className="font-medium text-lg">Net Cash Flow</p>
+                  <p className="font-medium text-lg">Net Cash Movement</p>
                   <p className="text-sm text-muted-foreground">
                     For period {format(startDate, "MMM d")} - {format(endDate, "MMM d, yyyy")}
                   </p>
@@ -153,6 +157,13 @@ export default function CashFlowPage() {
                   {formatCurrency(cashFlow?.netCashFlow || 0)}
                 </div>
               </div>
+              <div className="flex items-center justify-between border-t pt-3 text-base font-semibold">
+                <span>Closing Cash & Bank Balance</span>
+                <span className="font-mono">{formatCurrency(cashFlow?.closingCash || 0)}</span>
+              </div>
+              <p className="text-xs text-muted-foreground italic pt-2 border-t">
+                Direct method, sourced from posted General Ledger movements on cash and bank accounts.
+              </p>
             </CardContent>
           </Card>
         </>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -21,8 +21,20 @@ export default function ProfitLossPage() {
   );
   const [endDate, setEndDate] = useState(format(new Date(), "yyyy-MM-dd"));
   const [compareMode, setCompareMode] = useState(false);
+  const [hideZero, setHideZero] = useState(true);
 
-  const { data, isLoading } = useProfitLoss(startDate, endDate);
+  const { data: rawData, isLoading } = useProfitLoss(startDate, endDate);
+
+  // Apply hide-zero filter (default ON to declutter)
+  const data = useMemo(() => {
+    if (!rawData || !hideZero) return rawData;
+    return {
+      ...rawData,
+      revenue: { ...rawData.revenue, items: rawData.revenue.items.filter((i) => Math.abs(i.amount) > 0.01) },
+      cogs: rawData.cogs ? { ...rawData.cogs, items: rawData.cogs.items.filter((i) => Math.abs(i.amount) > 0.01) } : rawData.cogs,
+      expenses: { ...rawData.expenses, items: rawData.expenses.items.filter((i) => Math.abs(i.amount) > 0.01) },
+    };
+  }, [rawData, hideZero]);
 
   // Calculate previous period dates for comparison
   const periodDays = differenceInDays(new Date(endDate), new Date(startDate));
@@ -124,6 +136,10 @@ export default function ProfitLossPage() {
                 <Label className="flex items-center gap-1">
                   <GitCompare className="h-4 w-4" /> Compare Previous Period
                 </Label>
+              </div>
+              <div className="flex items-center gap-2 pb-1">
+                <Switch checked={hideZero} onCheckedChange={setHideZero} />
+                <Label className="cursor-pointer">Hide zero-balance accounts</Label>
               </div>
             </div>
           </CardContent>
