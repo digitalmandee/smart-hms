@@ -4293,7 +4293,6 @@ export const en = {
   "finance.total_paid": "Total Paid",
   "finance.outstanding_payable": "Outstanding Payable",
   "finance.paid": "Paid",
-  "finance.received": "Received",
 
 } as const;
 

@@ -4200,7 +4200,6 @@ export const ar: Record<TranslationKey, string> = {
   "finance.total_paid": "إجمالي المدفوع",
   "finance.outstanding_payable": "المستحقات المعلقة",
   "finance.paid": "مدفوع",
-  "finance.received": "مستلم",
 
 };
 

@@ -4200,7 +4200,6 @@ export const ur: Record<TranslationKey, string> = {
   "finance.total_paid": "کل ادا کردہ",
   "finance.outstanding_payable": "بقایا قابل ادا",
   "finance.paid": "ادا کردہ",
-  "finance.received": "موصول",
 
 };
 
