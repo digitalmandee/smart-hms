@@ -595,6 +595,8 @@ import BankAccountsPage from "./pages/app/accounts/BankAccountsPage";
 import BudgetsPage from "./pages/app/accounts/BudgetsPage";
 const ExpenseManagementPage = React.lazy(() => import("./pages/app/accounts/ExpenseManagementPage"));
 const RevenueBySourcePage = React.lazy(() => import("./pages/app/accounts/RevenueBySourcePage"));
+const BudgetVariancePage = React.lazy(() => import("./pages/app/accounts/BudgetVariancePage"));
+const VendorStatementPage = React.lazy(() => import("./pages/app/accounts/VendorStatementPage"));
 const RevenueDrillDownPage = React.lazy(() => import("./pages/app/accounts/RevenueDrillDownPage"));
 import AccountSettingsPage from "./pages/app/accounts/AccountSettingsPage";
 import AccountTypesPage from "./pages/app/accounts/AccountTypesPage";
@@ -1279,6 +1281,9 @@ function App() {
                 <Route path="accounts/year-end-closing" element={<YearEndClosingPage />} />
                 <Route path="accounts/recurring-entries" element={<RecurringEntriesPage />} />
                 <Route path="accounts/pdc-register" element={<PDCRegisterPage />} />
+                <Route path="accounts/reports/budget-variance" element={<BudgetVariancePage />} />
+                <Route path="accounts/vendor-statement" element={<VendorStatementPage />} />
+                <Route path="accounts/vendor-statement/:vendorId" element={<VendorStatementPage />} />
 
                {/* Donation Management routes */}
                <Route path="donations" element={<FinDonationDashboard />} />
