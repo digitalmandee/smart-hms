@@ -137,6 +137,10 @@ export default function ProfitLossPage() {
                   <GitCompare className="h-4 w-4" /> Compare Previous Period
                 </Label>
               </div>
+              <div className="flex items-center gap-2 pb-1">
+                <Switch checked={hideZero} onCheckedChange={setHideZero} />
+                <Label className="cursor-pointer">Hide zero-balance accounts</Label>
+              </div>
             </div>
           </CardContent>
         </Card>
