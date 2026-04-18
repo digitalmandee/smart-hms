@@ -4180,6 +4180,18 @@ export const en = {
   "finance.depExpenseAccount": "Depreciation Expense Account",
   "finance.accumDepAccount": "Accumulated Depreciation Account",
   "finance.postDepreciation": "Post Depreciation",
+  "finance.perAssetDepInfo": "Posts depreciation using each asset's own configured GL accounts. Assets without configured accounts are skipped.",
+  "finance.assetGLAccounts": "GL Accounts",
+  "finance.assetCostAccount": "Asset / Accumulated Depreciation Account",
+  "finance.assetCostAccountHint": "Credited monthly with the depreciation amount.",
+  "finance.depExpenseAccountHint": "Debited monthly with the depreciation amount.",
+  "finance.saveGLAccounts": "Save GL Accounts",
+  "finance.lockFiscalYear": "Lock Fiscal Year",
+  "finance.lockFYConfirm": "Lock this fiscal year? No further entries can be posted to this period.",
+  "finance.fyLocked": "Locked",
+  "finance.autoPostDue": "Auto-post Due",
+  "finance.autoPostDueDesc": "Post all recurring templates whose next run date is today or earlier.",
+  "finance.balancedLinesHint": "Total debits must equal total credits for auto-post to succeed.",
 
   // Recurring Entries
   "finance.recurringEntries": "Recurring Entries",
