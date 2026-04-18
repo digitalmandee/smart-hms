@@ -9,10 +9,11 @@ import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Plus, Calculator, PlayCircle } from "lucide-react";
+import { Plus, Calculator, PlayCircle, Settings2 } from "lucide-react";
 import { useFixedAssets, useCreateFixedAsset, calculateDepreciation } from "@/hooks/useFixedAssets";
-import { useDepreciationPosting } from "@/hooks/useDepreciationPosting";
+import { usePostPerAssetDepreciation, useUpdateAssetAccounts } from "@/hooks/useDepreciationPostingV2";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { AccountPicker } from "@/components/accounts/AccountPicker";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTranslation } from "@/lib/i18n";
@@ -21,16 +22,20 @@ export default function FixedAssetsPage() {
   const { t } = useTranslation();
   const { data: assets, isLoading } = useFixedAssets();
   const createMutation = useCreateFixedAsset();
-  const depPosting = useDepreciationPosting();
+  const depPosting = usePostPerAssetDepreciation();
+  const updateAcctMutation = useUpdateAssetAccounts();
   const { formatCurrency } = useCurrencyFormatter();
   const [open, setOpen] = useState(false);
   const [depOpen, setDepOpen] = useState(false);
   const [scheduleAsset, setScheduleAsset] = useState<any>(null);
+  const [acctAsset, setAcctAsset] = useState<any>(null);
+  const [acctForm, setAcctForm] = useState<{ account_id: string; depreciation_account_id: string }>({
+    account_id: "",
+    depreciation_account_id: "",
+  });
   const now = new Date();
   const [depMonth, setDepMonth] = useState(String(now.getMonth() + 1));
   const [depYear, setDepYear] = useState(String(now.getFullYear()));
-  const [depExpAcct, setDepExpAcct] = useState("");
-  const [depAccumAcct, setDepAccumAcct] = useState("");
   const [form, setForm] = useState({
     name: "", category: "", purchase_date: "", purchase_cost: "",
     useful_life_months: "60", depreciation_method: "straight_line", salvage_value: "0",
