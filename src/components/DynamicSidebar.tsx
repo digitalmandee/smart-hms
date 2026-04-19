@@ -348,6 +348,16 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   "Balance Sheet": "nav.balanceSheet",
   "Cash Flow": "nav.cashFlow",
   "Account Types": "nav.accountTypes",
+  // Sub-items: Finance / Accounts — Phase 5 menu restructure (only keys not already mapped below)
+  "Operations": "nav.operations",
+  "Assets & Budgets": "nav.assetsBudgets",
+  "Vendor Statement": "nav.vendorStatement",
+  "Credit Notes": "nav.creditNotes",
+  "Period Management": "nav.periodManagement",
+  "Revenue Drill-Down": "nav.revenueDrillDown",
+  "Department P&L": "nav.departmentPnl",
+  "Budget Variance": "nav.budgetVariance",
+  "Audit Log": "nav.auditLog",
   // Sub-items: Pharmacy / Inventory
   "Stock": "nav.stock",
   "POS Terminal": "nav.posTerminal",

@@ -1,0 +1,1 @@
+UPDATE public.menu_items SET is_active = false WHERE code = 'expense_management';
