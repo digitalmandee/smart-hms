@@ -4,7 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Building, Star } from "lucide-react";
+import { Plus, Building, Star, FileText } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { useVendors } from "@/hooks/useVendors";
 import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -33,6 +34,7 @@ const WAREHOUSE_VENDOR_TYPE_LABELS: Record<string, { label: string; variant: "de
 };
 
 export default function VendorsListPage() {
+  const navigate = useNavigate();
   const { profile } = useAuth();
   const { data: organization } = useOrganization(profile?.organization_id);
   const isWarehouse = organization?.facility_type === "warehouse";
@@ -126,6 +128,7 @@ export default function VendorsListPage() {
                   <TableHead>City</TableHead>
                   <TableHead>Payment Terms</TableHead>
                   <TableHead>Rating</TableHead>
+                  <TableHead className="text-right">Actions</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -168,6 +171,17 @@ export default function VendorsListPage() {
                     <TableCell>{vendor.city || "-"}</TableCell>
                     <TableCell><Badge variant="outline">{vendor.payment_terms}</Badge></TableCell>
                     <TableCell>{renderRating(vendor.rating)}</TableCell>
+                    <TableCell className="text-right">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={(e) => { e.stopPropagation(); navigate(`/app/accounts/vendor-statement/${vendor.id}`); }}
+                        title="View Statement"
+                      >
+                        <FileText className="h-3 w-3 mr-1" />
+                        Statement
+                      </Button>
+                    </TableCell>
                   </TableRow>
                 ))}
               </TableBody>

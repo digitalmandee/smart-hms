@@ -4200,6 +4200,9 @@ export const ar: Record<TranslationKey, string> = {
   "finance.total_paid": "إجمالي المدفوع",
   "finance.outstanding_payable": "المستحقات المعلقة",
   "finance.paid": "مدفوع",
+  "finance.download_pdf": "تحميل PDF",
+  "finance.pdf_generated": "تم تنزيل كشف الحساب",
+  "finance.view_statement": "عرض كشف الحساب",
 
 };
 

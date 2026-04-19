@@ -4293,6 +4293,9 @@ export const en = {
   "finance.total_paid": "Total Paid",
   "finance.outstanding_payable": "Outstanding Payable",
   "finance.paid": "Paid",
+  "finance.download_pdf": "Download PDF",
+  "finance.pdf_generated": "Statement PDF downloaded",
+  "finance.view_statement": "View Statement",
 
 } as const;
 

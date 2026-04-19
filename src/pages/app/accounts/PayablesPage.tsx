@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Search, Download, RefreshCw, Building2, Clock, CreditCard, Receipt } from "lucide-react";
+import { Search, Download, RefreshCw, Building2, Clock, CreditCard, Receipt, FileText } from "lucide-react";
 import { exportToCSV, formatCurrency as exportFmtCurrency, formatDate } from "@/lib/exportUtils";
 import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer, Cell } from "recharts";
 import { PageHeader } from "@/components/PageHeader";
@@ -359,6 +359,15 @@ export default function PayablesPage() {
                           onClick={() => navigate(`/app/inventory/grn/${grn.id}`)}
                         >
                           View
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => navigate(`/app/accounts/vendor-statement/${grn.vendor_id}`)}
+                          title="View Vendor Statement"
+                        >
+                          <FileText className="h-3 w-3 mr-1" />
+                          Statement
                         </Button>
                         {grn.outstanding_amount > 0 && (
                           <Button
