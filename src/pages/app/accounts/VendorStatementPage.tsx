@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
@@ -12,12 +12,19 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, FileText, CreditCard, Building2 } from "lucide-react";
+import { ArrowLeft, FileText, CreditCard, Building2, FileDown, Loader2 } from "lucide-react";
 import { format, subMonths } from "date-fns";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { useVendorStatement } from "@/hooks/useVendorStatement";
 import { useTranslation } from "@/lib/i18n";
 import { ReportExportButton } from "@/components/reports/ReportExportButton";
+import { useOrganization } from "@/hooks/useOrganizations";
+import {
+  StatementPDFTemplate,
+  StatementLanguage,
+} from "@/components/finance/StatementPDFTemplate";
+import { generateStatementPDF, computeAgingFromEntries } from "@/lib/generateStatementPDF";
+import { toast } from "sonner";
 
 const TYPE_CONFIG: Record<string, { label: string; color: string; icon: any }> = {
   grn: { label: "Goods Received", color: "bg-blue-100 text-blue-800", icon: FileText },
@@ -27,15 +34,24 @@ const TYPE_CONFIG: Record<string, { label: string; color: string; icon: any }> =
   opening: { label: "Opening Balance", color: "bg-gray-100 text-gray-800", icon: FileText },
 };
 
+const TYPE_LABELS: Record<StatementLanguage, Record<string, string>> = {
+  en: { grn: "Goods Received", payment: "Payment Made", po: "Purchase Order", credit_note: "Credit Note", opening: "Opening Balance" },
+  ar: { grn: "بضائع مستلمة", payment: "دفعة مدفوعة", po: "أمر شراء", credit_note: "إشعار دائن", opening: "الرصيد الافتتاحي" },
+  ur: { grn: "وصول شدہ سامان", payment: "ادائیگی", po: "خریداری آرڈر", credit_note: "کریڈٹ نوٹ", opening: "ابتدائی بیلنس" },
+};
+
 export default function VendorStatementPage() {
   const { vendorId: urlVendorId } = useParams();
   const navigate = useNavigate();
-  const { t } = useTranslation();
+  const { t, language } = useTranslation();
   const { profile } = useAuth();
   const { formatCurrency } = useCurrencyFormatter();
   const [selectedVendorId, setSelectedVendorId] = useState(urlVendorId || "");
   const [fromDate, setFromDate] = useState(subMonths(new Date(), 3).toISOString().split("T")[0]);
   const [toDate, setToDate] = useState(new Date().toISOString().split("T")[0]);
+  const [pdfLang, setPdfLang] = useState<StatementLanguage>((language as StatementLanguage) || "en");
+  const [generating, setGenerating] = useState(false);
+  const pdfRef = useRef<HTMLDivElement>(null);
 
   // Fetch vendor list for selector (when no urlVendorId)
   const { data: vendors } = useQuery({
@@ -53,7 +69,26 @@ export default function VendorStatementPage() {
   });
 
   const { data, isLoading } = useVendorStatement(selectedVendorId, fromDate, toDate);
+  const { data: organization } = useOrganization(profile?.organization_id);
   const entries = data?.entries || [];
+
+  const aging = computeAgingFromEntries(
+    entries.map((e) => ({ date: e.date, debit: e.credit, credit: e.debit })) // Vendor: credit = we owe (charge), debit = paid
+  );
+
+  const handleDownloadPDF = async () => {
+    if (!pdfRef.current) return;
+    setGenerating(true);
+    try {
+      const filename = `vendor-statement-${data?.vendor?.name?.replace(/\s+/g, "_") || selectedVendorId}-${format(new Date(), "yyyyMMdd")}`;
+      await generateStatementPDF(pdfRef.current, filename);
+      toast.success(t("finance.pdf_generated" as any, "Statement PDF downloaded"));
+    } catch (e: any) {
+      toast.error(e?.message || "Failed to generate PDF");
+    } finally {
+      setGenerating(false);
+    }
+  };
 
   const exportColumns = [
     { key: "date", header: t("common.date" as any, "Date"), format: (v: string) => v ? format(new Date(v), "dd MMM yyyy") : "-" },
@@ -75,10 +110,28 @@ export default function VendorStatementPage() {
           { label: t("finance.vendor_statement" as any, "Vendor Statement") },
         ]}
         actions={
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2 items-center">
             <Button variant="outline" size="sm" onClick={() => navigate(-1)}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               {t("common.back" as any, "Back")}
+            </Button>
+            <Select value={pdfLang} onValueChange={(v) => setPdfLang(v as StatementLanguage)}>
+              <SelectTrigger className="w-[140px] h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="en">English PDF</SelectItem>
+                <SelectItem value="ar">عربي PDF</SelectItem>
+                <SelectItem value="ur">اردو PDF</SelectItem>
+              </SelectContent>
+            </Select>
+            <Button
+              size="sm"
+              onClick={handleDownloadPDF}
+              disabled={!selectedVendorId || generating || entries.length === 0}
+            >
+              {generating ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <FileDown className="h-4 w-4 mr-2" />}
+              {t("finance.download_pdf" as any, "Download PDF")}
             </Button>
             <ReportExportButton
               data={entries}
@@ -212,7 +265,6 @@ export default function VendorStatementPage() {
                       </TableRow>
                     );
                   })}
-                  {/* Totals row */}
                   <TableRow className="bg-muted/50 font-bold">
                     <TableCell colSpan={4} className="text-right">{t("common.total" as any, "Total")}</TableCell>
                     <TableCell className="text-right text-green-600">{formatCurrency(data?.totalDebit || 0)}</TableCell>
@@ -226,6 +278,41 @@ export default function VendorStatementPage() {
             )}
           </CardContent>
         </Card>
+      )}
+
+      {/* Hidden PDF template */}
+      {selectedVendorId && data?.vendor && organization && (
+        <div style={{ position: "fixed", left: "-10000px", top: 0, pointerEvents: "none", opacity: 0 }} aria-hidden>
+          <StatementPDFTemplate
+            ref={pdfRef}
+            language={pdfLang}
+            organizationName={organization.name}
+            organizationAddress={(organization as any).address}
+            organizationPhone={(organization as any).phone}
+            organizationEmail={(organization as any).email}
+            organizationLogoUrl={(organization as any).logo_url}
+            statementType="vendor"
+            partyName={data.vendor.name}
+            partyContact={[(data.vendor as any).contact_person, (data.vendor as any).phone, (data.vendor as any).email].filter(Boolean).join(" · ")}
+            partyAddress={(data.vendor as any).address}
+            fromDate={fromDate}
+            toDate={toDate}
+            entries={entries.map((e) => ({
+              date: e.date,
+              type: TYPE_LABELS[pdfLang][e.type] || e.type,
+              reference: e.reference,
+              description: e.description,
+              debit: e.debit,
+              credit: e.credit,
+              balance: e.balance,
+            }))}
+            totalDebit={data.totalDebit}
+            totalCredit={data.totalCredit}
+            closingBalance={data.closingBalance}
+            aging={aging}
+            formatCurrency={formatCurrency}
+          />
+        </div>
       )}
     </div>
   );
