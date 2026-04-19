@@ -352,7 +352,7 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   "Operations": "nav.operations",
   "Assets & Budgets": "nav.assetsBudgets",
   "Reports Hub": "nav.reportsHub",
-  "Compliance": "nav.complianceGroup",
+  // "Compliance" key reused for HR group below — finance Compliance group also maps to nav.compliance via that entry
   "Vendor Statement": "nav.vendorStatement",
   "Patient Deposits": "nav.patientDeposits",
   "Credit Notes": "nav.creditNotes",
@@ -363,7 +363,7 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   "Cost Centers": "nav.costCenters",
   "Recurring Entries": "nav.recurringEntries",
   "Period Management": "nav.periodManagement",
-  "Budgets & Fiscal Years": "nav.budgetsFiscal",
+  // "Budgets & Fiscal Years" defined further below
   "Revenue by Source": "nav.revenueBySource",
   "Revenue Drill-Down": "nav.revenueDrillDown",
   "Department P&L": "nav.departmentPnl",
