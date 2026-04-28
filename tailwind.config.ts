@@ -3,6 +3,14 @@ import type { Config } from "tailwindcss";
 export default {
   darkMode: ["class"],
   content: ["./pages/**/*.{ts,tsx}", "./components/**/*.{ts,tsx}", "./app/**/*.{ts,tsx}", "./src/**/*.{ts,tsx}"],
+  safelist: [
+    {
+      pattern: /(bg|text|border|from|to)-(blue|violet|orange|emerald|rose|teal|indigo|amber|sky|green|purple)-(50|100|500|600|700)(\/\d+)?/,
+    },
+    {
+      pattern: /(bg|text|border)-(blue|violet|orange|emerald|rose|teal|indigo|amber|sky|green|purple)-500\/(5|10|15|20|30)/,
+    },
+  ],
   prefix: "",
   theme: {
     container: {
