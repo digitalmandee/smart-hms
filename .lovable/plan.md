@@ -1,62 +1,45 @@
-# Pharmacy & Warehouse Module — Presentation PDF
+## Rebrand the Pharmacy + Warehouse PDF deck to match the main HealthOS 24 presentation
 
-## Output
-A single downloadable PDF deck (`/mnt/documents/HealthOS24_Pharmacy_Warehouse_Deck.pdf`), 16:9 landscape, ~20 pages, English. Built with `reportlab` using the HealthOS 24 brand palette (deep teal + indigo accents, charcoal text, off-white background) consistent with existing `Proposal*` components.
+The current `HealthOS24_Pharmacy_Warehouse_Deck.pdf` was generated with an ad-hoc teal/indigo/orange palette and Work Sans typography. The main in-app deck (`/presentation`, linked from the home page) uses a specific brand system that this PDF must mirror exactly.
 
-## Deck Structure (20 pages)
+### Brand system to mirror (extracted from `src/index.css` + `src/components/presentation/*`)
 
-```text
-01  Cover                — HealthOS 24 · Pharmacy & Warehouse Module
-02  Agenda / What's inside
-03  Module Overview      — two pillars: Pharmacy + Warehouse/WMS
-04  Architecture Map     — PR → PO → GRN → Put-Away → Pick → Dispense → POS → GL
+**Color tokens (from `:root` in `index.css`):**
+- Primary (Healthcare Teal): `#0D9488` (hsl 174 84% 32%)
+- Primary tint backgrounds: `#0D9488` @ 10% opacity → `#E6F4F2`
+- Accent (Coral): `#E8674E` (hsl 16 85% 57%)
+- Background: `#F1F4F8` (hsl 210 25% 96%)
+- Card: `#FFFFFF`
+- Foreground text: `#1E293B` (hsl 220 25% 15%)
+- Muted text: `#64748B` (hsl 220 10% 45%)
+- Border: `#E2E8F0` (hsl 214 32% 91%)
+- Sidebar/Dark teal: `#125E55` (hsl 174 84% 22%) — used for hero footer band
+- Step pill colors used in `ProcurementSlide.tsx`: blue `#3B82F6`, violet `#8B5CF6`, orange `#F97316`, emerald `#10B981`, rose `#F43F5E`, teal `#14B8A6`
+- Sub-store colors used in `WarehouseSlide.tsx`: blue/green/orange/purple
 
-PHARMACY (6 pages)
-05  Pharmacy Dashboard & KPIs
-06  Medicine Catalog & Categories  (batch, expiry, rack, alternatives)
-07  Stock Entry & GRN Intake       (FIFO/FEFO, atomic upsert)
-08  Prescription Queue & Dispensing (OPD/IPD/OT, Wasfaty KSA)
-09  POS Terminal & Sessions        (cart, held txns, refunds, receipts)
-10  Returns, Stock Movements, Alerts (low-stock, expiry, reorder)
+**Typography:** Inter (Google Fonts, weights 400/500/600/700) — matches the in-app deck.
 
-WAREHOUSE / WMS (6 pages)
-11  Warehouse Dashboard & Executive KPIs
-12  Stores, Zones, Bins/Racks      (storage map, capacity)
-13  Procurement: PR → PO → GRN     (3-way match, vendor mgmt)
-14  Put-Away & Picking             (worklist, pick lists, packing slips)
-15  Transfers, RTV, Cycle Count    (multi-store, variance posting)
-16  Shipping, Dock & Gate Log      (inbound/outbound logistics)
+**Layout conventions per slide:**
+1. Top header band: small category chip (e.g. "Pharmacy" / "Supply Chain") in primary-tint pill, then large bold title (~28pt), with slide counter "N / 24" right-aligned, separated by a 1px border.
+2. Subtitle paragraph in muted color.
+3. Body grid (1- or 2-column) with white rounded cards (radius 12), subtle border `#E2E8F0`, soft shadow.
+4. Bottom stats row: 3 KPI tiles, primary-color numbers, muted labels.
+5. Footer: thin border-top, left "HealthOS 24 - AI-Powered Hospital Management System", right "healthos24.com".
+6. Title slide: gradient background (primary @ 10% → background → primary @ 5%), centered "24" badge logo (rounded square, teal gradient, white "24" + heartbeat line, drawn as vector), big two-line title with the second line in primary color, feature pills, stats card.
 
-CROSS-CUTTING (3 pages)
-17  Reports & Analytics            (consumption, ABC, expiry, P&L)
-18  Compliance & Integrations      (Wasfaty, Tatmeen, ZATCA, NPHIES)
-19  GL Integration                 (auto-post DR/CR map for POS, GRN, RTV)
-20  Closing — value summary + contact
-```
+### Implementation
 
-## Visual Design
-- **Palette**: Primary `#0F4C5C` (deep teal), Accent `#5F6CAF` (indigo), Highlight `#E36414` (warm orange for KPI numbers), Surface `#F8F7F2` (warm off-white), Text `#1F2937`.
-- **Layout per page**: Left accent bar (8pt teal), small page number top-right, large title, subtitle, then a 2-column or icon-grid body. Footer: "HealthOS 24 · Pharmacy & Warehouse" left, "healthos24.com" right.
-- **Diagrams**: Page 04 (architecture flow) and page 19 (GL T-account) drawn with reportlab primitives (rounded rects, arrows). No emojis.
-- **Typography**: Helvetica-Bold titles (28pt), Helvetica subtitle (14pt teal), Helvetica body (11pt), small caps section labels.
-- **No screenshots** — reportlab cannot capture the running app reliably, and stylized diagrams + feature grids look more polished in print.
+1. Rewrite `/tmp/build_deck.py` (reportlab) using the exact tokens above. Replace the current Work Sans + indigo/orange theme with Inter + teal/coral.
+2. Re-draw the "24" heartbeat logo as native reportlab vector (rounded rect with linear gradient, white "24" text, polyline heartbeat) so the title slide matches `HealthOS24Logo` pixel-for-pixel in spirit.
+3. Apply consistent header/footer template to all 20 pages.
+4. Recolor all process-step icons (Procurement: blue→violet→orange→emerald→rose→teal) and warehouse sub-store tiles (blue/green/orange/purple) to match the React slides.
+5. Keep all existing content (20 pages, same structure: Title, Architecture, 6× Pharmacy, 6× Warehouse, Procurement cycle, Compliance, GL mapping, Roadmap, CTA).
+6. Output to `/mnt/documents/HealthOS24_Pharmacy_Warehouse_Deck_v2.pdf` (versioned per artifact-iteration rule).
+7. QA: rasterize all 20 pages with `pdftoppm` and visually inspect each one for color match, spacing, no clipping, no font fallback boxes. Iterate fixes until clean. Discard QA images after.
 
-## Content Source
-Page content is derived from actual modules verified in the repo:
-- Pharmacy: 26 pages under `src/pages/app/pharmacy/` (Dashboard, MedicinesList, StockEntry, PrescriptionQueue, Dispensing, POSTerminal, POSSessions, Returns, StockAlerts, StockMovements, RackManagement, Reports, Settings, plus Wasfaty/Tatmeen panels in `src/components/pharmacy/`).
-- Warehouse: 50+ pages under `src/pages/app/inventory/` (PR/PO/GRN, PutAway, PickLists, PackingSlips, Transfers, RTV, CycleCount, StockAdjustments, Vendors, Stores, Zones/Bins, ReorderAlerts, KPI Dashboard, Integrations, Shipping, GateLog, DockSchedule).
-- Compliance/GL drawn from existing memories (Wasfaty KSA, Tatmeen, COGS auto-post, GRN trigger, ZATCA).
+### Files & deliverable
 
-## Implementation Steps
-1. Write a single Python script `/tmp/build_deck.py` using reportlab `canvas` with a 16:9 page size (13.333" × 7.5").
-2. Define brand helpers (`draw_header`, `draw_footer`, `draw_kpi`, `draw_feature_grid`, `draw_flow_diagram`).
-3. Generate each of the 20 pages.
-4. Output to `/mnt/documents/HealthOS24_Pharmacy_Warehouse_Deck.pdf`.
-5. **QA**: convert each page with `pdftoppm -jpeg -r 120` and visually inspect every page for overflow, overlap, contrast, and alignment. Iterate until clean. QA images discarded.
-6. Emit `<lov-artifact>` tag.
-
-## Files Touched
-- None in the repo. Only generates the deliverable PDF in `/mnt/documents/`.
-
-## Note on Trilingual Rule
-The project memory says to build features in EN/AR/UR. That rule applies to in-app UI. This is a one-shot **English sales/overview PDF artifact** (per your format choice). If you'd like Arabic and Urdu PDF editions afterward, I can generate those as `_AR.pdf` and `_UR.pdf` in a follow-up — just say the word.
+- Script: `/tmp/build_deck.py` (rewrite)
+- Output artifact: `/mnt/documents/HealthOS24_Pharmacy_Warehouse_Deck_v2.pdf`
+- No project source files change.
+- The user receives the new PDF via a `<lov-artifact>` tag.
