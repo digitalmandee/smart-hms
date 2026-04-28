@@ -68,6 +68,12 @@ export const Navbar = () => {
                 Presentation
               </Button>
             </Link>
+            <Link to="/pharmacy-warehouse-presentation" target="_blank">
+              <Button variant="outline" size="sm">
+                <FileDown className="h-4 w-4 mr-2" />
+                Pharmacy & Warehouse
+              </Button>
+            </Link>
             <Link to="/auth/login">
               <Button variant="ghost" size="sm">
                 Sign In
@@ -117,6 +123,18 @@ export const Navbar = () => {
               )
             )}
             <div className="flex flex-col gap-2 pt-4">
+              <Link to="/presentation" target="_blank" onClick={() => setIsOpen(false)}>
+                <Button variant="outline" className="w-full">
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Presentation
+                </Button>
+              </Link>
+              <Link to="/pharmacy-warehouse-presentation" target="_blank" onClick={() => setIsOpen(false)}>
+                <Button variant="outline" className="w-full">
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Pharmacy & Warehouse
+                </Button>
+              </Link>
               <Link to="/auth/login" onClick={() => setIsOpen(false)}>
                 <Button variant="outline" className="w-full">
                   Sign In
