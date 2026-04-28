@@ -18,6 +18,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Presentation from "./pages/Presentation";
 import ExecutivePresentation from "./pages/ExecutivePresentation";
+import PharmacyWarehousePresentation from "./pages/PharmacyWarehousePresentation";
 import PricingProposal from "./pages/PricingProposal";
 import ContractPage from "./pages/ContractPage";
 import SocialMediaPosts from "./pages/SocialMediaPosts";
@@ -716,6 +717,7 @@ function App() {
               <Route path="/" element={<Index />} />
               <Route path="/presentation" element={<Presentation />} />
               <Route path="/executive-presentation" element={<ExecutivePresentation />} />
+              <Route path="/pharmacy-warehouse-presentation" element={<PharmacyWarehousePresentation />} />
               <Route path="/pricing-proposal" element={<PricingProposal />} />
               <Route path="/contract" element={<ContractPage />} />
               <Route path="/social-media-posts" element={<SocialMediaPosts />} />
