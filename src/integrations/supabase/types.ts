@@ -3612,6 +3612,122 @@ export type Database = {
           },
         ]
       }
+      client_errors: {
+        Row: {
+          branch_id: string | null
+          id: string
+          message: string
+          occurred_at: string
+          organization_id: string | null
+          resolved_at: string | null
+          resolved_by: string | null
+          route: string | null
+          stack_excerpt: string | null
+          stack_hash: string | null
+          url: string | null
+          user_agent: string | null
+          user_id: string | null
+          user_role: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          id?: string
+          message: string
+          occurred_at?: string
+          organization_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          route?: string | null
+          stack_excerpt?: string | null
+          stack_hash?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          id?: string
+          message?: string
+          occurred_at?: string
+          organization_id?: string | null
+          resolved_at?: string | null
+          resolved_by?: string | null
+          route?: string | null
+          stack_excerpt?: string | null
+          stack_hash?: string | null
+          url?: string | null
+          user_agent?: string | null
+          user_id?: string | null
+          user_role?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "client_errors_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      clinical_alerts: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by: string | null
+          acknowledged_note: string | null
+          alert_type: string
+          assigned_to: string | null
+          branch_id: string | null
+          context: Json | null
+          created_at: string
+          created_by: string | null
+          id: string
+          message: string
+          organization_id: string
+          patient_id: string | null
+          severity: string
+          source_id: string | null
+          source_table: string | null
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          acknowledged_note?: string | null
+          alert_type: string
+          assigned_to?: string | null
+          branch_id?: string | null
+          context?: Json | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message: string
+          organization_id: string
+          patient_id?: string | null
+          severity: string
+          source_id?: string | null
+          source_table?: string | null
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by?: string | null
+          acknowledged_note?: string | null
+          alert_type?: string
+          assigned_to?: string | null
+          branch_id?: string | null
+          context?: Json | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message?: string
+          organization_id?: string
+          patient_id?: string | null
+          severity?: string
+          source_id?: string | null
+          source_table?: string | null
+        }
+        Relationships: []
+      }
       compensatory_offs: {
         Row: {
           approved_at: string | null
@@ -8096,6 +8212,84 @@ export type Database = {
           },
         ]
       }
+      drug_interactions: {
+        Row: {
+          created_at: string
+          description: string
+          drug_a: string
+          drug_b: string
+          id: string
+          severity: string
+          source: string | null
+        }
+        Insert: {
+          created_at?: string
+          description: string
+          drug_a: string
+          drug_b: string
+          id?: string
+          severity: string
+          source?: string | null
+        }
+        Update: {
+          created_at?: string
+          description?: string
+          drug_a?: string
+          drug_b?: string
+          id?: string
+          severity?: string
+          source?: string | null
+        }
+        Relationships: []
+      }
+      edge_errors: {
+        Row: {
+          branch_id: string | null
+          context: Json | null
+          function_name: string
+          id: string
+          integration: string | null
+          message: string
+          occurred_at: string
+          organization_id: string | null
+          request_method: string | null
+          request_path: string | null
+          stack_excerpt: string | null
+          status_code: number | null
+          user_id: string | null
+        }
+        Insert: {
+          branch_id?: string | null
+          context?: Json | null
+          function_name: string
+          id?: string
+          integration?: string | null
+          message: string
+          occurred_at?: string
+          organization_id?: string | null
+          request_method?: string | null
+          request_path?: string | null
+          stack_excerpt?: string | null
+          status_code?: number | null
+          user_id?: string | null
+        }
+        Update: {
+          branch_id?: string | null
+          context?: Json | null
+          function_name?: string
+          id?: string
+          integration?: string | null
+          message?: string
+          occurred_at?: string
+          organization_id?: string | null
+          request_method?: string | null
+          request_path?: string | null
+          stack_excerpt?: string | null
+          status_code?: number | null
+          user_id?: string | null
+        }
+        Relationships: []
+      }
       emergency_registrations: {
         Row: {
           admission_id: string | null
@@ -10264,6 +10458,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      gateway_circuit_state: {
+        Row: {
+          consecutive_failures: number
+          gateway: string
+          last_failure_at: string | null
+          next_retry_at: string | null
+          opened_at: string | null
+          organization_id: string | null
+          state: string
+          updated_at: string
+        }
+        Insert: {
+          consecutive_failures?: number
+          gateway: string
+          last_failure_at?: string | null
+          next_retry_at?: string | null
+          opened_at?: string | null
+          organization_id?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Update: {
+          consecutive_failures?: number
+          gateway?: string
+          last_failure_at?: string | null
+          next_retry_at?: string | null
+          opened_at?: string | null
+          organization_id?: string | null
+          state?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      gateway_idempotency: {
+        Row: {
+          created_at: string
+          expires_at: string
+          gateway: string
+          id: string
+          organization_id: string | null
+          request_hash: string
+          response_body: Json | null
+          response_status: number | null
+        }
+        Insert: {
+          created_at?: string
+          expires_at?: string
+          gateway: string
+          id?: string
+          organization_id?: string | null
+          request_hash: string
+          response_body?: Json | null
+          response_status?: number | null
+        }
+        Update: {
+          created_at?: string
+          expires_at?: string
+          gateway?: string
+          id?: string
+          organization_id?: string | null
+          request_hash?: string
+          response_body?: Json | null
+          response_status?: number | null
+        }
+        Relationships: []
       }
       goods_received_notes: {
         Row: {
@@ -14278,6 +14538,47 @@ export type Database = {
           },
         ]
       }
+      lab_critical_values: {
+        Row: {
+          created_at: string
+          high_critical: number | null
+          id: string
+          low_critical: number | null
+          notes: string | null
+          organization_id: string | null
+          test_name: string
+          unit: string | null
+        }
+        Insert: {
+          created_at?: string
+          high_critical?: number | null
+          id?: string
+          low_critical?: number | null
+          notes?: string | null
+          organization_id?: string | null
+          test_name: string
+          unit?: string | null
+        }
+        Update: {
+          created_at?: string
+          high_critical?: number | null
+          id?: string
+          low_critical?: number | null
+          notes?: string | null
+          organization_id?: string | null
+          test_name?: string
+          unit?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_critical_values_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_order_items: {
         Row: {
           created_at: string
@@ -15741,6 +16042,47 @@ export type Database = {
             columns: ["store_id"]
             isOneToOne: false
             referencedRelation: "stores"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      medicine_safety_limits: {
+        Row: {
+          allergy_class: string | null
+          created_at: string
+          generic_name: string
+          id: string
+          max_daily_dose_mg: number | null
+          notes: string | null
+          organization_id: string | null
+          updated_at: string
+        }
+        Insert: {
+          allergy_class?: string | null
+          created_at?: string
+          generic_name: string
+          id?: string
+          max_daily_dose_mg?: number | null
+          notes?: string | null
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Update: {
+          allergy_class?: string | null
+          created_at?: string
+          generic_name?: string
+          id?: string
+          max_daily_dose_mg?: number | null
+          notes?: string | null
+          organization_id?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medicine_safety_limits_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
             referencedColumns: ["id"]
           },
         ]
@@ -25382,6 +25724,7 @@ export type Database = {
         Args: { _organization_id: string }
         Returns: Json
       }
+      cleanup_gateway_idempotency: { Args: never; Returns: undefined }
       create_coa_hierarchy: { Args: { p_org_id: string }; Returns: undefined }
       create_kiosk_session: {
         Args: {
