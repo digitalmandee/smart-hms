@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { requireAuth, userHasAnyRole, forbidden } from "../_shared/auth.ts";
 
 const DEMO_PASSWORD = "Demo@123";
 const ORG = "a1111111-1111-1111-1111-111111111111";
@@ -97,12 +98,15 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Phase 1.3: Restrict demo seeding to super_admin/admin only.
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+  if (!(await userHasAnyRole(auth.admin, auth.userId, ["super_admin", "admin"]))) {
+    return forbidden(req);
+  }
+
   try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "",
-      { auth: { autoRefreshToken: false, persistSession: false } }
-    );
+    const supabase = auth.admin;
 
     const { action } = await req.json().catch(() => ({ action: "seed" }));
     const results: string[] = [];

@@ -94,6 +94,9 @@ import AIChatPage from "./pages/app/ai/AIChatPage";
 import { BranchesListPage } from "./pages/app/settings/BranchesListPage";
 import { BranchFormPage } from "./pages/app/settings/BranchFormPage";
 import { UsersListPage } from "./pages/app/settings/UsersListPage";
+import SecuritySetupPage from "./pages/app/admin/SecuritySetupPage";
+import IntegrationHealthPage from "./pages/app/admin/IntegrationHealthPage";
+import RunbooksPage from "./pages/app/admin/RunbooksPage";
 import { UserDetailPage } from "./pages/app/settings/UserDetailPage";
 import StaffCreatePage from "./pages/app/settings/StaffCreatePage";
 import { OrganizationSettingsPage } from "./pages/app/settings/OrganizationSettingsPage";
@@ -1404,6 +1407,11 @@ function App() {
               <Route path="settings/organization" element={<OrganizationSettingsPage />} />
               <Route path="settings/country" element={<CountryRegionSettingsPage />} />
               <Route path="settings/roles" element={<RolesPermissionsPage />} />
+
+              {/* Production-readiness admin pages */}
+              <Route path="admin/security-setup" element={<SecuritySetupPage />} />
+              <Route path="admin/integration-health" element={<IntegrationHealthPage />} />
+              <Route path="admin/runbooks" element={<RunbooksPage />} />
               
               {/* Services routes - top level */}
               <Route path="services" element={<ServicesListPage />} />

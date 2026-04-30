@@ -25724,6 +25724,10 @@ export type Database = {
         Args: { _organization_id: string }
         Returns: Json
       }
+      check_drug_allergy: {
+        Args: { p_drug_name: string; p_patient_id: string }
+        Returns: boolean
+      }
       cleanup_gateway_idempotency: { Args: never; Returns: undefined }
       create_coa_hierarchy: { Args: { p_org_id: string }; Returns: undefined }
       create_kiosk_session: {
