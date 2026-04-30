@@ -1407,6 +1407,11 @@ function App() {
               <Route path="settings/organization" element={<OrganizationSettingsPage />} />
               <Route path="settings/country" element={<CountryRegionSettingsPage />} />
               <Route path="settings/roles" element={<RolesPermissionsPage />} />
+
+              {/* Production-readiness admin pages */}
+              <Route path="admin/security-setup" element={<SecuritySetupPage />} />
+              <Route path="admin/integration-health" element={<IntegrationHealthPage />} />
+              <Route path="admin/runbooks" element={<RunbooksPage />} />
               
               {/* Services routes - top level */}
               <Route path="services" element={<ServicesListPage />} />
