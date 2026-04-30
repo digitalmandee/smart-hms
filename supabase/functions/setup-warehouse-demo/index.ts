@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { requireAuth, userHasAnyRole, forbidden } from "../_shared/auth.ts";
 
 const DEMO_PASSWORD = "Demo@123";
 const ORG = "a1111111-1111-1111-1111-111111111111";
