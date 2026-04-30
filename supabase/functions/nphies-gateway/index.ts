@@ -1,5 +1,6 @@
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
 import { getCorsHeaders } from "../_shared/cors.ts";
+import { requireAuth } from "../_shared/auth.ts";
 
 async function getNphiesToken(baseUrl: string, clientId: string, clientSecret: string) {
   const tokenRes = await fetch(`${baseUrl}/oauth2/token`, {
