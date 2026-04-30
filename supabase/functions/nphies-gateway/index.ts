@@ -145,6 +145,10 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Phase 1.3: All NPHIES calls require an authenticated caller.
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+
   try {
     const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
     const supabaseServiceKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
