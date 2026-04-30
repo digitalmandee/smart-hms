@@ -61,11 +61,15 @@ Deno.serve(async (req) => {
     return new Response(null, { headers: corsHeaders });
   }
 
+  // Phase 1.3: Restrict seeding to super_admin/admin only.
+  const auth = await requireAuth(req);
+  if (!auth.ok) return auth.response;
+  if (!(await userHasAnyRole(auth.admin, auth.userId, ["super_admin", "admin"]))) {
+    return forbidden(req);
+  }
+
   try {
-    const supabase = createClient(
-      Deno.env.get("SUPABASE_URL")!,
-      Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!
-    );
+    const supabase = auth.admin;
 
     // Check if data already exists
     const { count: donorCount } = await supabase
