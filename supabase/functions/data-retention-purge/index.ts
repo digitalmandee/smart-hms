@@ -19,9 +19,42 @@ Deno.serve(async (req) => {
     return new Response("ok", { headers: corsHeaders });
   }
 
+  // Phase 1.3: Restrict to authenticated super_admin OR cron (service-role secret).
+  const cronSecret = req.headers.get("x-cron-secret");
+  const expectedCron = Deno.env.get("CRON_SECRET");
+  const isCron = !!expectedCron && cronSecret === expectedCron;
+
+  const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
+  const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
+  const anonKey = Deno.env.get("SUPABASE_ANON_KEY")!;
+
+  if (!isCron) {
+    const authHeader = req.headers.get("Authorization");
+    if (!authHeader?.startsWith("Bearer ")) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const userClient = createClient(supabaseUrl, anonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: claims } = await userClient.auth.getClaims(authHeader.replace("Bearer ", ""));
+    if (!claims?.claims?.sub) {
+      return new Response(JSON.stringify({ error: "Unauthorized" }), {
+        status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+    const admin = createClient(supabaseUrl, serviceRoleKey);
+    const { data: roles } = await admin.from("user_roles").select("role")
+      .eq("user_id", claims.claims.sub).in("role", ["super_admin", "admin"]);
+    if (!roles?.length) {
+      return new Response(JSON.stringify({ error: "Forbidden" }), {
+        status: 403, headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
+    }
+  }
+
   try {
-    const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
-    const serviceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
     const supabase = createClient(supabaseUrl, serviceRoleKey);
 
     const results: Record<string, number> = {};
