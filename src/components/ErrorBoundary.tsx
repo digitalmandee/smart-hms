@@ -1,5 +1,6 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import { createLogger } from '@/lib/logger';
+import { reportClientError } from '@/lib/errorReporter';
 import { Button } from '@/components/ui/button';
 import { AlertTriangle, Home, RefreshCw } from 'lucide-react';
 
@@ -37,6 +38,12 @@ export class ErrorBoundary extends Component<Props, State> {
       route: typeof window !== 'undefined' ? window.location.pathname : 'unknown',
       userAgent: typeof navigator !== 'undefined' ? navigator.userAgent : 'unknown',
       timestamp: new Date().toISOString(),
+    });
+
+    // Report to self-hosted error sink (no-op in dev)
+    void reportClientError({
+      message: `${error.name}: ${error.message}`,
+      stack: error.stack ?? errorInfo.componentStack ?? undefined,
     });
 
     this.setState({ errorInfo });
