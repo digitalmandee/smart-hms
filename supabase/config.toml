@@ -1,5 +1,8 @@
 project_id = "wxafzwlodzohrwdwkuzy"
 
+[functions.health]
+verify_jwt = false
+
 [functions.check-overdue-invoices]
 verify_jwt = false
 
