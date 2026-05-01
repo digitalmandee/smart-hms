@@ -4219,6 +4219,28 @@ export const ar: Record<TranslationKey, string> = {
   "finance.pdf_generated": "تم تنزيل كشف الحساب",
   "finance.view_statement": "عرض كشف الحساب",
 
+  "security.page_title": "إعداد الأمان",
+  "security.page_description": "فحوصات تعزيز الإنتاج التي تتم خارج الكود. ضع علامة على كل بند قبل الإطلاق.",
+  "security.in_code_complete_title": "تعزيز الكود: مكتمل",
+  "security.in_code_complete_desc": "تم تأمين دوال قاعدة البيانات، وتتطلب الدوال الطرفية رمز JWT والتحقق من المدخلات، وتفعيل تسجيل الأخطاء على العميل والخادم، وتفعيل الحماية من التكرار وقاطع الدائرة للبوابات.",
+  "security.status_configured": "مُهيّأ",
+  "security.status_manual": "فحص يدوي",
+  "security.related_pages_title": "صفحات الإدارة ذات الصلة",
+  "security.related_pages_desc": "وحدات أخرى لجاهزية الإنتاج",
+  "security.open_link": "فتح",
+  "security.integration_health": "حالة التكاملات",
+  "security.runbooks": "أدلة التشغيل",
+  "security.item.leaked_password.title": "حماية كلمات المرور المسرّبة",
+  "security.item.leaked_password.desc": "يمنع التسجيل وتحديث كلمات المرور التي ظهرت في تسريبات بيانات معروفة. مطلوب للامتثال لمعايير HIPAA.",
+  "security.item.otp_expiry.title": "صلاحية رمز OTP حتى ساعة واحدة",
+  "security.item.otp_expiry.desc": "يجب أن تنتهي صلاحية روابط الدخول السحرية ورموز OTP خلال 60 دقيقة للحد من إعادة الاستخدام.",
+  "security.item.mfa.title": "إلزام التحقق الثنائي للمشرفين",
+  "security.item.mfa.desc": "يجب على المشرفين العامين ومشرفي المنظمات والفروع والمحاسبين ومديري المالية تفعيل تطبيق المصادقة قبل الدخول.",
+  "security.item.pitr.title": "الاستعادة الزمنية (PITR)",
+  "security.item.pitr.desc": "تتيح استعادة قاعدة البيانات إلى أي ثانية خلال آخر 7 أيام. تتطلب خطة Pro أو أعلى.",
+  "security.item.storage_rls.title": "قواعد وصول مساحة التخزين",
+  "security.item.storage_rls.desc": "يجب أن تكون كل حاوية تخزّن وثائق المرضى أو الوصفات أو تقارير المختبر أو الهويات خاصة وبسياسات محددة بالمنظمة.",
+
 };
 
 

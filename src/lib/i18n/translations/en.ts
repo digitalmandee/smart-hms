@@ -4312,6 +4312,28 @@ export const en = {
   "finance.pdf_generated": "Statement PDF downloaded",
   "finance.view_statement": "View Statement",
 
+  "security.page_title": "Security Setup",
+  "security.page_description": "Production hardening checks that live outside the codebase. Tick each one off before go-live.",
+  "security.in_code_complete_title": "In-code hardening: complete",
+  "security.in_code_complete_desc": "Database functions locked down, edge functions require JWT and input validation, client and edge error reporting active, gateway idempotency and circuit breaker live.",
+  "security.status_configured": "Configured",
+  "security.status_manual": "Manual check",
+  "security.related_pages_title": "Related admin pages",
+  "security.related_pages_desc": "Other production-readiness consoles",
+  "security.open_link": "Open",
+  "security.integration_health": "Integration Health",
+  "security.runbooks": "Operational Runbooks",
+  "security.item.leaked_password.title": "Leaked Password Protection",
+  "security.item.leaked_password.desc": "Blocks signups and password updates that use a password seen in known data breaches. Required for HIPAA-aligned auth.",
+  "security.item.otp_expiry.title": "OTP Expiry up to 1 hour",
+  "security.item.otp_expiry.desc": "Magic-link / OTP codes should expire within 60 minutes to limit replay window.",
+  "security.item.mfa.title": "MFA Enforcement for Admins",
+  "security.item.mfa.desc": "Super admins, organisation admins, branch admins, accountants, and finance managers must enrol authenticator app MFA before accessing the app.",
+  "security.item.pitr.title": "Point-in-Time Recovery (PITR)",
+  "security.item.pitr.desc": "Enables restoring the database to any second in the last 7 days. Requires Pro plan or higher.",
+  "security.item.storage_rls.title": "Storage Bucket Access Rules",
+  "security.item.storage_rls.desc": "Every bucket holding patient documents, prescriptions, lab reports, or IDs must be private with organisation-scoped policies.",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;
