@@ -141,6 +141,21 @@ export default function SecuritySetupPage() {
           </Card>
         ))}
       </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle className="text-base">Related admin pages</CardTitle>
+          <CardDescription>Other production-readiness consoles</CardDescription>
+        </CardHeader>
+        <CardContent className="flex flex-wrap gap-2">
+          <Button variant="secondary" size="sm" asChild>
+            <a href="/app/admin/integration-health">Integration Health</a>
+          </Button>
+          <Button variant="secondary" size="sm" asChild>
+            <a href="/app/admin/runbooks">Operational Runbooks</a>
+          </Button>
+        </CardContent>
+      </Card>
     </div>
   );
 }
