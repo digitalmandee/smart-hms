@@ -3,9 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useMFA } from "@/hooks/useMFA";
+import { useSyncMfaStatus, useGenerateRecoveryCodes } from "@/hooks/useMfaAdmin";
 import { useTranslation } from "@/lib/i18n";
 import { toast } from "sonner";
-import { Loader2, Copy, Check, ShieldCheck } from "lucide-react";
+import { Loader2, Copy, Check, ShieldCheck, KeyRound } from "lucide-react";
+import { RecoveryCodesDialog } from "./RecoveryCodesDialog";
 
 interface EnrollMFADialogProps {
   open: boolean;
@@ -15,7 +17,10 @@ interface EnrollMFADialogProps {
 export function EnrollMFADialog({ open, onOpenChange }: EnrollMFADialogProps) {
   const { t } = useTranslation();
   const { enroll, challengeAndVerify } = useMFA();
+  const syncStatus = useSyncMfaStatus();
+  const generateCodes = useGenerateRecoveryCodes();
   const [step, setStep] = useState<"init" | "qr" | "success">("init");
+  const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null);
   const [qrCode, setQrCode] = useState("");
   const [secret, setSecret] = useState("");
   const [factorId, setFactorId] = useState("");
