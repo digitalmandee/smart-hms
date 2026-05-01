@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, AlertTriangle, ExternalLink, ShieldCheck } from "lucide-react";
 import { useTranslation, useIsRTL, type TranslationKey } from "@/lib/i18n";
+import { useAuth } from "@/contexts/AuthContext";
+import { MfaRosterTable } from "@/components/mfa/MfaRosterTable";
 
 const PROJECT_REF = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 
@@ -82,6 +84,8 @@ const items: Item[] = [
 export default function SecuritySetupPage() {
   const { t } = useTranslation();
   const isRTL = useIsRTL();
+  const { hasRole, isSuperAdmin } = useAuth();
+  const canManageMfa = isSuperAdmin || hasRole("org_admin") || hasRole("branch_admin");
 
   return (
     <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
