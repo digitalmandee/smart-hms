@@ -50,8 +50,22 @@ export function EnrollMFADialog({ open, onOpenChange }: EnrollMFADialogProps) {
       await challengeAndVerify(factorId, code);
       setStep("success");
       toast.success(t("mfa.enabled_success"));
+      // Sync server-side enrollment timestamp (best-effort)
+      syncStatus.mutate("enrolled");
     } catch (err: any) {
       toast.error(err.message || t("mfa.verify_error"));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGenerateRecovery = async () => {
+    setIsLoading(true);
+    try {
+      const res = await generateCodes.mutateAsync({});
+      setRecoveryCodes(res.codes);
+    } catch (err: any) {
+      toast.error(err.message);
     } finally {
       setIsLoading(false);
     }
