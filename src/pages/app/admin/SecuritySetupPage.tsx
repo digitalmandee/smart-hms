@@ -3,13 +3,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { CheckCircle2, AlertTriangle, ExternalLink, ShieldCheck } from "lucide-react";
+import { useTranslation, useIsRTL, type TranslationKey } from "@/lib/i18n";
 
 const PROJECT_REF = import.meta.env.VITE_SUPABASE_PROJECT_ID;
 
 interface Item {
   id: string;
-  title: string;
-  description: string;
+  titleKey: TranslationKey;
+  descKey: TranslationKey;
   link: string;
   status: "manual-check" | "configured" | "warning";
   steps: string[];
@@ -18,9 +19,8 @@ interface Item {
 const items: Item[] = [
   {
     id: "leaked-password",
-    title: "Leaked Password Protection",
-    description:
-      "Blocks signups and password updates that use a password seen in known data breaches. Required for HIPAA-aligned auth.",
+    titleKey: "security.item.leaked_password.title",
+    descKey: "security.item.leaked_password.desc",
     link: `https://supabase.com/dashboard/project/${PROJECT_REF}/auth/policies`,
     status: "manual-check",
     steps: [
@@ -31,9 +31,8 @@ const items: Item[] = [
   },
   {
     id: "otp-expiry",
-    title: "OTP Expiry ≤ 1 hour",
-    description:
-      "Magic-link / OTP codes should expire within 60 minutes to limit replay window.",
+    titleKey: "security.item.otp_expiry.title",
+    descKey: "security.item.otp_expiry.desc",
     link: `https://supabase.com/dashboard/project/${PROJECT_REF}/auth/providers`,
     status: "manual-check",
     steps: [
@@ -44,9 +43,8 @@ const items: Item[] = [
   },
   {
     id: "mfa-enforcement",
-    title: "MFA Enforcement for Admins",
-    description:
-      "Super admins, org admins, branch admins, accountants, and finance managers must enroll TOTP MFA before accessing the app.",
+    titleKey: "security.item.mfa.title",
+    descKey: "security.item.mfa.desc",
     link: "/app/profile/security",
     status: "manual-check",
     steps: [
@@ -57,9 +55,8 @@ const items: Item[] = [
   },
   {
     id: "pitr",
-    title: "Point-in-Time Recovery (PITR)",
-    description:
-      "Enables restoring the database to any second in the last 7 days. Requires Pro plan or higher.",
+    titleKey: "security.item.pitr.title",
+    descKey: "security.item.pitr.desc",
     link: `https://supabase.com/dashboard/project/${PROJECT_REF}/settings/addons`,
     status: "manual-check",
     steps: [
@@ -70,37 +67,35 @@ const items: Item[] = [
   },
   {
     id: "storage-rls",
-    title: "Storage Bucket RLS",
-    description:
-      "Every bucket holding patient documents, prescriptions, lab reports, or IDs must be private with org-scoped policies.",
+    titleKey: "security.item.storage_rls.title",
+    descKey: "security.item.storage_rls.desc",
     link: `https://supabase.com/dashboard/project/${PROJECT_REF}/storage/buckets`,
     status: "manual-check",
     steps: [
       "Open Supabase Storage → Buckets",
       "Confirm each PHI bucket is marked Private (no green 'Public' badge)",
-      "Open Policies tab → confirm SELECT/INSERT/UPDATE/DELETE policies all reference organization_id",
+      "Open Policies tab → confirm all access policies reference organization_id",
     ],
   },
 ];
 
 export default function SecuritySetupPage() {
+  const { t } = useTranslation();
+  const isRTL = useIsRTL();
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
       <PageHeader
-        title="Security Setup"
-        description="Production hardening checks that live outside the codebase. Tick each one off before go-live."
+        title={t("security.page_title")}
+        description={t("security.page_description")}
       />
 
       <Card className="border-primary/30 bg-primary/5">
-        <CardHeader className="flex flex-row items-center gap-3 space-y-0">
+        <CardHeader className={`flex ${isRTL ? "flex-row-reverse" : "flex-row"} items-center gap-3 space-y-0`}>
           <ShieldCheck className="h-5 w-5 text-primary" />
-          <div>
-            <CardTitle className="text-base">In-code hardening: complete</CardTitle>
-            <CardDescription>
-              Database functions locked down (Phase 1.1), edge functions require JWT
-              and Zod validation (Phase 1.3), client + edge error reporting active (Phase 2),
-              gateway idempotency + circuit breaker live (Phase 3).
-            </CardDescription>
+          <div className={isRTL ? "text-end" : ""}>
+            <CardTitle className="text-base">{t("security.in_code_complete_title")}</CardTitle>
+            <CardDescription>{t("security.in_code_complete_desc")}</CardDescription>
           </div>
         </CardHeader>
       </Card>
@@ -109,32 +104,32 @@ export default function SecuritySetupPage() {
         {items.map((it) => (
           <Card key={it.id}>
             <CardHeader>
-              <div className="flex items-start justify-between gap-4">
-                <div className="space-y-1">
-                  <CardTitle className="flex items-center gap-2 text-base">
+              <div className={`flex items-start justify-between gap-4 ${isRTL ? "flex-row-reverse" : ""}`}>
+                <div className={`space-y-1 ${isRTL ? "text-end" : ""}`}>
+                  <CardTitle className={`flex items-center gap-2 text-base ${isRTL ? "flex-row-reverse" : ""}`}>
                     {it.status === "configured" ? (
                       <CheckCircle2 className="h-4 w-4 text-emerald-600" />
                     ) : (
                       <AlertTriangle className="h-4 w-4 text-amber-500" />
                     )}
-                    {it.title}
+                    {t(it.titleKey)}
                   </CardTitle>
-                  <CardDescription>{it.description}</CardDescription>
+                  <CardDescription>{t(it.descKey)}</CardDescription>
                 </div>
                 <Badge variant={it.status === "configured" ? "default" : "secondary"}>
-                  {it.status === "configured" ? "Configured" : "Manual check"}
+                  {it.status === "configured" ? t("security.status_configured") : t("security.status_manual")}
                 </Badge>
               </div>
             </CardHeader>
             <CardContent className="space-y-3">
-              <ol className="list-decimal space-y-1 pl-5 text-sm text-muted-foreground">
+              <ol className={`list-decimal space-y-1 ${isRTL ? "pr-5 text-end" : "pl-5"} text-sm text-muted-foreground`}>
                 {it.steps.map((s, i) => (
                   <li key={i}>{s}</li>
                 ))}
               </ol>
               <Button variant="outline" size="sm" asChild>
                 <a href={it.link} target="_blank" rel="noreferrer">
-                  Open <ExternalLink className="ml-2 h-3 w-3" />
+                  {t("security.open_link")} <ExternalLink className={`${isRTL ? "mr-2" : "ml-2"} h-3 w-3`} />
                 </a>
               </Button>
             </CardContent>
@@ -144,15 +139,15 @@ export default function SecuritySetupPage() {
 
       <Card>
         <CardHeader>
-          <CardTitle className="text-base">Related admin pages</CardTitle>
-          <CardDescription>Other production-readiness consoles</CardDescription>
+          <CardTitle className="text-base">{t("security.related_pages_title")}</CardTitle>
+          <CardDescription>{t("security.related_pages_desc")}</CardDescription>
         </CardHeader>
         <CardContent className="flex flex-wrap gap-2">
           <Button variant="secondary" size="sm" asChild>
-            <a href="/app/admin/integration-health">Integration Health</a>
+            <a href="/app/admin/integration-health">{t("security.integration_health")}</a>
           </Button>
           <Button variant="secondary" size="sm" asChild>
-            <a href="/app/admin/runbooks">Operational Runbooks</a>
+            <a href="/app/admin/runbooks">{t("security.runbooks")}</a>
           </Button>
         </CardContent>
       </Card>

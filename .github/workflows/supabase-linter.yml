@@ -1,0 +1,30 @@
+name: Supabase Linter
+
+on:
+  schedule:
+    - cron: "0 3 * * *" # nightly 03:00 UTC
+  pull_request:
+    paths:
+      - "supabase/migrations/**"
+  workflow_dispatch:
+
+jobs:
+  db-lint:
+    name: Database Linter
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Run db lint
+        env:
+          SUPABASE_ACCESS_TOKEN: ${{ secrets.SUPABASE_ACCESS_TOKEN }}
+          SUPABASE_PROJECT_REF: ${{ secrets.SUPABASE_PROJECT_REF }}
+        run: |
+          supabase link --project-ref "$SUPABASE_PROJECT_REF"
+          # Fail the job only if any ERROR-level findings appear.
+          # WARN-level findings (e.g. allowlisted SECURITY DEFINER helpers)
+          # are tracked in mem://security/intentional-definer-grants and
+          # should not break CI.
+          supabase db lint --level error

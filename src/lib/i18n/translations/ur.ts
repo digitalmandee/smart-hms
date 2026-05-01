@@ -4219,6 +4219,28 @@ export const ur: Record<TranslationKey, string> = {
   "finance.pdf_generated": "اسٹیٹمنٹ PDF ڈاؤن لوڈ ہوگیا",
   "finance.view_statement": "اسٹیٹمنٹ دیکھیں",
 
+  "security.page_title": "سیکورٹی سیٹ اپ",
+  "security.page_description": "پروڈکشن سختی کی جانچیں جو کوڈ سے باہر ہیں۔ لانچ سے پہلے ہر آئٹم پر نشان لگائیں۔",
+  "security.in_code_complete_title": "کوڈ کی سختی: مکمل",
+  "security.in_code_complete_desc": "ڈیٹابیس فنکشنز محفوظ، ایج فنکشنز کو JWT اور ان پٹ تصدیق درکار، کلائنٹ اور ایج ایرر رپورٹنگ فعال، گیٹ وے idempotency اور سرکٹ بریکر فعال۔",
+  "security.status_configured": "ترتیب شدہ",
+  "security.status_manual": "دستی جانچ",
+  "security.related_pages_title": "متعلقہ ایڈمن صفحات",
+  "security.related_pages_desc": "پروڈکشن کی تیاری کے دیگر کنسولز",
+  "security.open_link": "کھولیں",
+  "security.integration_health": "انضمام کی صحت",
+  "security.runbooks": "آپریشنل رن بکس",
+  "security.item.leaked_password.title": "لیک شدہ پاس ورڈ تحفظ",
+  "security.item.leaked_password.desc": "ایسے سائن اپ اور پاس ورڈ تبدیلیاں روکتا ہے جو معروف ڈیٹا لیکس میں شامل ہوں۔ HIPAA کے مطابق تصدیق کے لیے ضروری۔",
+  "security.item.otp_expiry.title": "OTP میعاد 1 گھنٹے تک",
+  "security.item.otp_expiry.desc": "میجک لنک / OTP کوڈز کو 60 منٹ کے اندر ختم ہونا چاہیے تاکہ دوبارہ استعمال محدود ہو۔",
+  "security.item.mfa.title": "ایڈمنز کے لیے MFA لازمی",
+  "security.item.mfa.desc": "سپر ایڈمن، آرگنائزیشن ایڈمن، برانچ ایڈمن، اکاؤنٹنٹس اور فنانس مینیجرز کو ایپ تک رسائی سے پہلے authenticator ایپ MFA انرول کرنا ضروری ہے۔",
+  "security.item.pitr.title": "پوائنٹ ان ٹائم ریکوری (PITR)",
+  "security.item.pitr.desc": "گزشتہ 7 دنوں میں کسی بھی سیکنڈ پر ڈیٹابیس بحال کرنے کی سہولت۔ Pro پلان یا اس سے زائد درکار۔",
+  "security.item.storage_rls.title": "سٹوریج بکٹ رسائی قواعد",
+  "security.item.storage_rls.desc": "مریض کی دستاویزات، نسخے، لیب رپورٹس یا شناختی دستاویزات والے ہر بکٹ کو پرائیویٹ اور آرگنائزیشن کے دائرہ کار کی پالیسیوں کے ساتھ ہونا چاہیے۔",
+
 };
 
 
