@@ -29,6 +29,11 @@ import { useMFA } from "@/hooks/useMFA";
 import { EnrollMFADialog } from "@/components/mfa/EnrollMFADialog";
 import { useTranslation } from "@/lib/i18n";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
+import { useEffect } from "react";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
