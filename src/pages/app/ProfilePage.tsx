@@ -48,6 +48,31 @@ export default function ProfilePage() {
   const [showEnrollDialog, setShowEnrollDialog] = useState(false);
   const { t } = useTranslation();
 
+  const { data: mfaSettings } = useQuery({
+    queryKey: ["my-mfa-settings", profile?.id],
+    enabled: !!profile?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_mfa_settings")
+        .select("is_required, enrolled_at, grace_period_ends_at")
+        .eq("user_id", profile!.id)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  const mfaRequired = !!mfaSettings?.is_required && !isEnrolled;
+  const graceEnd = mfaSettings?.grace_period_ends_at ? new Date(mfaSettings.grace_period_ends_at) : null;
+  const graceActive = !!graceEnd && graceEnd > new Date();
+  const overdue = mfaRequired && (!graceEnd || !graceActive);
+
+  // Auto-open enrollment when required and overdue
+  useEffect(() => {
+    if (overdue && !showEnrollDialog) {
+      setShowEnrollDialog(true);
+    }
+  }, [overdue, showEnrollDialog]);
+
   const initials = profile?.full_name
     ?.split(' ')
     .map(n => n[0])
