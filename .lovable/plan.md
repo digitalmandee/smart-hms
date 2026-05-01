@@ -1,70 +1,85 @@
-# Critical-Path E2E Test Suite
+## Go-Live Sequenced Plan (D — All Three)
 
-## Current state
-- Playwright is already configured (`playwright.config.ts`, `tests/e2e/`, `demoLogin` helper)
-- 10 existing specs cover **smoke** (page-loads): auth, OPD, IPD, Lab, Pharmacy, Radiology, ER, Warehouse, Finance, Documentation
-- **Gap:** zero **transactional** specs that walk a full lifecycle (admit → discharge → bill → GL post)
+Three phases, executed in order. Each phase ends in a verifiable gate before the next begins.
 
-## What this plan adds
+---
 
-A new `tests/e2e/critical-path/` folder with 9 serial specs that exercise the highest-risk lifecycles end-to-end. Each spec uses the existing `demoLogin` helper and the same lenient regex/role-based selectors as the current suite (so they survive minor UI tweaks).
+### Phase A — Linter Triage (security closure)
 
-| # | Spec file | Lifecycle |
-|---|-----------|-----------|
-| 1 | `ipd-admit-to-discharge.spec.ts` | Register → Admit → Nurse charge → Discharge → Invoice → Payment → Journal |
-| 2 | `opd-walkin-to-bill.spec.ts` | Walk-in registration wizard → Token → Doctor consult → Invoice → Payment |
-| 3 | `lab-order-to-result.spec.ts` | Order from OPD → Specimen collected → Result entered → Published → Billed |
-| 4 | `pharmacy-pos-checkout.spec.ts` | Open POS session → Add items → Discount → Pay → Receipt → Close session |
-| 5 | `grn-to-stock.spec.ts` | PR → PO → GRN verification → stock upsert → AP-001/INV-001 GL post |
-| 6 | `payroll-run-to-post.spec.ts` | Create payroll run → Calculate → Approve → Post to GL |
-| 7 | `daily-closing.spec.ts` | Close all billing sessions → Run daily closing → Verify reconciliation |
-| 8 | `zatca-invoice.spec.ts` | Create invoice → Generate UBL XML → Hash chain validates |
-| 9 | `nphies-claim.spec.ts` | Create insurance claim → Scrub → Submit (sandbox) → Status returned |
+**Current state:** 32 linter findings — 1 INFO (RLS no policy), 30 WARN (`SECURITY DEFINER` functions executable by `anon` or `authenticated`), 1 WARN (leaked-password protection off).
 
-## Spec design rules
+**Goal:** Reduce DEFINER warnings from 30 to only the documented intentional set in `mem://security/intentional-definer-grants`.
 
-- **`test.describe.serial`** so steps share state within one workflow
-- **Lenient selectors** (`getByRole`, `getByLabel`, regex names) — match existing suite style
-- **`.catch(() => false)` guards** on optional steps so a missing widget downgrades to a skip rather than a hard fail
-- **Smoke fallback** — if a transactional step's selector is missing, the spec still asserts the destination page rendered (so we never get false greens on a broken route)
-- **Test data tagged with timestamps** (`E2E${Date.now()}`) for easy cleanup
-- **No DB seeding required** — uses the demo accounts already in `demoLogin`
+**Steps:**
+1. Pull every flagged function with `pg_get_functiondef` and group into 3 buckets:
+   - **Revoke from anon** — utility functions (e.g. trigger helpers, internal calculators) that should never be called over the API. Migration: `REVOKE EXECUTE ... FROM anon;`
+   - **Revoke from authenticated** — functions only meant to be called by triggers/cron. Migration: `REVOKE EXECUTE ... FROM authenticated;`
+   - **Keep + document** — kiosk/QR/MFA helpers that legitimately need `anon` execute. Add the function name to `mem://security/intentional-definer-grants` and to a SQL comment on the function.
+2. Fix the 1 INFO finding: locate the table with RLS-enabled-no-policy and either add a `FOR ALL USING (false)` deny-by-default policy or remove RLS if the table is public reference data.
+3. Re-run `supabase--linter`; target outcome ≤ documented allowlist (~5 functions).
+4. Manually toggle leaked-password protection in Supabase Auth (the only remaining warning becomes a checklist item, not a code change).
 
-## Files created (10 total)
+**Gate:** Linter shows only allowlisted DEFINER functions remaining; `SecuritySetupPage` checklist updated.
 
-```text
-tests/e2e/critical-path/
-├── README.md                              ← how to run, what each covers
-├── ipd-admit-to-discharge.spec.ts
-├── opd-walkin-to-bill.spec.ts
-├── lab-order-to-result.spec.ts
-├── pharmacy-pos-checkout.spec.ts
-├── grn-to-stock.spec.ts
-├── payroll-run-to-post.spec.ts
-├── daily-closing.spec.ts
-├── zatca-invoice.spec.ts
-└── nphies-claim.spec.ts
-```
+---
 
-Plus an addition to `package.json`:
-```json
-"test:e2e:critical": "playwright test tests/e2e/critical-path"
-```
+### Phase B — CI Workflow (regression safety net)
 
-## What I will NOT do (out of scope, called out for transparency)
+**Goal:** Every PR runs the critical-path E2E suite + linter automatically, so production-readiness can't regress.
 
-- **Will not seed the demo database** — specs work against whatever data exists; assertions are structural (page rendered, button enabled) not data-dependent
-- **Will not validate GL postings via SQL** — would require a service-role test runner; specs assert that the journal-entries page reflects new rows
-- **Will not test ZATCA/NPHIES against live sandboxes** — those calls are mocked at the gateway helper level; specs assert the UI submits correctly
-- **Will not add CI integration** — you asked to skip CI/CD work
+**Steps:**
+1. Add `.github/workflows/ci.yml` with three jobs:
+   - **lint-and-typecheck** — `npm ci`, `npm run lint`, `tsc --noEmit`
+   - **unit-tests** — `npx vitest run`
+   - **e2e-critical** — `npx playwright install --with-deps chromium`, then `npm run test:e2e:critical` against a built preview (`npm run build && npm run preview`)
+2. Add `.github/workflows/supabase-linter.yml` (nightly + on migration PRs) using the Supabase CLI `db lint` against the staging branch; fail on new ERROR-level findings.
+3. Add `playwright.config.ts` CI override: when `process.env.CI === 'true'`, drop the Nix `executablePath` so Playwright uses its own bundled browser (the Nix path only exists in the sandbox).
+4. Upload Playwright HTML report + trace as artifacts on failure for fast triage.
+5. Add a `README.md` "CI status" badge section.
 
-## Honest expectations
+**Gate:** Open a no-op PR; all three jobs pass green within ~8 minutes.
 
-- These specs will catch **route regressions, broken forms, and missing buttons** — the 80% of bugs that cause hospital-floor incidents
-- They will **NOT replace manual UAT** — clinical correctness (right dose for right age, right tax for right region) still needs human review
-- First run will likely have **2–3 selector mismatches** per spec because UI button labels evolve; you'll fix them once and they stay green
-- Total runtime: ~3–5 minutes for the full critical-path suite
+---
 
-## After approval
+### Phase C — i18n Audit (UR/AR parity)
 
-I'll create all 10 files, run `npx playwright test tests/e2e/critical-path` once to verify they execute (not necessarily all pass — passing requires real demo data), and report which ones found real issues vs. which need selector adjustments.
+**Current state:** `en.ts` has 4,318 lines vs `ar.ts` and `ur.ts` at 4,224 each — ~94 keys missing in non-English. New admin/security pages (`SecuritySetupPage`, MFA enrollment, runbooks, integration health, error monitoring) appear to use hardcoded English strings.
+
+**Goal:** Per project rule "Build everything in 3 languages" — every user-visible string resolves in en/ar/ur.
+
+**Steps:**
+1. **Diff the dictionaries** — script that prints keys in `en.ts` not present in `ar.ts`/`ur.ts`. Add the ~94 missing entries with proper translations.
+2. **Audit recent admin pages** for hardcoded strings:
+   - `src/pages/app/admin/SecuritySetupPage.tsx`
+   - `src/pages/app/admin/RunbooksPage.tsx`, `IntegrationHealthPage.tsx` (if present)
+   - `src/components/mfa/EnrollMFADialog.tsx`, `MFAVerifyPage.tsx`
+   - `src/components/IdleTimeoutDialog.tsx`
+   - Replace literals with `t('key.path')` from `useTranslation()`.
+3. **Add new translation keys** for the strings introduced in Phase A/B (security setup steps, CI status messages, error monitoring labels) into all three files in lock-step.
+4. **RTL spot-check** — load each new page with `default_language='ar'` and verify layout via the `useIsRTL` hook + existing `flex-row-reverse` patterns (per `mem://ui/rtl-sidebar-direction`).
+5. Add an ESLint custom rule or simple grep CI check that flags new hardcoded JSX strings in `src/pages/app/admin/**` to prevent regression.
+
+**Gate:** `wc -l` on the three translation files matches; admin pages render correctly in ar/ur with no English bleed-through.
+
+---
+
+### Out of scope (tracked, not done in this pass)
+
+- Disaster-recovery restore drill (manual ops task — documented in runbooks)
+- Load testing (separate effort, needs k6 or Artillery setup)
+- Automated alerting beyond DB logging (needs PagerDuty/Slack webhook decision from user)
+- ZATCA/NPHIES sandbox certification (external regulatory submissions)
+
+---
+
+### Execution order & estimate
+
+| Phase | Effort | Blocks production? |
+|-------|--------|--------------------|
+| A. Linter triage | ~1 migration + memory update | Yes — security baseline |
+| B. CI workflow | 2 workflow files + config tweak | Yes — regression safety |
+| C. i18n audit | ~94 keys + 5–8 page edits | Yes — project rule |
+
+After all three phases pass their gates, the system is production-ready pending the three external/manual items above.
+
+Approve to proceed with **Phase A** first; B and C will follow in subsequent turns so you can review each gate.
