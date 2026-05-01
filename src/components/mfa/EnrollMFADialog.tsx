@@ -144,10 +144,19 @@ export function EnrollMFADialog({ open, onOpenChange }: EnrollMFADialogProps) {
             <ShieldCheck className="h-16 w-16 mx-auto text-green-500" />
             <p className="font-semibold text-lg">{t("mfa.enabled_success")}</p>
             <p className="text-sm text-muted-foreground">{t("mfa.enabled_desc")}</p>
+            <Button onClick={handleGenerateRecovery} disabled={isLoading} variant="outline" className="w-full">
+              {isLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <KeyRound className="h-4 w-4 mr-2" />}
+              {t("mfa.recovery.generate")}
+            </Button>
             <Button onClick={handleClose} className="w-full">{t("common.close")}</Button>
           </div>
         )}
       </DialogContent>
+      <RecoveryCodesDialog
+        open={!!recoveryCodes}
+        onOpenChange={(o) => !o && setRecoveryCodes(null)}
+        codes={recoveryCodes ?? []}
+      />
     </Dialog>
   );
 }
