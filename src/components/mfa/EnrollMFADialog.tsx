@@ -3,9 +3,11 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Button } from "@/components/ui/button";
 import { InputOTP, InputOTPGroup, InputOTPSlot } from "@/components/ui/input-otp";
 import { useMFA } from "@/hooks/useMFA";
+import { useSyncMfaStatus, useGenerateRecoveryCodes } from "@/hooks/useMfaAdmin";
 import { useTranslation } from "@/lib/i18n";
 import { toast } from "sonner";
-import { Loader2, Copy, Check, ShieldCheck } from "lucide-react";
+import { Loader2, Copy, Check, ShieldCheck, KeyRound } from "lucide-react";
+import { RecoveryCodesDialog } from "./RecoveryCodesDialog";
 
 interface EnrollMFADialogProps {
   open: boolean;
@@ -15,7 +17,10 @@ interface EnrollMFADialogProps {
 export function EnrollMFADialog({ open, onOpenChange }: EnrollMFADialogProps) {
   const { t } = useTranslation();
   const { enroll, challengeAndVerify } = useMFA();
+  const syncStatus = useSyncMfaStatus();
+  const generateCodes = useGenerateRecoveryCodes();
   const [step, setStep] = useState<"init" | "qr" | "success">("init");
+  const [recoveryCodes, setRecoveryCodes] = useState<string[] | null>(null);
   const [qrCode, setQrCode] = useState("");
   const [secret, setSecret] = useState("");
   const [factorId, setFactorId] = useState("");
@@ -45,8 +50,22 @@ export function EnrollMFADialog({ open, onOpenChange }: EnrollMFADialogProps) {
       await challengeAndVerify(factorId, code);
       setStep("success");
       toast.success(t("mfa.enabled_success"));
+      // Sync server-side enrollment timestamp (best-effort)
+      syncStatus.mutate("enrolled");
     } catch (err: any) {
       toast.error(err.message || t("mfa.verify_error"));
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const handleGenerateRecovery = async () => {
+    setIsLoading(true);
+    try {
+      const res = await generateCodes.mutateAsync({});
+      setRecoveryCodes(res.codes);
+    } catch (err: any) {
+      toast.error(err.message);
     } finally {
       setIsLoading(false);
     }
@@ -125,10 +144,19 @@ export function EnrollMFADialog({ open, onOpenChange }: EnrollMFADialogProps) {
             <ShieldCheck className="h-16 w-16 mx-auto text-green-500" />
             <p className="font-semibold text-lg">{t("mfa.enabled_success")}</p>
             <p className="text-sm text-muted-foreground">{t("mfa.enabled_desc")}</p>
+            <Button onClick={handleGenerateRecovery} disabled={isLoading} variant="outline" className="w-full">
+              {isLoading ? <Loader2 className="h-4 w-4 mr-2 animate-spin" /> : <KeyRound className="h-4 w-4 mr-2" />}
+              {t("mfa.recovery.generate")}
+            </Button>
             <Button onClick={handleClose} className="w-full">{t("common.close")}</Button>
           </div>
         )}
       </DialogContent>
+      <RecoveryCodesDialog
+        open={!!recoveryCodes}
+        onOpenChange={(o) => !o && setRecoveryCodes(null)}
+        codes={recoveryCodes ?? []}
+      />
     </Dialog>
   );
 }

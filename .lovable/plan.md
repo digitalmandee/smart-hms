@@ -1,85 +1,92 @@
-## Go-Live Sequenced Plan (D — All Three)
+# Admin-Driven MFA Enrollment & Recovery Codes
 
-Three phases, executed in order. Each phase ends in a verifiable gate before the next begins.
+## Constraint (important)
+Supabase Auth only lets a user enroll their own TOTP factor — admins cannot scan a QR on someone else's behalf. So "admin-driven" here means: **admins mandate MFA per user, monitor enrollment status, force enrollment on next login, and issue/regenerate one-time recovery codes**. The user still completes the QR step themselves on first login after being marked required.
 
----
+## What gets built
 
-### Phase A — Linter Triage (security closure)
+### 1. Database (new migration)
+- `user_mfa_settings` table
+  - `user_id uuid PK → auth.users`
+  - `organization_id uuid` (for org-scoped admin RLS)
+  - `is_required boolean default false`
+  - `enrolled_at timestamptz`, `last_verified_at timestamptz`
+  - `required_by uuid` (admin who set it), `required_at timestamptz`
+  - `grace_period_ends_at timestamptz` (optional soft-enforce window)
+- `user_mfa_recovery_codes` table
+  - `id`, `user_id`, `code_hash text` (SHA-256, never plaintext), `used_at timestamptz`, `created_at`
+  - Unique `(user_id, code_hash)`
+- RLS: users read/update own row; org admins/super_admin read/write all rows in their org via `has_role()`
+- Trigger: when a user verifies a TOTP factor (detected via edge function callback), set `enrolled_at = now()`
 
-**Current state:** 32 linter findings — 1 INFO (RLS no policy), 30 WARN (`SECURITY DEFINER` functions executable by `anon` or `authenticated`), 1 WARN (leaked-password protection off).
+### 2. Edge functions
+- `mfa-admin-set-required` — admin marks a user as MFA-required (with optional grace period). Validates caller is `admin`/`super_admin` in the same org.
+- `mfa-generate-recovery-codes` — generates 10 single-use codes, stores SHA-256 hashes, returns plaintext **once** to the caller (admin or user themselves).
+- `mfa-redeem-recovery-code` — verifies a code, marks it used, issues a short-lived AAL2 grant via admin API (or unenrolls the lost factor so the user can re-enroll).
+- `mfa-sync-status` — invoked by client after successful enroll/verify; updates `enrolled_at`/`last_verified_at` server-side.
 
-**Goal:** Reduce DEFINER warnings from 30 to only the documented intentional set in `mem://security/intentional-definer-grants`.
+All functions: JWT-verified, audit-logged via existing `errorReporter`/audit pattern, JSON i18n error keys.
 
-**Steps:**
-1. Pull every flagged function with `pg_get_functiondef` and group into 3 buckets:
-   - **Revoke from anon** — utility functions (e.g. trigger helpers, internal calculators) that should never be called over the API. Migration: `REVOKE EXECUTE ... FROM anon;`
-   - **Revoke from authenticated** — functions only meant to be called by triggers/cron. Migration: `REVOKE EXECUTE ... FROM authenticated;`
-   - **Keep + document** — kiosk/QR/MFA helpers that legitimately need `anon` execute. Add the function name to `mem://security/intentional-definer-grants` and to a SQL comment on the function.
-2. Fix the 1 INFO finding: locate the table with RLS-enabled-no-policy and either add a `FOR ALL USING (false)` deny-by-default policy or remove RLS if the table is public reference data.
-3. Re-run `supabase--linter`; target outcome ≤ documented allowlist (~5 functions).
-4. Manually toggle leaked-password protection in Supabase Auth (the only remaining warning becomes a checklist item, not a code change).
+### 3. Frontend — Security Setup page (replace the static "MFA enforcement" card)
+New section: **MFA Enrollment Roster** (admins/super_admin only, gated by `hasRole`).
 
-**Gate:** Linter shows only allowlisted DEFINER functions remaining; `SecuritySetupPage` checklist updated.
+Per-user table with columns:
+- User (name, email, role badges)
+- MFA status: `Not required` / `Required – pending` / `Enrolled` / `Grace period (Xd left)`
+- Last verified
+- Recovery codes: `0/10 used`
+- Actions: `Require MFA`, `Remove requirement`, `Generate recovery codes`, `Reset (unenroll)`
 
----
+Filters: org-scoped automatically; search by name/email; status filter.
 
-### Phase B — CI Workflow (regression safety net)
+Bulk actions: "Require MFA for all admins", "Require MFA for all users".
 
-**Goal:** Every PR runs the critical-path E2E suite + linter automatically, so production-readiness can't regress.
+Recovery codes dialog:
+- Shows the 10 codes once with copy-all + download .txt
+- Clear warning: "These will not be shown again"
+- Regenerate invalidates previous unused codes
 
-**Steps:**
-1. Add `.github/workflows/ci.yml` with three jobs:
-   - **lint-and-typecheck** — `npm ci`, `npm run lint`, `tsc --noEmit`
-   - **unit-tests** — `npx vitest run`
-   - **e2e-critical** — `npx playwright install --with-deps chromium`, then `npm run test:e2e:critical` against a built preview (`npm run build && npm run preview`)
-2. Add `.github/workflows/supabase-linter.yml` (nightly + on migration PRs) using the Supabase CLI `db lint` against the staging branch; fail on new ERROR-level findings.
-3. Add `playwright.config.ts` CI override: when `process.env.CI === 'true'`, drop the Nix `executablePath` so Playwright uses its own bundled browser (the Nix path only exists in the sandbox).
-4. Upload Playwright HTML report + trace as artifacts on failure for fast triage.
-5. Add a `README.md` "CI status" badge section.
+### 4. Frontend — User-facing flows
+- **Profile → Security**: when `is_required && !enrolled_at`, show a persistent banner "Your administrator requires you to enable MFA" + auto-open `EnrollMFADialog`. After enroll, prompt to generate recovery codes.
+- **Login flow** (`MFAVerifyPage`): add "Use a recovery code instead" link → small form → calls `mfa-redeem-recovery-code` → on success either signs the AAL2 grant or unenrolls + reroutes to enrollment.
+- **AuthContext**: after sign-in, if `is_required && !enrolled_at && grace_period_ends_at < now()`, redirect to `/app/profile/security?enroll=1` and block other routes.
 
-**Gate:** Open a no-op PR; all three jobs pass green within ~8 minutes.
+### 5. i18n
+Add ~25 keys under `security.mfa_admin.*` and `mfa.recovery.*` to `en.ts`, `ar.ts`, `ur.ts` (project rule: 3-language parity).
 
----
+### 6. Audit & telemetry
+Every admin action (`require`, `unrequire`, `regenerate codes`, `reset factor`) logs to existing audit table with `actor_id`, `target_user_id`, `action`, `metadata`.
 
-### Phase C — i18n Audit (UR/AR parity)
+## File map
+```text
+supabase/migrations/<ts>_user_mfa_admin.sql        new
+supabase/functions/mfa-admin-set-required/         new
+supabase/functions/mfa-generate-recovery-codes/    new
+supabase/functions/mfa-redeem-recovery-code/       new
+supabase/functions/mfa-sync-status/                new
+src/hooks/useMfaAdmin.ts                           new
+src/hooks/useMFA.ts                                edit (add recovery + sync)
+src/components/mfa/MfaRosterTable.tsx              new
+src/components/mfa/RecoveryCodesDialog.tsx        new
+src/components/mfa/RecoveryCodeInput.tsx           new
+src/components/mfa/MFAVerifyPage.tsx               edit (recovery link)
+src/components/mfa/EnrollMFADialog.tsx             edit (post-enroll → codes)
+src/pages/app/admin/SecuritySetupPage.tsx          edit (mount roster)
+src/pages/app/ProfilePage.tsx                      edit (required banner)
+src/contexts/AuthContext.tsx                       edit (enforce redirect)
+src/lib/i18n/translations/{en,ar,ur}.ts            edit (~25 keys × 3)
+```
 
-**Current state:** `en.ts` has 4,318 lines vs `ar.ts` and `ur.ts` at 4,224 each — ~94 keys missing in non-English. New admin/security pages (`SecuritySetupPage`, MFA enrollment, runbooks, integration health, error monitoring) appear to use hardcoded English strings.
+## Out of scope
+- SMS/WebAuthn factors (TOTP only, matches current stack)
+- Cross-org MFA policy (each org admin manages their own org)
+- Hardware security keys
 
-**Goal:** Per project rule "Build everything in 3 languages" — every user-visible string resolves in en/ar/ur.
-
-**Steps:**
-1. **Diff the dictionaries** — script that prints keys in `en.ts` not present in `ar.ts`/`ur.ts`. Add the ~94 missing entries with proper translations.
-2. **Audit recent admin pages** for hardcoded strings:
-   - `src/pages/app/admin/SecuritySetupPage.tsx`
-   - `src/pages/app/admin/RunbooksPage.tsx`, `IntegrationHealthPage.tsx` (if present)
-   - `src/components/mfa/EnrollMFADialog.tsx`, `MFAVerifyPage.tsx`
-   - `src/components/IdleTimeoutDialog.tsx`
-   - Replace literals with `t('key.path')` from `useTranslation()`.
-3. **Add new translation keys** for the strings introduced in Phase A/B (security setup steps, CI status messages, error monitoring labels) into all three files in lock-step.
-4. **RTL spot-check** — load each new page with `default_language='ar'` and verify layout via the `useIsRTL` hook + existing `flex-row-reverse` patterns (per `mem://ui/rtl-sidebar-direction`).
-5. Add an ESLint custom rule or simple grep CI check that flags new hardcoded JSX strings in `src/pages/app/admin/**` to prevent regression.
-
-**Gate:** `wc -l` on the three translation files matches; admin pages render correctly in ar/ur with no English bleed-through.
-
----
-
-### Out of scope (tracked, not done in this pass)
-
-- Disaster-recovery restore drill (manual ops task — documented in runbooks)
-- Load testing (separate effort, needs k6 or Artillery setup)
-- Automated alerting beyond DB logging (needs PagerDuty/Slack webhook decision from user)
-- ZATCA/NPHIES sandbox certification (external regulatory submissions)
-
----
-
-### Execution order & estimate
-
-| Phase | Effort | Blocks production? |
-|-------|--------|--------------------|
-| A. Linter triage | ~1 migration + memory update | Yes — security baseline |
-| B. CI workflow | 2 workflow files + config tweak | Yes — regression safety |
-| C. i18n audit | ~94 keys + 5–8 page edits | Yes — project rule |
-
-After all three phases pass their gates, the system is production-ready pending the three external/manual items above.
-
-Approve to proceed with **Phase A** first; B and C will follow in subsequent turns so you can review each gate.
+## Acceptance criteria
+- Org admin can mark any user in their org as MFA-required and see live status
+- Required user is forced to enroll on next login after grace period
+- Recovery codes are shown exactly once, stored only as hashes, single-use
+- User can sign in with a recovery code if they lose their authenticator
+- All admin mutations are audit-logged
+- All new UI strings present in en/ar/ur with RTL layout
+- Supabase linter shows no new findings; RLS denies cross-org reads

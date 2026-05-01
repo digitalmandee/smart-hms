@@ -24842,6 +24842,77 @@ export type Database = {
           },
         ]
       }
+      user_mfa_recovery_codes: {
+        Row: {
+          code_hash: string
+          created_at: string
+          id: string
+          used_at: string | null
+          user_id: string
+        }
+        Insert: {
+          code_hash: string
+          created_at?: string
+          id?: string
+          used_at?: string | null
+          user_id: string
+        }
+        Update: {
+          code_hash?: string
+          created_at?: string
+          id?: string
+          used_at?: string | null
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_mfa_settings: {
+        Row: {
+          created_at: string
+          enrolled_at: string | null
+          grace_period_ends_at: string | null
+          is_required: boolean
+          last_verified_at: string | null
+          organization_id: string | null
+          required_at: string | null
+          required_by: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          enrolled_at?: string | null
+          grace_period_ends_at?: string | null
+          is_required?: boolean
+          last_verified_at?: string | null
+          organization_id?: string | null
+          required_at?: string | null
+          required_by?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          enrolled_at?: string | null
+          grace_period_ends_at?: string | null
+          is_required?: boolean
+          last_verified_at?: string | null
+          organization_id?: string | null
+          required_at?: string | null
+          required_by?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "user_mfa_settings_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       user_roles: {
         Row: {
           created_at: string
@@ -25812,6 +25883,7 @@ export type Database = {
         Returns: boolean
       }
       hash_kiosk_password: { Args: { password: string }; Returns: string }
+      is_org_admin_for: { Args: { _org_id: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
       lock_fiscal_year: { Args: { _fiscal_year_id: string }; Returns: Json }
       log_kiosk_token: {

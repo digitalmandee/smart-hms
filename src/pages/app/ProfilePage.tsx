@@ -29,6 +29,11 @@ import { useMFA } from "@/hooks/useMFA";
 import { EnrollMFADialog } from "@/components/mfa/EnrollMFADialog";
 import { useTranslation } from "@/lib/i18n";
 import { toast } from "sonner";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { AlertTriangle } from "lucide-react";
+import { useEffect } from "react";
 
 export default function ProfilePage() {
   const navigate = useNavigate();
@@ -42,6 +47,31 @@ export default function ProfilePage() {
   const { isEnrolled, factorId, unenroll } = useMFA();
   const [showEnrollDialog, setShowEnrollDialog] = useState(false);
   const { t } = useTranslation();
+
+  const { data: mfaSettings } = useQuery({
+    queryKey: ["my-mfa-settings", profile?.id],
+    enabled: !!profile?.id,
+    queryFn: async () => {
+      const { data } = await supabase
+        .from("user_mfa_settings")
+        .select("is_required, enrolled_at, grace_period_ends_at")
+        .eq("user_id", profile!.id)
+        .maybeSingle();
+      return data;
+    },
+  });
+
+  const mfaRequired = !!mfaSettings?.is_required && !isEnrolled;
+  const graceEnd = mfaSettings?.grace_period_ends_at ? new Date(mfaSettings.grace_period_ends_at) : null;
+  const graceActive = !!graceEnd && graceEnd > new Date();
+  const overdue = mfaRequired && (!graceEnd || !graceActive);
+
+  // Auto-open enrollment when required and overdue
+  useEffect(() => {
+    if (overdue && !showEnrollDialog) {
+      setShowEnrollDialog(true);
+    }
+  }, [overdue, showEnrollDialog]);
 
   const initials = profile?.full_name
     ?.split(' ')
@@ -153,6 +183,17 @@ export default function ProfilePage() {
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
             {t("mfa.two_factor")}
           </h2>
+          {mfaRequired && (
+            <Alert variant={overdue ? "destructive" : "default"}>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>{t("mfa.required_banner")}</AlertTitle>
+              <AlertDescription>
+                {overdue
+                  ? t("mfa.required_banner_overdue")
+                  : (t("mfa.required_banner_grace") as string).replace("{date}", graceEnd!.toLocaleDateString())}
+              </AlertDescription>
+            </Alert>
+          )}
           <div className="flex items-center justify-between py-3">
             <div className="flex items-center gap-3">
               <ShieldCheck className="h-5 w-5 text-muted-foreground" />
