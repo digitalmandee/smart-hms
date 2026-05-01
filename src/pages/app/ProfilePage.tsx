@@ -183,6 +183,17 @@ export default function ProfilePage() {
           <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
             {t("mfa.two_factor")}
           </h2>
+          {mfaRequired && (
+            <Alert variant={overdue ? "destructive" : "default"}>
+              <AlertTriangle className="h-4 w-4" />
+              <AlertTitle>{t("mfa.required_banner")}</AlertTitle>
+              <AlertDescription>
+                {overdue
+                  ? t("mfa.required_banner_overdue")
+                  : (t("mfa.required_banner_grace") as string).replace("{date}", graceEnd!.toLocaleDateString())}
+              </AlertDescription>
+            </Alert>
+          )}
           <div className="flex items-center justify-between py-3">
             <div className="flex items-center gap-3">
               <ShieldCheck className="h-5 w-5 text-muted-foreground" />
