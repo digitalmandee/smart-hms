@@ -141,6 +141,8 @@ export default function SecuritySetupPage() {
         ))}
       </div>
 
+      {canManageMfa && <MfaRosterTable />}
+
       <Card>
         <CardHeader>
           <CardTitle className="text-base">{t("security.related_pages_title")}</CardTitle>
