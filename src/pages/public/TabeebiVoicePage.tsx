@@ -231,10 +231,23 @@ export default function TabeebiVoicePage() {
         />
       </div>
 
-      {/* Top bar — language picker + close */}
+      {/* Top bar — language picker + download */}
       <header className="relative z-10 flex items-center justify-between px-4 pt-4">
         <div /> {/* spacer; status pill is inside the portrait */}
-        <DropdownMenu>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleDownloadTranscript}
+            disabled={transcriptCount === 0}
+            aria-label={t.downloadTranscript}
+            title={t.downloadTranscript}
+            className="h-9 px-3 rounded-full bg-black/50 backdrop-blur text-white hover:bg-black/70 hover:text-white gap-1.5 disabled:opacity-40"
+          >
+            <FileDown className="h-4 w-4" />
+            <span className="text-xs font-medium">PDF{transcriptCount > 0 ? ` · ${transcriptCount}` : ""}</span>
+          </Button>
+          <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
