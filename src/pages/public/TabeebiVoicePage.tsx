@@ -35,6 +35,9 @@ const T = {
     captions: "Captions",
     micDenied: "Microphone access is required for the call.",
     connectFailed: "Could not connect. Please try again.",
+    downloadTranscript: "Download transcript",
+    noTranscript: "No transcript yet.",
+    transcriptDownloaded: "Transcript downloaded.",
   },
   ar: {
     callDoctor: "اتصل بالطبيب",
