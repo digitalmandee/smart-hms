@@ -191,6 +191,24 @@ export default function TabeebiVoicePage() {
 
   const handleLanguageChange = (lang: "en" | "ar" | "ur") => setLanguage(lang);
 
+  const handleDownloadTranscript = useCallback(() => {
+    if (transcriptRef.current.length === 0) {
+      toast.info(t.noTranscript);
+      return;
+    }
+    try {
+      exportTranscriptPdf({
+        entries: transcriptRef.current,
+        language,
+        startedAt: callStartedAtRef.current ?? new Date(),
+      });
+      toast.success(t.transcriptDownloaded);
+    } catch (err) {
+      console.error("transcript export failed", err);
+      toast.error(t.connectFailed);
+    }
+  }, [language, t]);
+
   if (authLoading) {
     return <div className="min-h-[100dvh] bg-background" />;
   }
