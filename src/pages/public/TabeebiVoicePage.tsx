@@ -78,6 +78,14 @@ const T = {
 type Caption = { role: "user" | "assistant"; content: string };
 
 export default function TabeebiVoicePage() {
+  return (
+    <ConversationProvider>
+      <TabeebiVoicePageInner />
+    </ConversationProvider>
+  );
+}
+
+function TabeebiVoicePageInner() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [authLoading, setAuthLoading] = useState(true);
