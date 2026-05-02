@@ -3,7 +3,8 @@ import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
 import { useConversation } from "@elevenlabs/react";
 import { LiveDoctorPortrait } from "@/components/ai/LiveDoctorPortrait";
-import { Mic, MicOff, PhoneOff, Globe, Captions } from "lucide-react";
+import { Mic, MicOff, PhoneOff, Globe, Captions, FileDown } from "lucide-react";
+import { exportTranscriptPdf, type TranscriptEntry } from "@/lib/exportTranscriptPdf";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
@@ -34,6 +35,9 @@ const T = {
     captions: "Captions",
     micDenied: "Microphone access is required for the call.",
     connectFailed: "Could not connect. Please try again.",
+    downloadTranscript: "Download transcript",
+    noTranscript: "No transcript yet.",
+    transcriptDownloaded: "Transcript downloaded.",
   },
   ar: {
     callDoctor: "اتصل بالطبيب",
@@ -48,6 +52,9 @@ const T = {
     captions: "الترجمة",
     micDenied: "الوصول إلى الميكروفون مطلوب لإجراء المكالمة.",
     connectFailed: "تعذر الاتصال. حاول مرة أخرى.",
+    downloadTranscript: "تنزيل النص",
+    noTranscript: "لا يوجد نص بعد.",
+    transcriptDownloaded: "تم تنزيل النص.",
   },
   ur: {
     callDoctor: "ڈاکٹر کو کال کریں",
@@ -62,6 +69,9 @@ const T = {
     captions: "سب ٹائٹل",
     micDenied: "کال کے لیے مائیکروفون کی اجازت درکار ہے۔",
     connectFailed: "رابطہ نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
+    downloadTranscript: "ٹرانسکرپٹ ڈاؤن لوڈ کریں",
+    noTranscript: "ابھی کوئی ٹرانسکرپٹ نہیں ہے۔",
+    transcriptDownloaded: "ٹرانسکرپٹ ڈاؤن لوڈ ہو گیا۔",
   },
 };
 
@@ -78,6 +88,9 @@ export default function TabeebiVoicePage() {
   const [showCaptions, setShowCaptions] = useState(true);
   const [captions, setCaptions] = useState<Caption[]>([]);
   const [connecting, setConnecting] = useState(false);
+  const transcriptRef = useRef<TranscriptEntry[]>([]);
+  const callStartedAtRef = useRef<Date | null>(null);
+  const [transcriptCount, setTranscriptCount] = useState(0);
 
   const t = T[language];
   const isRTL = language === "ar" || language === "ur";
@@ -93,6 +106,7 @@ export default function TabeebiVoicePage() {
   const conversation = useConversation({
     onConnect: () => {
       setConnecting(false);
+      if (!callStartedAtRef.current) callStartedAtRef.current = new Date();
     },
     onDisconnect: () => {
       setConnecting(false);
@@ -103,9 +117,10 @@ export default function TabeebiVoicePage() {
       setConnecting(false);
     },
     onMessage: (msg: { source?: string; message?: string }) => {
-      // The SDK emits transcripts/responses through onMessage as { source, message }
       if (!msg?.message) return;
       const role: "user" | "assistant" = msg.source === "user" ? "user" : "assistant";
+      transcriptRef.current.push({ role, content: msg.message, ts: Date.now() });
+      setTranscriptCount(transcriptRef.current.length);
       setCaptions((prev) => {
         const next = [...prev, { role, content: msg.message! }];
         return next.slice(-8);
@@ -176,6 +191,24 @@ export default function TabeebiVoicePage() {
 
   const handleLanguageChange = (lang: "en" | "ar" | "ur") => setLanguage(lang);
 
+  const handleDownloadTranscript = useCallback(() => {
+    if (transcriptRef.current.length === 0) {
+      toast.info(t.noTranscript);
+      return;
+    }
+    try {
+      exportTranscriptPdf({
+        entries: transcriptRef.current,
+        language,
+        startedAt: callStartedAtRef.current ?? new Date(),
+      });
+      toast.success(t.transcriptDownloaded);
+    } catch (err) {
+      console.error("transcript export failed", err);
+      toast.error(t.connectFailed);
+    }
+  }, [language, t]);
+
   if (authLoading) {
     return <div className="min-h-[100dvh] bg-background" />;
   }
@@ -198,10 +231,23 @@ export default function TabeebiVoicePage() {
         />
       </div>
 
-      {/* Top bar — language picker + close */}
+      {/* Top bar — language picker + download */}
       <header className="relative z-10 flex items-center justify-between px-4 pt-4">
         <div /> {/* spacer; status pill is inside the portrait */}
-        <DropdownMenu>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={handleDownloadTranscript}
+            disabled={transcriptCount === 0}
+            aria-label={t.downloadTranscript}
+            title={t.downloadTranscript}
+            className="h-9 px-3 rounded-full bg-black/50 backdrop-blur text-white hover:bg-black/70 hover:text-white gap-1.5 disabled:opacity-40"
+          >
+            <FileDown className="h-4 w-4" />
+            <span className="text-xs font-medium">PDF{transcriptCount > 0 ? ` · ${transcriptCount}` : ""}</span>
+          </Button>
+          <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
@@ -224,7 +270,8 @@ export default function TabeebiVoicePage() {
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
-        </DropdownMenu>
+          </DropdownMenu>
+        </div>
       </header>
 
       {/* Spacer to push content to bottom */}
