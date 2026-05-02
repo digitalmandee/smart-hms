@@ -270,7 +270,8 @@ export default function TabeebiVoicePage() {
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
-        </DropdownMenu>
+          </DropdownMenu>
+        </div>
       </header>
 
       {/* Spacer to push content to bottom */}
