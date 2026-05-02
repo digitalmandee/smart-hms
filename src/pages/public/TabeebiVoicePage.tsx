@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useConversation } from "@elevenlabs/react";
+import { useConversation, ConversationProvider } from "@elevenlabs/react";
 import { LiveDoctorPortrait } from "@/components/ai/LiveDoctorPortrait";
 import { Mic, MicOff, PhoneOff, Globe, Captions, FileDown } from "lucide-react";
 import { exportTranscriptPdf, type TranscriptEntry } from "@/lib/exportTranscriptPdf";
