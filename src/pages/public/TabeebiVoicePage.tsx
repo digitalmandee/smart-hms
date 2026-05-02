@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { useConversation } from "@elevenlabs/react";
+import { useConversation, ConversationProvider } from "@elevenlabs/react";
 import { LiveDoctorPortrait } from "@/components/ai/LiveDoctorPortrait";
 import { Mic, MicOff, PhoneOff, Globe, Captions, FileDown } from "lucide-react";
 import { exportTranscriptPdf, type TranscriptEntry } from "@/lib/exportTranscriptPdf";
@@ -78,6 +78,14 @@ const T = {
 type Caption = { role: "user" | "assistant"; content: string };
 
 export default function TabeebiVoicePage() {
+  return (
+    <ConversationProvider>
+      <TabeebiVoicePageInner />
+    </ConversationProvider>
+  );
+}
+
+function TabeebiVoicePageInner() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [authLoading, setAuthLoading] = useState(true);
