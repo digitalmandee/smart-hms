@@ -88,6 +88,9 @@ export default function TabeebiVoicePage() {
   const [showCaptions, setShowCaptions] = useState(true);
   const [captions, setCaptions] = useState<Caption[]>([]);
   const [connecting, setConnecting] = useState(false);
+  const transcriptRef = useRef<TranscriptEntry[]>([]);
+  const callStartedAtRef = useRef<Date | null>(null);
+  const [transcriptCount, setTranscriptCount] = useState(0);
 
   const t = T[language];
   const isRTL = language === "ar" || language === "ur";
