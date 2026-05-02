@@ -106,6 +106,7 @@ export default function TabeebiVoicePage() {
   const conversation = useConversation({
     onConnect: () => {
       setConnecting(false);
+      if (!callStartedAtRef.current) callStartedAtRef.current = new Date();
     },
     onDisconnect: () => {
       setConnecting(false);
@@ -116,9 +117,10 @@ export default function TabeebiVoicePage() {
       setConnecting(false);
     },
     onMessage: (msg: { source?: string; message?: string }) => {
-      // The SDK emits transcripts/responses through onMessage as { source, message }
       if (!msg?.message) return;
       const role: "user" | "assistant" = msg.source === "user" ? "user" : "assistant";
+      transcriptRef.current.push({ role, content: msg.message, ts: Date.now() });
+      setTranscriptCount(transcriptRef.current.length);
       setCaptions((prev) => {
         const next = [...prev, { role, content: msg.message! }];
         return next.slice(-8);
