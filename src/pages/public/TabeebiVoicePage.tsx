@@ -69,6 +69,9 @@ const T = {
     captions: "سب ٹائٹل",
     micDenied: "کال کے لیے مائیکروفون کی اجازت درکار ہے۔",
     connectFailed: "رابطہ نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
+    downloadTranscript: "ٹرانسکرپٹ ڈاؤن لوڈ کریں",
+    noTranscript: "ابھی کوئی ٹرانسکرپٹ نہیں ہے۔",
+    transcriptDownloaded: "ٹرانسکرپٹ ڈاؤن لوڈ ہو گیا۔",
   },
 };
 
