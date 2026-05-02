@@ -52,6 +52,9 @@ const T = {
     captions: "الترجمة",
     micDenied: "الوصول إلى الميكروفون مطلوب لإجراء المكالمة.",
     connectFailed: "تعذر الاتصال. حاول مرة أخرى.",
+    downloadTranscript: "تنزيل النص",
+    noTranscript: "لا يوجد نص بعد.",
+    transcriptDownloaded: "تم تنزيل النص.",
   },
   ur: {
     callDoctor: "ڈاکٹر کو کال کریں",
