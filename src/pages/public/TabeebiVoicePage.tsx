@@ -1,13 +1,12 @@
 import { useEffect, useRef, useState, useCallback } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { supabase } from "@/integrations/supabase/client";
-import { DoctorAvatarLarge } from "@/components/ai/DoctorAvatarLarge";
-import { VRMAvatarCanvas } from "@/components/ai/VRMAvatarCanvas";
-import { useVoiceConsultation } from "@/hooks/useVoiceConsultation";
-import { useAIChat } from "@/hooks/useAIChat";
-import { Mic, MicOff, MessageSquare, Globe, RotateCcw } from "lucide-react";
+import { useConversation } from "@elevenlabs/react";
+import { LiveDoctorPortrait } from "@/components/ai/LiveDoctorPortrait";
+import { Mic, MicOff, PhoneOff, Globe, Captions } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { toast } from "sonner";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -15,285 +14,299 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 
+const ELEVENLABS_AGENT_ID = "agent_1201kqn8y31sembseyqhmwj1mhg5";
+
 const LANG_CYCLE: Array<"en" | "ar" | "ur"> = ["en", "ar", "ur"];
 const LANG_LABELS: Record<string, string> = { en: "EN", ar: "AR", ur: "UR" };
 const LANG_FULL: Record<string, string> = { en: "English", ar: "العربية", ur: "اردو" };
 
-const STATUS_TEXT: Record<string, Record<string, string>> = {
-  idle: {
-    en: "Tap the mic to speak",
-    ar: "اضغط على الميكروفون للتحدث",
-    ur: "بات کرنے کے لیے مائیک دبائیں",
+const T = {
+  en: {
+    callDoctor: "Call Doctor",
+    tapToStart: "Tap to start a video call with Dr. Tabeebi",
+    connecting: "Connecting to Dr. Tabeebi…",
+    listening: "Listening…",
+    speaking: "Dr. Tabeebi is speaking",
+    idle: "Live",
+    endCall: "End call",
+    mute: "Mute",
+    unmute: "Unmute",
+    captions: "Captions",
+    micDenied: "Microphone access is required for the call.",
+    connectFailed: "Could not connect. Please try again.",
   },
-  listening: {
-    en: "Listening… speak now",
-    ar: "أستمع… تحدث الآن",
-    ur: "سن رہا ہوں… ابھی بولیں",
+  ar: {
+    callDoctor: "اتصل بالطبيب",
+    tapToStart: "اضغط لبدء مكالمة فيديو مع الدكتور طبيبي",
+    connecting: "جارٍ الاتصال بالدكتور طبيبي…",
+    listening: "أستمع…",
+    speaking: "الدكتور طبيبي يتحدث",
+    idle: "مباشر",
+    endCall: "إنهاء المكالمة",
+    mute: "كتم",
+    unmute: "إلغاء الكتم",
+    captions: "الترجمة",
+    micDenied: "الوصول إلى الميكروفون مطلوب لإجراء المكالمة.",
+    connectFailed: "تعذر الاتصال. حاول مرة أخرى.",
   },
-  processing: {
-    en: "Thinking…",
-    ar: "أفكر…",
-    ur: "سوچ رہا ہوں…",
-  },
-  speaking: {
-    en: "Dr. Tabeebi is speaking…",
-    ar: "الدكتور طبيبي يتحدث…",
-    ur: "ڈاکٹر طبیبی بول رہے ہیں…",
+  ur: {
+    callDoctor: "ڈاکٹر کو کال کریں",
+    tapToStart: "ڈاکٹر طبیبی سے ویڈیو کال شروع کرنے کے لیے دبائیں",
+    connecting: "ڈاکٹر طبیبی سے رابطہ ہو رہا ہے…",
+    listening: "سن رہا ہوں…",
+    speaking: "ڈاکٹر طبیبی بول رہے ہیں",
+    idle: "لائیو",
+    endCall: "کال ختم کریں",
+    mute: "خاموش",
+    unmute: "آواز چالو کریں",
+    captions: "سب ٹائٹل",
+    micDenied: "کال کے لیے مائیکروفون کی اجازت درکار ہے۔",
+    connectFailed: "رابطہ نہیں ہو سکا۔ دوبارہ کوشش کریں۔",
   },
 };
+
+type Caption = { role: "user" | "assistant"; content: string };
 
 export default function TabeebiVoicePage() {
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const [loading, setLoading] = useState(true);
+  const [authLoading, setAuthLoading] = useState(true);
   const [language, setLanguage] = useState<"en" | "ar" | "ur">(
     (searchParams.get("lang") as "en" | "ar" | "ur") || "en"
   );
-  const [autoListen, setAutoListen] = useState(false);
-  const [recentExchanges, setRecentExchanges] = useState<Array<{ role: "user" | "assistant"; content: string }>>([]);
-  const autoListenTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const isProcessingRef = useRef(false);
+  const [muted, setMuted] = useState(false);
+  const [showCaptions, setShowCaptions] = useState(true);
+  const [captions, setCaptions] = useState<Caption[]>([]);
+  const [connecting, setConnecting] = useState(false);
 
-  // Auth check
+  const t = T[language];
+  const isRTL = language === "ar" || language === "ur";
+
+  // Auth gate
   useEffect(() => {
     supabase.auth.getSession().then(({ data: { session } }) => {
       if (!session) navigate("/tabeebi", { replace: true });
-      else setLoading(false);
+      else setAuthLoading(false);
     });
   }, [navigate]);
 
-  // Hooks first — so refs always point to the latest version
-  const { voiceState, transcript, isSupported, unlockAudio, startListening, stopListening, speakResponse, stopAll } =
-    useVoiceConsultation(language);
-
-  // Keep ref so async callbacks never capture stale closures
-  const speakRef = useRef(speakResponse);
-  speakRef.current = speakResponse;
-
-  const handleAssistantResponse = useCallback((content: string) => {
-    setRecentExchanges(prev => {
-      const updated: Array<{ role: "user" | "assistant"; content: string }> = [...prev, { role: "assistant" as const, content }];
-      return updated.slice(-6);
-    });
-    speakRef.current(content);
-  }, []);
-
-  const { sendMessage, isLoading, messages } = useAIChat({
-    mode: "patient_intake",
-    language,
-    patientContext: { voice_mode: true },
-    onAssistantResponse: handleAssistantResponse,
+  const conversation = useConversation({
+    onConnect: () => {
+      setConnecting(false);
+    },
+    onDisconnect: () => {
+      setConnecting(false);
+    },
+    onError: (err) => {
+      console.error("ElevenLabs error:", err);
+      toast.error(t.connectFailed);
+      setConnecting(false);
+    },
+    onMessage: (msg: { source?: string; message?: string }) => {
+      // The SDK emits transcripts/responses through onMessage as { source, message }
+      if (!msg?.message) return;
+      const role: "user" | "assistant" = msg.source === "user" ? "user" : "assistant";
+      setCaptions((prev) => {
+        const next = [...prev, { role, content: msg.message! }];
+        return next.slice(-8);
+      });
+    },
   });
 
-  // Derive avatar state
-  const avatarState =
-    voiceState === "listening" ? "listening"
-    : voiceState === "speaking" ? "speaking"
-    : isLoading ? "thinking"
-    : "idle";
+  const status = conversation.status; // 'connected' | 'disconnected' | 'connecting'
+  const isConnected = status === "connected";
+  const isSpeaking = !!conversation.isSpeaking;
 
-  // Auto-listen after AI finishes speaking (fallback when HeyGen not used)
+  // Wrap getOutputByteFrequencyData so the portrait can poll it
+  const getFrequencyData = useCallback(() => {
+    try {
+      return conversation.getOutputByteFrequencyData?.();
+    } catch {
+      return null;
+    }
+  }, [conversation]);
+
+  const startCall = useCallback(async () => {
+    if (isConnected || connecting) return;
+    setConnecting(true);
+    try {
+      await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      toast.error(t.micDenied);
+      setConnecting(false);
+      return;
+    }
+    try {
+      await conversation.startSession({
+        agentId: ELEVENLABS_AGENT_ID,
+        connectionType: "webrtc",
+      });
+    } catch (err) {
+      console.error("startSession failed:", err);
+      toast.error(t.connectFailed);
+      setConnecting(false);
+    }
+  }, [conversation, connecting, isConnected, t]);
+
+  const endCall = useCallback(async () => {
+    try {
+      await conversation.endSession();
+    } catch (err) {
+      console.error("endSession failed:", err);
+    }
+  }, [conversation]);
+
+  const toggleMute = useCallback(async () => {
+    const next = !muted;
+    setMuted(next);
+    try {
+      await conversation.setVolume?.({ volume: next ? 0 : 1 });
+    } catch {
+      // ignore
+    }
+  }, [conversation, muted]);
+
+  // End call on unmount
   useEffect(() => {
-    if (voiceState === "idle" && !isLoading && autoListen && !isProcessingRef.current && !loading) {
-      if (recentExchanges.length > 0) {
-        autoListenTimerRef.current = setTimeout(() => {
-          startListening(handleFinalTranscript);
-        }, 1200);
-      }
-    }
     return () => {
-      if (autoListenTimerRef.current) clearTimeout(autoListenTimerRef.current);
+      conversation.endSession?.().catch(() => {});
     };
-  }, [voiceState, isLoading, autoListen]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  const handleFinalTranscript = useCallback((text: string) => {
-    isProcessingRef.current = true;
-    setRecentExchanges(prev => [...prev, { role: "user" as const, content: text }].slice(-6));
-    // Silence while thinking — avatar "thinking" state gives visual feedback
-    sendMessage(text).finally(() => {
-      isProcessingRef.current = false;
-    });
-  }, [sendMessage]);
+  const handleLanguageChange = (lang: "en" | "ar" | "ur") => setLanguage(lang);
 
-  const handleMicPress = () => {
-    // CRITICAL: unlockAudio() MUST be called synchronously here (inside the click handler)
-    unlockAudio();
-
-    if (autoListenTimerRef.current) clearTimeout(autoListenTimerRef.current);
-
-    if (voiceState === "listening") {
-      stopListening();
-    } else if (voiceState === "speaking") {
-      stopAll();
-    } else if (!isLoading) {
-      startListening(handleFinalTranscript);
-    }
-  };
-
-  const handleAvatarStopTalking = useCallback(() => {
-    // Auto-listen after avatar finishes speaking
-    if (autoListen && !isProcessingRef.current) {
-      autoListenTimerRef.current = setTimeout(() => {
-        startListening(handleFinalTranscript);
-      }, 800);
-    }
-  }, [autoListen, startListening, handleFinalTranscript]);
-
-  const handleLanguageChange = (lang: "en" | "ar" | "ur") => {
-    setLanguage(lang);
-    stopAll();
-  };
-
-  const handleReset = () => {
-    stopAll();
-    setRecentExchanges([]);
-    isProcessingRef.current = false;
-  };
-
-  const micActive = voiceState === "listening";
-  const micBusy = isLoading || voiceState === "speaking";
-
-  if (loading) {
-    return (
-      <div className="min-h-[100dvh] flex items-center justify-center bg-background">
-        <DoctorAvatarLarge state="thinking" />
-      </div>
-    );
+  if (authLoading) {
+    return <div className="min-h-[100dvh] bg-background" />;
   }
 
-  const statusText = STATUS_TEXT[voiceState === "processing" || isLoading ? "processing" : voiceState]?.[language] ?? "";
+  const portraitStatus = isConnected ? "live" : connecting ? "connecting" : "idle";
+  const lastAssistant = [...captions].reverse().find((c) => c.role === "assistant");
+  const lastUser = [...captions].reverse().find((c) => c.role === "user");
 
   return (
     <div
-      className="h-[100dvh] bg-background flex flex-col overflow-hidden"
-      dir={language === "ar" || language === "ur" ? "rtl" : "ltr"}
+      className="h-[100dvh] bg-black flex flex-col overflow-hidden relative"
+      dir={isRTL ? "rtl" : "ltr"}
     >
-      {/* Header */}
-      <header className="flex-shrink-0 bg-card border-b border-border shadow-sm">
-        <div className="flex items-center justify-between px-4 h-14">
-          {/* Back to chat */}
-          <button
-            onClick={() => navigate(`/tabeebi/chat?lang=${language}`)}
-            className="flex items-center gap-2 text-sm text-muted-foreground hover:text-foreground transition-colors"
-          >
-            <MessageSquare className="h-4 w-4" />
-            <span className="hidden sm:inline">Chat Mode</span>
-          </button>
+      {/* Full-bleed live portrait */}
+      <div className="absolute inset-0">
+        <LiveDoctorPortrait
+          isSpeaking={isSpeaking}
+          getFrequencyData={getFrequencyData}
+          status={portraitStatus}
+        />
+      </div>
 
-          {/* Title */}
-          <div className="flex flex-col items-center">
-            <p className="text-sm font-semibold">Dr. Tabeebi</p>
-            <p className="text-[10px] text-muted-foreground">Voice Consultation</p>
-          </div>
-
-          {/* Right actions */}
-          <div className="flex items-center gap-1.5">
-            {/* Language picker */}
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="sm" className="h-8 px-2 text-muted-foreground hover:text-foreground rounded-full gap-1">
-                  <Globe className="h-3.5 w-3.5" />
-                  <span className="text-xs font-medium">{LANG_LABELS[language]}</span>
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-36 z-[100]">
-                {LANG_CYCLE.map((lang) => (
-                  <DropdownMenuItem
-                    key={lang}
-                    onClick={() => handleLanguageChange(lang)}
-                    className={cn("cursor-pointer", language === lang && "bg-primary/10 font-medium")}
-                  >
-                    <span className="flex-1">{LANG_FULL[lang]}</span>
-                    {language === lang && <span className="text-primary text-xs">✓</span>}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
-
-            {/* Reset */}
+      {/* Top bar — language picker + close */}
+      <header className="relative z-10 flex items-center justify-between px-4 pt-4">
+        <div /> {/* spacer; status pill is inside the portrait */}
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
             <Button
               variant="ghost"
               size="sm"
-              onClick={handleReset}
-              className="h-8 w-8 p-0 text-muted-foreground hover:text-foreground rounded-full"
-              title="Reset conversation"
+              className="h-9 px-3 rounded-full bg-black/50 backdrop-blur text-white hover:bg-black/70 hover:text-white gap-1.5"
             >
-              <RotateCcw className="h-3.5 w-3.5" />
+              <Globe className="h-4 w-4" />
+              <span className="text-xs font-medium">{LANG_LABELS[language]}</span>
             </Button>
-          </div>
-        </div>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent align="end" className="w-36 z-[100]">
+            {LANG_CYCLE.map((lang) => (
+              <DropdownMenuItem
+                key={lang}
+                onClick={() => handleLanguageChange(lang)}
+                className={cn("cursor-pointer", language === lang && "bg-primary/10 font-medium")}
+              >
+                <span className="flex-1">{LANG_FULL[lang]}</span>
+                {language === lang && <span className="text-primary text-xs">✓</span>}
+              </DropdownMenuItem>
+            ))}
+          </DropdownMenuContent>
+        </DropdownMenu>
       </header>
 
-      {/* Main content — full-screen video-call layout */}
-      <div className="flex-1 flex flex-col items-center justify-between overflow-hidden px-4 py-3">
+      {/* Spacer to push content to bottom */}
+      <div className="flex-1" />
 
-        {/* Avatar — takes up most of the screen */}
-        <div className="flex-1 flex flex-col items-center justify-center min-h-0">
-          <VRMAvatarCanvas state={avatarState} />
-        </div>
-
-        {/* Caption area — last Dr. Tabeebi response as subtitle */}
-        <div className="w-full max-w-sm flex-shrink-0 text-center min-h-[56px] flex flex-col items-center justify-center gap-1 pb-1">
-          {/* Status text */}
-          <p className={cn(
-            "text-sm font-medium transition-all duration-300",
-            avatarState === "listening" && "text-primary",
-            avatarState === "speaking" && "text-primary",
-            avatarState === "thinking" && "text-amber-500",
-            avatarState === "idle" && "text-muted-foreground",
-          )}>
-            {statusText}
-          </p>
-
-          {/* Live transcript while listening */}
-          {transcript && voiceState === "listening" && (
-            <div className="max-w-xs mx-auto bg-primary/10 border border-primary/20 rounded-2xl px-4 py-1.5">
-              <p className="text-xs text-foreground/80 italic">"{transcript}"</p>
+      {/* Live captions */}
+      {showCaptions && isConnected && (
+        <div className="relative z-10 px-6 pb-4 flex flex-col items-center gap-2">
+          {lastUser && (
+            <div className="max-w-md mx-auto rounded-2xl bg-white/90 text-black px-4 py-2 shadow-lg">
+              <p className="text-xs uppercase tracking-wide opacity-60 mb-0.5">You</p>
+              <p className="text-sm leading-snug line-clamp-2">{lastUser.content}</p>
             </div>
           )}
-
-          {/* Last Dr. Tabeebi response (caption) */}
-          {!transcript && recentExchanges.length > 0 && (() => {
-            const last = [...recentExchanges].reverse().find(m => m.role === "assistant");
-            return last ? (
-              <p className="text-xs text-muted-foreground/70 line-clamp-2 max-w-[280px]">
-                {last.content.length > 120 ? last.content.slice(0, 120) + "…" : last.content}
-              </p>
-            ) : null;
-          })()}
+          {lastAssistant && (
+            <div className="max-w-md mx-auto rounded-2xl bg-black/70 backdrop-blur text-white px-4 py-2 shadow-lg">
+              <p className="text-xs uppercase tracking-wide opacity-60 mb-0.5">Dr. Tabeebi</p>
+              <p className="text-sm leading-snug line-clamp-3">{lastAssistant.content}</p>
+            </div>
+          )}
         </div>
+      )}
 
-        {/* Mic button — floating bottom */}
-        <div className="flex flex-col items-center gap-2 flex-shrink-0 pb-2">
-          <button
-            onClick={handleMicPress}
-            disabled={micBusy && voiceState !== "speaking"}
-            className={cn(
-              "w-20 h-20 rounded-full flex items-center justify-center shadow-lg transition-all duration-300 focus:outline-none focus:ring-4 focus:ring-ring",
-              micActive
-                ? "bg-primary text-primary-foreground scale-110 animate-pulse"
-                : voiceState === "speaking"
-                ? "bg-destructive/80 text-destructive-foreground hover:bg-destructive"
-                : isLoading
-                ? "bg-muted text-muted-foreground cursor-not-allowed"
-                : "bg-primary text-primary-foreground hover:bg-primary/90 hover:scale-105 active:scale-95"
-            )}
-            aria-label={micActive ? "Stop listening" : "Start speaking"}
-          >
-            {micActive ? <MicOff className="h-8 w-8" /> : <Mic className="h-8 w-8" />}
-          </button>
-          <p className="text-xs text-muted-foreground">
-            {micActive ? "Tap to stop" : voiceState === "speaking" ? "Tap to interrupt" : "Tap to speak"}
+      {/* Status text when not in captions or not connected */}
+      {!isConnected && (
+        <div className="relative z-10 text-center pb-6">
+          <p className="text-white/90 text-base font-medium">
+            {connecting ? t.connecting : t.tapToStart}
           </p>
         </div>
+      )}
 
-        {/* STT not supported warning */}
-        {!isSupported && (
-          <div className="w-full max-w-sm bg-destructive/10 border border-destructive/20 rounded-xl p-3 text-center flex-shrink-0">
-            <p className="text-xs text-destructive">
-              Voice input is not supported in this browser. Please use Chrome or Edge.
-            </p>
-          </div>
+      {/* Bottom call dock */}
+      <div className="relative z-10 pb-8 pt-2 px-6 flex items-center justify-center gap-5">
+        {!isConnected ? (
+          <button
+            onClick={startCall}
+            disabled={connecting}
+            className={cn(
+              "h-20 px-8 rounded-full flex items-center gap-3 shadow-xl transition-all",
+              "bg-emerald-500 hover:bg-emerald-600 text-white text-base font-semibold",
+              "active:scale-95 disabled:opacity-60",
+            )}
+          >
+            <Mic className="h-6 w-6" />
+            <span>{t.callDoctor}</span>
+          </button>
+        ) : (
+          <>
+            {/* Mute */}
+            <button
+              onClick={toggleMute}
+              className={cn(
+                "w-14 h-14 rounded-full flex items-center justify-center text-white transition shadow-lg active:scale-95",
+                muted ? "bg-white/30" : "bg-white/20 hover:bg-white/30",
+              )}
+              aria-label={muted ? t.unmute : t.mute}
+            >
+              {muted ? <MicOff className="h-6 w-6" /> : <Mic className="h-6 w-6" />}
+            </button>
+
+            {/* End call */}
+            <button
+              onClick={endCall}
+              className="w-20 h-20 rounded-full flex items-center justify-center bg-red-600 hover:bg-red-700 text-white shadow-2xl transition active:scale-95"
+              aria-label={t.endCall}
+            >
+              <PhoneOff className="h-8 w-8" />
+            </button>
+
+            {/* Captions toggle */}
+            <button
+              onClick={() => setShowCaptions((v) => !v)}
+              className={cn(
+                "w-14 h-14 rounded-full flex items-center justify-center text-white transition shadow-lg active:scale-95",
+                showCaptions ? "bg-white/30" : "bg-white/20 hover:bg-white/30",
+              )}
+              aria-label={t.captions}
+            >
+              <Captions className="h-6 w-6" />
+            </button>
+          </>
         )}
       </div>
     </div>
