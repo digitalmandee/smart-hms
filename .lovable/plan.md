@@ -1,92 +1,85 @@
-# Admin-Driven MFA Enrollment & Recovery Codes
+# Video-Call AI Doctor with Real Lip-Sync (No Third-Party Avatar)
 
-## Constraint (important)
-Supabase Auth only lets a user enroll their own TOTP factor — admins cannot scan a QR on someone else's behalf. So "admin-driven" here means: **admins mandate MFA per user, monitor enrollment status, force enrollment on next login, and issue/regenerate one-time recovery codes**. The user still completes the QR step themselves on first login after being marked required.
+## What you want
+A Tabeebi consultation that **looks and feels like a Zoom/FaceTime call** with a doctor — using **your own doctor portrait** (not HeyGen, not D-ID, not any pre-built avatar service). The mouth must actually move in sync with the spoken audio.
 
-## What gets built
+## Why HeyGen-style services won't fit
+HeyGen / D-ID / Synthesia all upload your image to their cloud and stream a generated video back — they own the rendering. You want the doctor image to live in your app and the lip-sync to happen on your side. That's a different architecture.
 
-### 1. Database (new migration)
-- `user_mfa_settings` table
-  - `user_id uuid PK → auth.users`
-  - `organization_id uuid` (for org-scoped admin RLS)
-  - `is_required boolean default false`
-  - `enrolled_at timestamptz`, `last_verified_at timestamptz`
-  - `required_by uuid` (admin who set it), `required_at timestamptz`
-  - `grace_period_ends_at timestamptz` (optional soft-enforce window)
-- `user_mfa_recovery_codes` table
-  - `id`, `user_id`, `code_hash text` (SHA-256, never plaintext), `used_at timestamptz`, `created_at`
-  - Unique `(user_id, code_hash)`
-- RLS: users read/update own row; org admins/super_admin read/write all rows in their org via `has_role()`
-- Trigger: when a user verifies a TOTP factor (detected via edge function callback), set `enrolled_at = now()`
+## The approach: real-time audio-driven mouth animation on a layered portrait
 
-### 2. Edge functions
-- `mfa-admin-set-required` — admin marks a user as MFA-required (with optional grace period). Validates caller is `admin`/`super_admin` in the same org.
-- `mfa-generate-recovery-codes` — generates 10 single-use codes, stores SHA-256 hashes, returns plaintext **once** to the caller (admin or user themselves).
-- `mfa-redeem-recovery-code` — verifies a code, marks it used, issues a short-lived AAL2 grant via admin API (or unenrolls the lost factor so the user can re-enroll).
-- `mfa-sync-status` — invoked by client after successful enroll/verify; updates `enrolled_at`/`last_verified_at` server-side.
+We use a technique used by VTubers and AAA game cinematics — **viseme-driven mouth swapping on a still portrait**, driven by live audio amplitude + phoneme analysis from the actual TTS waveform. No video generation, no cloud avatar service.
 
-All functions: JWT-verified, audit-logged via existing `errorReporter`/audit pattern, JSON i18n error keys.
-
-### 3. Frontend — Security Setup page (replace the static "MFA enforcement" card)
-New section: **MFA Enrollment Roster** (admins/super_admin only, gated by `hasRole`).
-
-Per-user table with columns:
-- User (name, email, role badges)
-- MFA status: `Not required` / `Required – pending` / `Enrolled` / `Grace period (Xd left)`
-- Last verified
-- Recovery codes: `0/10 used`
-- Actions: `Require MFA`, `Remove requirement`, `Generate recovery codes`, `Reset (unenroll)`
-
-Filters: org-scoped automatically; search by name/email; status filter.
-
-Bulk actions: "Require MFA for all admins", "Require MFA for all users".
-
-Recovery codes dialog:
-- Shows the 10 codes once with copy-all + download .txt
-- Clear warning: "These will not be shown again"
-- Regenerate invalidates previous unused codes
-
-### 4. Frontend — User-facing flows
-- **Profile → Security**: when `is_required && !enrolled_at`, show a persistent banner "Your administrator requires you to enable MFA" + auto-open `EnrollMFADialog`. After enroll, prompt to generate recovery codes.
-- **Login flow** (`MFAVerifyPage`): add "Use a recovery code instead" link → small form → calls `mfa-redeem-recovery-code` → on success either signs the AAL2 grant or unenrolls + reroutes to enrollment.
-- **AuthContext**: after sign-in, if `is_required && !enrolled_at && grace_period_ends_at < now()`, redirect to `/app/profile/security?enroll=1` and block other routes.
-
-### 5. i18n
-Add ~25 keys under `security.mfa_admin.*` and `mfa.recovery.*` to `en.ts`, `ar.ts`, `ur.ts` (project rule: 3-language parity).
-
-### 6. Audit & telemetry
-Every admin action (`require`, `unrequire`, `regenerate codes`, `reset factor`) logs to existing audit table with `actor_id`, `target_user_id`, `action`, `metadata`.
-
-## File map
+### Pipeline
 ```text
-supabase/migrations/<ts>_user_mfa_admin.sql        new
-supabase/functions/mfa-admin-set-required/         new
-supabase/functions/mfa-generate-recovery-codes/    new
-supabase/functions/mfa-redeem-recovery-code/       new
-supabase/functions/mfa-sync-status/                new
-src/hooks/useMfaAdmin.ts                           new
-src/hooks/useMFA.ts                                edit (add recovery + sync)
-src/components/mfa/MfaRosterTable.tsx              new
-src/components/mfa/RecoveryCodesDialog.tsx        new
-src/components/mfa/RecoveryCodeInput.tsx           new
-src/components/mfa/MFAVerifyPage.tsx               edit (recovery link)
-src/components/mfa/EnrollMFADialog.tsx             edit (post-enroll → codes)
-src/pages/app/admin/SecuritySetupPage.tsx          edit (mount roster)
-src/pages/app/ProfilePage.tsx                      edit (required banner)
-src/contexts/AuthContext.tsx                       edit (enforce redirect)
-src/lib/i18n/translations/{en,ar,ur}.ts            edit (~25 keys × 3)
+User speech ──► Whisper STT ──► Tabeebi LLM ──► ElevenLabs TTS (audio bytes)
+                                                       │
+                                                       ▼
+                                          Web Audio AnalyserNode (browser)
+                                                       │
+                                                       ▼
+                                  Real-time amplitude + frequency bands
+                                                       │
+                                                       ▼
+                            DoctorPortrait component (layered SVG/PNG)
+                            • Base face image (your doctor photo)
+                            • Mouth layer → swapped between 6 viseme shapes
+                            • Eye layer → blinks every 3-5s
+                            • Subtle head sway (transform, sine wave)
+                            • Eyebrow micro-movement on emphasis
 ```
 
-## Out of scope
-- SMS/WebAuthn factors (TOTP only, matches current stack)
-- Cross-org MFA policy (each org admin manages their own org)
-- Hardware security keys
+### What makes it feel like a real video call
+1. **Full-bleed portrait**, not a card — fills the screen like a FaceTime window.
+2. **Subtle ambient motion** even when idle: breathing (1px scale pulse), eye blinks, slight head sway. The face is never frozen.
+3. **Mouth shapes driven by actual audio**, not random:
+   - Web Audio `AnalyserNode` reads the live TTS playback waveform.
+   - Amplitude → mouth openness (0-1).
+   - Spectral centroid (low/mid/high frequency balance) → picks one of 6 viseme shapes (closed, slightly open, wide open, "O", "E", "F/V").
+   - Updates at 60fps, perfectly aligned with what's actually being heard.
+4. **Live caption strip** at the bottom (call-style), reveals word-by-word as audio plays.
+5. **Call UI chrome**: top bar with "Dr. Tabeebi · Live" + connection dot, bottom dock with mic/end-call/captions toggle, optional self-view PiP.
+6. **Connection feel**: a 1-second "connecting…" intro with a soft ring tone before the doctor "picks up", then a smooth fade-in.
 
-## Acceptance criteria
-- Org admin can mark any user in their org as MFA-required and see live status
-- Required user is forced to enroll on next login after grace period
-- Recovery codes are shown exactly once, stored only as hashes, single-use
-- User can sign in with a recovery code if they lose their authenticator
-- All admin mutations are audit-logged
-- All new UI strings present in en/ar/ur with RTL layout
-- Supabase linter shows no new findings; RLS denies cross-org reads
+### Why this looks better than the current implementation
+The current `DoctorAvatarLarge` uses a **random EQ bar** to drive a dark oval over the mouth — it's faking it. The new pipeline reads the **actual audio being played** and snaps the mouth to the real phoneme shape. The difference is night-and-day.
+
+## Technical details
+
+### New / changed files
+- **`src/components/ai/LiveDoctorPortrait.tsx`** *(new)* — full-bleed call-style portrait, layered mouth/eyes, audio-driven.
+- **`src/hooks/useAudioVisemes.ts`** *(new)* — wraps a `<audio>` element in an `AudioContext` + `AnalyserNode`, exposes `{ amplitude, viseme }` updated each animation frame.
+- **`src/hooks/useElevenLabsTTS.ts`** *(new)* — calls our `tabeebi-tts` edge function, returns the resulting audio Blob and an `<audio>` element ready to be analysed.
+- **`supabase/functions/tabeebi-tts/index.ts`** *(new)* — server-side ElevenLabs call. Takes `{ text, language }`, returns MP3 bytes. Uses `eleven_multilingual_v2` for EN/AR/UR. Validates JWT, requires `ELEVENLABS_API_KEY` secret.
+- **`src/pages/public/TabeebiVoicePage.tsx`** *(rewrite)* — new call-style layout, wires the portrait + TTS hook + existing `useVoiceConsultation` STT + existing `useAIChat`.
+- **`src/lib/i18n/translations/{en,ar,ur}.ts`** — ~12 new keys: `tabeebi.call.connecting`, `.live`, `.end_call`, `.captions`, `.muted`, `.audio_only_fallback`, etc.
+
+### Doctor image
+- Need 1 high-quality doctor portrait (front-facing, neutral mouth-closed expression, eyes open) + 6 mouth crops (closed, small, medium, wide, O, F/V). I'll generate these with the AI image tool from the existing portrait used in `DoctorAvatarLarge` so the face stays consistent. Stored under `public/avatars/doctor/`.
+- The mouth crops are positioned by a fixed offset relative to the base portrait (one-time tuning in CSS).
+- For Arabic clinics the image should be a male doctor with neutral cultural framing — I'll generate a second portrait and let language switch the active one.
+
+### Fallback chain
+1. **Primary**: ElevenLabs TTS → real audio → real visemes. Looks like a video call.
+2. **Fallback** (no `ELEVENLABS_API_KEY` or quota hit): browser `speechSynthesis` → still feed its audio output through the analyser via a `MediaStreamDestination` → mouth still animates. Degrades quality, not the experience.
+3. **Last resort** (no audio support): current behaviour with random EQ animation, `Audio-only mode` badge shown.
+
+### Secrets required
+- `ELEVENLABS_API_KEY` — needs to be added to Supabase edge-function secrets. I'll prompt for it via the secrets tool before implementation. If you skip it, the page works on the browser-TTS fallback.
+
+### Languages
+ElevenLabs `eleven_multilingual_v2` covers English and Arabic natively. Urdu is not officially supported — it falls back to Hindi voice (closest phonemes). The UI shows a small note on the language switcher when UR is selected.
+
+### Memory update
+This supersedes `mem://clinical/tabeebi-ai-voice-strategy` (which referenced ElevenLabs WebRTC + DeepSeek). I'll update it to reflect the new "ElevenLabs HTTP TTS + browser-side viseme rendering" approach.
+
+## Out of scope for this pass
+- Recording the call (storage + consent flow).
+- Doctor-side panel reuse (`DoctorAIPanel`) — same component will plug in later.
+- Webcam self-view PiP (will add the toggle button but real camera capture comes next pass).
+
+## Acceptance
+- Open `/tabeebi/voice` → 1-second "connecting…" intro → doctor portrait fades in, breathing/blinking.
+- Tap mic, ask a question in EN/AR/UR → doctor's **mouth visibly opens and closes in time with the actual spoken audio**, not random.
+- End-call button stops TTS, releases mic, returns to the landing screen.
+- Without `ELEVENLABS_API_KEY` set, page still works using browser TTS with mouth animation (slightly less crisp).
