@@ -162,7 +162,7 @@ function TabeebiVoicePageInner() {
     try {
       await conversation.startSession({
         agentId: ELEVENLABS_AGENT_ID,
-        connectionType: "webrtc",
+        connectionType: "websocket",
       });
     } catch (err) {
       console.error("startSession failed:", err);
