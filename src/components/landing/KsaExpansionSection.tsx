@@ -193,9 +193,9 @@ export const KsaExpansionSection = () => {
               <h3 className="text-lg font-bold">Operate a clinic, hospital, telehealth service or mobile unit?</h3>
               <p className="text-sm text-muted-foreground mt-1">See HealthOS 24 running with KSA compliance end-to-end.</p>
             </div>
-            <Link to="/book-demo">
+            <Link to="/auth/signup">
               <Button size="lg" className="gap-2">
-                Book a KSA demo <ArrowRight className="h-4 w-4" />
+                Get a KSA demo <ArrowRight className="h-4 w-4" />
               </Button>
             </Link>
           </div>

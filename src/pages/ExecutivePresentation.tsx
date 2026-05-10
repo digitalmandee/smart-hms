@@ -13,6 +13,10 @@ import { ExecAIEverywhereSlide } from "@/components/executive/ExecAIEverywhereSl
 import { ExecTabeebiSlide } from "@/components/executive/ExecTabeebiSlide";
 import { ExecInsuranceSlide } from "@/components/executive/ExecInsuranceSlide";
 import { ExecKsaComplianceSlide } from "@/components/executive/ExecKsaComplianceSlide";
+import { ExecKsaIndustryGapSlide } from "@/components/executive/ExecKsaIndustryGapSlide";
+import { ExecKsaComplianceRoadmapSlide } from "@/components/executive/ExecKsaComplianceRoadmapSlide";
+import { ExecClinicOnWheelsSlide } from "@/components/executive/ExecClinicOnWheelsSlide";
+import { ExecRevenueStreamsSlide } from "@/components/executive/ExecRevenueStreamsSlide";
 import { ExecClinicalSlide } from "@/components/executive/ExecClinicalSlide";
 import { ExecDiagnosticsSlide } from "@/components/executive/ExecDiagnosticsSlide";
 import { ExecAutomationSlide } from "@/components/executive/ExecAutomationSlide";
@@ -22,7 +26,7 @@ import { ExecTechSlide } from "@/components/executive/ExecTechSlide";
 import { ExecROISlide } from "@/components/executive/ExecROISlide";
 import { ExecCTASlide } from "@/components/executive/ExecCTASlide";
 
-const TOTAL_SLIDES = 17;
+const TOTAL_SLIDES = 21;
 
 const ExecutivePresentation = () => {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -163,6 +167,9 @@ const ExecutivePresentation = () => {
           <ExecTabeebiSlide />
           <ExecInsuranceSlide />
           <ExecKsaComplianceSlide />
+          <ExecKsaIndustryGapSlide />
+          <ExecKsaComplianceRoadmapSlide />
+          <ExecClinicOnWheelsSlide />
           <ExecClinicalSlide />
           <ExecDiagnosticsSlide />
           <ExecAutomationSlide />
@@ -170,6 +177,7 @@ const ExecutivePresentation = () => {
           <ExecFinanceOpsSlide />
           <ExecTechSlide />
           <ExecROISlide />
+          <ExecRevenueStreamsSlide />
           <ExecCTASlide />
         </div>
       </div>
