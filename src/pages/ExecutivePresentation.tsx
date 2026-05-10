@@ -100,6 +100,62 @@ const ExecutivePresentation = () => {
     }
   }, []);
 
+  const renderSlideToPng = useCallback(async (el: HTMLElement) => {
+    const originalStyle = el.style.cssText;
+    el.style.width = "1200px";
+    el.style.maxWidth = "1200px";
+    el.style.minHeight = "675px";
+    el.style.height = "675px";
+    el.style.overflow = "hidden";
+    el.style.margin = "0";
+    el.style.borderRadius = "0";
+    el.style.border = "none";
+    el.style.boxShadow = "none";
+    await new Promise(r => setTimeout(r, 200));
+    const dataUrl = await toPng(el, {
+      quality: 0.95,
+      pixelRatio: 2,
+      backgroundColor: "#ffffff",
+      width: 1200,
+      height: 675,
+    });
+    el.style.cssText = originalStyle;
+    return dataUrl;
+  }, []);
+
+  const handleDownloadImages = useCallback(async () => {
+    if (!printContainerRef.current) return;
+    setIsDownloading(true);
+    try {
+      const slides = printContainerRef.current.querySelectorAll(".slide");
+      const zip = new JSZip();
+      const folder = zip.folder("HealthOS24-Pitch-Deck-Slides")!;
+
+      for (let i = 0; i < slides.length; i++) {
+        const el = slides[i] as HTMLElement;
+        el.scrollIntoView();
+        const dataUrl = await renderSlideToPng(el);
+        const base64 = dataUrl.split(",")[1];
+        const num = String(i + 1).padStart(2, "0");
+        folder.file(`slide-${num}.png`, base64, { base64: true });
+      }
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "HealthOS24-Pitch-Deck-Images.zip";
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => { document.body.removeChild(link); URL.revokeObjectURL(url); }, 5000);
+    } catch (error) {
+      console.error("Image export failed:", error);
+      alert("Image export failed. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [renderSlideToPng]);
+
   return (
     <>
       <style>{`
