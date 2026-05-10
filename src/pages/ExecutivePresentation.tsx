@@ -1,8 +1,15 @@
 import { useState, useRef, useCallback } from "react";
-import { FileDown, Printer, ArrowLeft, Loader2 } from "lucide-react";
+import { FileDown, Printer, ArrowLeft, Loader2, Image as ImageIcon, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import jsPDF from "jspdf";
+import JSZip from "jszip";
 import { toPng } from "html-to-image";
 import { ExecTitleSlide } from "@/components/executive/ExecTitleSlide";
 import { ExecAboutUsSlide } from "@/components/executive/ExecAboutUsSlide";
@@ -93,6 +100,62 @@ const ExecutivePresentation = () => {
     }
   }, []);
 
+  const renderSlideToPng = useCallback(async (el: HTMLElement) => {
+    const originalStyle = el.style.cssText;
+    el.style.width = "1200px";
+    el.style.maxWidth = "1200px";
+    el.style.minHeight = "675px";
+    el.style.height = "675px";
+    el.style.overflow = "hidden";
+    el.style.margin = "0";
+    el.style.borderRadius = "0";
+    el.style.border = "none";
+    el.style.boxShadow = "none";
+    await new Promise(r => setTimeout(r, 200));
+    const dataUrl = await toPng(el, {
+      quality: 0.95,
+      pixelRatio: 2,
+      backgroundColor: "#ffffff",
+      width: 1200,
+      height: 675,
+    });
+    el.style.cssText = originalStyle;
+    return dataUrl;
+  }, []);
+
+  const handleDownloadImages = useCallback(async () => {
+    if (!printContainerRef.current) return;
+    setIsDownloading(true);
+    try {
+      const slides = printContainerRef.current.querySelectorAll(".slide");
+      const zip = new JSZip();
+      const folder = zip.folder("HealthOS24-Pitch-Deck-Slides")!;
+
+      for (let i = 0; i < slides.length; i++) {
+        const el = slides[i] as HTMLElement;
+        el.scrollIntoView();
+        const dataUrl = await renderSlideToPng(el);
+        const base64 = dataUrl.split(",")[1];
+        const num = String(i + 1).padStart(2, "0");
+        folder.file(`slide-${num}.png`, base64, { base64: true });
+      }
+
+      const blob = await zip.generateAsync({ type: "blob" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "HealthOS24-Pitch-Deck-Images.zip";
+      document.body.appendChild(link);
+      link.click();
+      setTimeout(() => { document.body.removeChild(link); URL.revokeObjectURL(url); }, 5000);
+    } catch (error) {
+      console.error("Image export failed:", error);
+      alert("Image export failed. Please try again.");
+    } finally {
+      setIsDownloading(false);
+    }
+  }, [renderSlideToPng]);
+
   return (
     <>
       <style>{`
@@ -133,17 +196,31 @@ const ExecutivePresentation = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handlePrint}>
+            <Button variant="outline" size="sm" onClick={handlePrint} disabled={isDownloading}>
               <Printer className="h-4 w-4 mr-2" />
               Print
             </Button>
-            <Button onClick={handleDownloadPDF} disabled={isDownloading}>
-              {isDownloading ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Generating…</>
-              ) : (
-                <><FileDown className="h-4 w-4 mr-2" />Download PDF</>
-              )}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button disabled={isDownloading}>
+                  {isDownloading ? (
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Generating…</>
+                  ) : (
+                    <><FileDown className="h-4 w-4 mr-2" />Export<ChevronDown className="h-4 w-4 ml-2" /></>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={handleDownloadPDF}>
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Download as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDownloadImages}>
+                  <ImageIcon className="h-4 w-4 mr-2" />
+                  Download Images (ZIP)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
