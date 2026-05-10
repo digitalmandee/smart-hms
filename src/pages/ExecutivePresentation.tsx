@@ -1,8 +1,15 @@
 import { useState, useRef, useCallback } from "react";
-import { FileDown, Printer, ArrowLeft, Loader2 } from "lucide-react";
+import { FileDown, Printer, ArrowLeft, Loader2, Image as ImageIcon, ChevronDown } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import jsPDF from "jspdf";
+import JSZip from "jszip";
 import { toPng } from "html-to-image";
 import { ExecTitleSlide } from "@/components/executive/ExecTitleSlide";
 import { ExecAboutUsSlide } from "@/components/executive/ExecAboutUsSlide";
