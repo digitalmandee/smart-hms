@@ -1,105 +1,119 @@
-## Goal
-1. Fix the failing voice call (LiveKit "v1 RTC path not found" / negotiation timeout).
-2. Replace the static portrait with a real, lip-synced talking avatar of our own doctor image using **D-ID Live Streaming (Talks Streams)** — no HeyGen.
 
----
+# Pitch Deck + Landing Page Expansion — KSA Story
 
-## Part 1 — Fix the call connection
+Add **investor narrative** to two surfaces: the executive pitch deck and the public landing page. English only.
 
-**Cause:** `@elevenlabs/react@^1.3.0` is using a deprecated v1 LiveKit RTC path that ElevenLabs has retired, so WebRTC negotiation times out.
+## A. Pitch Deck — 4 new slides in `src/pages/ExecutivePresentation.tsx`
 
-**Fix:**
-- Upgrade `@elevenlabs/react` to the latest version.
-- Adjust the `useConversation` / `startSession` call shape if the new SDK requires it (e.g. signed token from an edge function instead of raw `agentId`).
-- If the upgraded SDK requires a server-issued conversation token, add a tiny edge function `elevenlabs-token` that calls `https://api.elevenlabs.io/v1/convai/conversation/token?agent_id=...` using the existing `ELEVENLABS_API_KEY` secret, and switch the client to `connectionType: "webrtc"` with `conversationToken`.
-- Keep WebSocket fallback as a second attempt if WebRTC fails.
+Insert order and final layout (deck grows 17 → 21):
 
----
+1. Title
+2. About Us
+3. Problem
+4. All-in-One
+5. Modules
+6. AI Everywhere
+7. Tabeebi
+8. Insurance
+9. KSA Compliance
+10. **NEW — KSA Industry Gap**
+11. **NEW — KSA Compliance Roadmap**
+12. **NEW — Clinic on Wheels**
+13. Clinical
+14. Diagnostics
+15. Automation
+16. Workflow
+17. Finance & Ops
+18. Tech
+19. ROI
+20. **NEW — Revenue Streams**
+21. CTA
 
-## Part 2 — Real talking avatar of Dr. Tabeebi (D-ID)
+### Slide content
 
-We will use **D-ID's Talks Streams API** (WebRTC). It takes:
-- a **source image** (our existing `src/assets/tabeebi-doctor.jpg`)
-- a **live audio stream** (from ElevenLabs)
+**1. `ExecKsaIndustryGapSlide.tsx` — "The KSA Healthcare Gap"**
+- Headline: "A $66B market with a software problem"
+- 4 stat tiles: KSA health spend ($66B by 2030), private hospital share growing, 70%+ HMS still legacy/on-prem, fragmented per-module vendors
+- Pain column: disconnected ZATCA, manual NPHIES rejections, no Arabic-first UX, no mobile clinical apps, no Hijri in finance, vendor lock-in
+- Opportunity column: Vision 2030 privatisation, MoH digital mandate, NPHIES becoming mandatory, SFDA Wasfaty enforcement, insurance penetration growth
+- Closing: "The gap isn't features — it's an integrated, KSA-native platform"
 
-…and returns a real-time WebRTC video track of that exact image talking with accurate lip-sync. This is the closest equivalent to HeyGen using our own image, and it's what we picked.
+**2. `ExecKsaComplianceRoadmapSlide.tsx` — "Becoming KSA-Compliant"**
+- Headline: "Already integrated. Now getting certified."
+- Status table per regulator (badge: Built / Sandbox / Certifying / Live):
+  - ZATCA Phase 2 — Built — Fatoora onboarding Q2 2026
+  - NPHIES (CCHI) — Built — Production approval Q2 2026
+  - Wasfaty (MoH/SFDA) — Built — Pharmacy cert Q3 2026
+  - Nafath — Built — Production credentials Q2 2026
+  - Tatmeen (SFDA) — Built — Track-and-trace Q3 2026
+  - Sehhaty / HESN — Built — Live Q4 2026
+- Right panel: "What seed funding accelerates" — KSA legal entity, in-country data residency, certification fees, compliance officer
+- Bottom strip: PDPL data-residency commitment, ISO 27001 path, HIPAA-equivalent posture
 
-### Architecture
+**3. `ExecClinicOnWheelsSlide.tsx` — "Clinic on Wheels"**
+- Hero: stylized SVG van with floating capability pills (OPD, POC Lab, Mini Pharmacy, Telemedicine, ECG, Vaccination)
+- Sub: "Healthcare that comes to the patient — Vision 2030 aligned"
+- 4 KPI tiles: Target cities (5), Year-1 vans (20), Underserved reach (~2M), CAPEX vs brick-and-mortar (-70%)
+- Use cases: Hajj/Umrah pilgrim care, Rural villages, Corporate camps (Aramco/SABIC), School screenings, Disaster response
+- Tech callout: "Same HealthOS 24 platform — offline-first, syncs over LTE/Starlink"
 
-```text
- Browser ──mic──▶ ElevenLabs Agent (WebRTC)
-    ▲                       │
-    │ agent audio track     ▼
-    │              ┌──────────────────┐
-    │              │  Pipe agent audio │
-    │              │  into D-ID stream │
-    │              └────────┬──────────┘
-    │                       ▼
-    │           D-ID Talks Stream (WebRTC)
-    │                       │
-    └────── live video ◀────┘   (rendered in <video>)
-```
+**4. `ExecRevenueStreamsSlide.tsx` — "How We Make Money"**
+- 4-column matrix:
+  - **Single Clinic** — SaaS per-doctor/month — $99–199/doc/mo — 2-week close
+  - **Multi-Branch Hospital** — Per-bed/month + module add-ons — $25–60/bed/mo — 8-week close
+  - **Telemedicine Services** — Per-consult fee + revenue share — 10–15% per consult — partnership model
+  - **Clinic on Wheels** — Van-as-a-Service (hardware + SaaS + support) — $4–8K/van/mo + per-visit — B2G/B2B
+- Bottom: TAM math ("5,000 KSA clinics × $1,500/mo ≈ $90M ARR opportunity")
+- Visual: target year-3 revenue mix donut
 
-### New backend pieces (edge functions, use existing `D_ID_API_KEY` secret — we'll prompt to add it)
+### Pitch deck wiring
+- Edit `src/pages/ExecutivePresentation.tsx`
+  - Import the 4 new slides
+  - Insert at correct positions
+  - `TOTAL_SLIDES`: 17 → **21**
 
-1. `did-create-stream` — `POST /talks/streams` with our doctor image URL → returns `{ id, session_id, offer (SDP), ice_servers }`.
-2. `did-stream-sdp` — forwards the browser's SDP answer back to D-ID.
-3. `did-stream-ice` — forwards ICE candidates.
-4. `did-stream-audio` — streams the ElevenLabs agent audio into the D-ID session via `POST /talks/streams/{id}` with `audio_url` or chunked PCM. (We'll use the script-stream "audio" mode so D-ID drives lip-sync from the raw audio frames we forward.)
-5. `did-delete-stream` — cleanup on hangup.
+## B. Landing Page — new section in `src/pages/Index.tsx`
 
-All five live behind one function `did-gateway/index.ts` with an `action` field, to keep it tidy.
+Add **one consolidated section** `KsaExpansionSection.tsx`, placed right after `KsaComplianceSection`. It mirrors the pitch deck story but in marketing tone.
 
-### New frontend pieces
+`src/components/landing/KsaExpansionSection.tsx`:
+- Section header: "Built for KSA. Ready to Scale." + subhead about Vision 2030
+- 3-tab/3-card horizontal layout:
+  1. **The Gap** — short bullets on KSA legacy HMS pain points
+  2. **Our Compliance Roadmap** — same regulator status badges (ZATCA, NPHIES, Wasfaty, Nafath, Tatmeen, Sehhaty/HESN)
+  3. **Clinic on Wheels** — stylized SVG van + capability pills + "Coming to KSA 2026" badge
+- Bottom CTA strip: "Operate a clinic, hospital, telehealth service, or mobile unit? — Book a KSA demo" (links to existing demo CTA)
+- Reuse animation pattern (`AnimatedSection`)
 
-- `src/lib/didStream.ts` — small client that:
-  - calls `did-gateway` to create a stream,
-  - establishes the WebRTC peer connection to D-ID,
-  - exposes `attachAudioTrack(MediaStreamTrack)` so we can pipe ElevenLabs' agent audio in,
-  - exposes a `videoStream` consumed by a `<video>` element.
-- Replace `LiveDoctorPortrait` internals with `LiveDoctorAvatar`:
-  - Renders `<video autoPlay playsInline muted={false}>` filled with the D-ID stream.
-  - Falls back to the existing static JPG with the CSS mouth animation if D-ID fails or the user is offline.
-- Wire it up in `TabeebiVoicePage`:
-  - When the ElevenLabs `useConversation` connects, grab the remote audio `MediaStreamTrack` (via `conversation.getOutputAudioTrack?.()` or by hooking the underlying LiveKit room) and pass it to the D-ID client.
-  - On `endSession`, also call `did-gateway` delete.
+### Landing wiring
+- Edit `src/pages/Index.tsx` — import and place `<KsaExpansionSection />` after `<KsaComplianceSection />`
 
-### Image hosting
-D-ID needs a public URL for the source image. We'll upload `tabeebi-doctor.jpg` to a public Supabase Storage bucket (`public-assets`) once and hard-code the URL in the edge function.
+## Design conventions (both surfaces)
+- Tailwind semantic tokens only (no raw hex)
+- Lucide icons only
+- Pitch deck: `slide` wrapper 1200×675, top gradient bar, footer "HealthOS 24 | healthos24.com"
+- Landing section: matches existing `KsaComplianceSection` visual language
 
-### Costs / keys
-- Requires a **D-ID API key** (free trial available, then per-minute pricing). I'll prompt you to add `D_ID_API_KEY` as a secret before wiring the edge functions.
-- ElevenLabs key (`ELEVENLABS_API_KEY`) is already configured.
+## Files to create
+- `src/components/executive/ExecKsaIndustryGapSlide.tsx`
+- `src/components/executive/ExecKsaComplianceRoadmapSlide.tsx`
+- `src/components/executive/ExecClinicOnWheelsSlide.tsx`
+- `src/components/executive/ExecRevenueStreamsSlide.tsx`
+- `src/components/landing/KsaExpansionSection.tsx`
 
----
+## Files to edit
+- `src/pages/ExecutivePresentation.tsx` (imports, slide order, TOTAL_SLIDES)
+- `src/pages/Index.tsx` (insert new landing section)
 
-## Files
+## Out of scope (deferred)
+- Building actual Clinic-on-Wheels / Telemedicine product modules under `/app/...`
+- Database tables, edge functions, routes, marketing-site backend changes
+- Pricing-page UI (investor narrative only — no public pricing page)
+- Arabic version of the deck or landing section (follow-up)
 
-**Edit**
-- `package.json` / `bun.lock` — bump `@elevenlabs/react`.
-- `src/pages/public/TabeebiVoicePage.tsx` — new SDK shape, hook avatar audio piping, swap portrait component.
-- `src/components/ai/LiveDoctorPortrait.tsx` — keep as fallback, rename to `LiveDoctorPortraitFallback`.
+## Verification
+- Open `/executive` → 21 slides in correct order; PDF export renders new slides at 1200×675
+- Open `/` → new "Built for KSA. Ready to Scale." section visible after the existing KSA Compliance section
+- Lint/typecheck pass via CI
 
-**Create**
-- `src/components/ai/LiveDoctorAvatar.tsx` — D-ID `<video>` renderer with fallback.
-- `src/lib/didStream.ts` — D-ID WebRTC client.
-- `supabase/functions/did-gateway/index.ts` — proxy with `create | sdp | ice | audio | delete` actions.
-- (Possibly) `supabase/functions/elevenlabs-token/index.ts` — only if upgraded SDK needs server-issued tokens.
-
-**Storage**
-- Upload `tabeebi-doctor.jpg` once to a public bucket and reference its URL.
-
----
-
-## Order of execution
-1. Upgrade `@elevenlabs/react`, fix `startSession` call → verify call connects with the existing static portrait.
-2. Prompt user for `D_ID_API_KEY`.
-3. Build `did-gateway` edge function + upload doctor image to public storage.
-4. Add `didStream.ts` client + `LiveDoctorAvatar` component.
-5. Wire ElevenLabs agent audio track → D-ID stream.
-6. Add graceful fallback to current animated still if D-ID fails.
-
-## Out of scope
-- HeyGen.
-- Persisting D-ID streams / recordings.
-- Multi-language lip-sync tuning beyond D-ID defaults (it's audio-driven, so it works across en/ar/ur automatically).
+Approve and I'll build all 5 files + 2 wiring edits in one pass.

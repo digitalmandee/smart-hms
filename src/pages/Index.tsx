@@ -8,6 +8,7 @@ import { WorkflowDiagram } from "@/components/landing/WorkflowDiagram";
 import { ProcurementCycleDiagram } from "@/components/landing/ProcurementCycleDiagram";
 import { WarehouseSection } from "@/components/landing/WarehouseSection";
 import { KsaComplianceSection } from "@/components/landing/KsaComplianceSection";
+import { KsaExpansionSection } from "@/components/landing/KsaExpansionSection";
 import { RoleSelector } from "@/components/landing/RoleSelector";
 import { ComparisonTable } from "@/components/landing/ComparisonTable";
 import { TestimonialsSection } from "@/components/landing/TestimonialsSection";
@@ -33,6 +34,7 @@ const Index = () => {
         <ProcurementCycleDiagram />
         <WarehouseSection />
         <KsaComplianceSection />
+        <KsaExpansionSection />
         <RoleSelector />
         <ComparisonTable />
         <TestimonialsSection />
