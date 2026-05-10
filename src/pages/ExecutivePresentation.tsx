@@ -196,17 +196,31 @@ const ExecutivePresentation = () => {
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <Button variant="outline" size="sm" onClick={handlePrint}>
+            <Button variant="outline" size="sm" onClick={handlePrint} disabled={isDownloading}>
               <Printer className="h-4 w-4 mr-2" />
               Print
             </Button>
-            <Button onClick={handleDownloadPDF} disabled={isDownloading}>
-              {isDownloading ? (
-                <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Generating…</>
-              ) : (
-                <><FileDown className="h-4 w-4 mr-2" />Download PDF</>
-              )}
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button disabled={isDownloading}>
+                  {isDownloading ? (
+                    <><Loader2 className="h-4 w-4 mr-2 animate-spin" />Generating…</>
+                  ) : (
+                    <><FileDown className="h-4 w-4 mr-2" />Export<ChevronDown className="h-4 w-4 ml-2" /></>
+                  )}
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-56">
+                <DropdownMenuItem onClick={handleDownloadPDF}>
+                  <FileDown className="h-4 w-4 mr-2" />
+                  Download as PDF
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={handleDownloadImages}>
+                  <ImageIcon className="h-4 w-4 mr-2" />
+                  Download Images (ZIP)
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
         </div>
       </div>
