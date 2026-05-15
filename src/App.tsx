@@ -60,6 +60,8 @@ import ImmunizationsListPage from "./pages/app/immunizations/ImmunizationsListPa
 import VaccineLotsPage from "./pages/app/immunizations/VaccineLotsPage";
 import ColdChainPage from "./pages/app/immunizations/ColdChainPage";
 import ImmunizationSchedulesPage from "./pages/app/immunizations/SchedulesPage";
+import TelemedicineSessionsPage from "./pages/app/telemedicine/TelemedicineSessionsPage";
+import TelemedicineRoomPage from "./pages/app/telemedicine/TelemedicineRoomPage";
 
 // Public display pages (no auth required)
 import PublicQueueDisplay from "./pages/public/PublicQueueDisplay";
@@ -883,6 +885,10 @@ function App() {
               <Route path="immunizations/lots" element={<VaccineLotsPage />} />
               <Route path="immunizations/cold-chain" element={<ColdChainPage />} />
               <Route path="immunizations/schedules" element={<ImmunizationSchedulesPage />} />
+
+              {/* Telemedicine */}
+              <Route path="telemedicine" element={<TelemedicineSessionsPage />} />
+              <Route path="telemedicine/:id" element={<TelemedicineRoomPage />} />
               
               {/* Patient routes */}
               <Route path="patients" element={<PatientsListPage />} />
