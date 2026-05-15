@@ -7,7 +7,6 @@ export const en = {
   "common.edit": "Edit",
   "common.search": "Search",
   "common.loading": "Loading...",
-  "common.back": "Back",
   "common.next": "Next",
   "common.previous": "Previous",
   "common.close": "Close",
@@ -4313,7 +4312,6 @@ export const en = {
   "cfo.dso": "DSO (Days)",
   "cfo.dsoHelper": "Days Sales Outstanding",
   "cfo.dpo": "DPO (Days)",
-  "cfo.dpoHelper": "Days Payable Outstanding",
   "cfo.currentRatio": "Current Ratio",
   "cfo.currentRatioHelper": "Current Assets / Liab.",
   "cfo.quickRatio": "Quick Ratio",
@@ -4406,7 +4404,6 @@ export const en = {
   "payments.checkout.phone_required": "Mobile number required for STC Pay",
 
   "common.saved": "Saved",
-  "common.back": "Back",
 
   "mobile.units.title": "Mobile Units",
   "mobile.units.description": "Clinic-on-wheels vehicles, crew, and routes",
