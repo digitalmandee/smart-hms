@@ -103,6 +103,7 @@ import StaffCreatePage from "./pages/app/settings/StaffCreatePage";
 import { OrganizationSettingsPage } from "./pages/app/settings/OrganizationSettingsPage";
 import CountryRegionSettingsPage from "./pages/app/settings/CountryRegionSettingsPage";
 import { RolesPermissionsPage } from "./pages/app/settings/RolesPermissionsPage";
+const PaymentGatewaysPage = lazy(() => import("./pages/app/settings/PaymentGatewaysPage"));
 import ServicesListPage from "./pages/app/services/ServicesListPage";
 import ServiceFormPage from "./pages/app/services/ServiceFormPage";
 import ServiceCategoriesPage from "./pages/app/services/ServiceCategoriesPage";
