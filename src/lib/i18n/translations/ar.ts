@@ -4287,6 +4287,31 @@ export const ar: Record<TranslationKey, string> = {
   "sync.aria_label": "حالة المزامنة",
   "sync.never": "أبدًا",
 
+  "payments.settings.title": "بوابات الدفع",
+  "payments.settings.description": "تفعيل مدى وفيزا وTap وSTC Pay لمدفوعات البطاقات والمحافظ في السعودية.",
+  "payments.settings.saved": "تم الحفظ",
+  "payments.settings.mode": "الوضع",
+  "payments.settings.enabled_hint": "متاحة عند الدفع",
+  "payments.settings.disabled_hint": "معطلة — فعّلها بعد إضافة بيانات الاعتماد",
+  "payments.settings.optional": "اختياري",
+  "payments.settings.credentials_title": "أين تُحفظ بيانات الاعتماد",
+  "payments.settings.credentials_hint": "تُحفظ مفاتيح API السرية (HyperPay وTap وSTC Pay) كأسرار في Lovable وليست في قاعدة البيانات. اطلب من المسؤول إضافتها في لوحة الأسرار.",
+  "payments.mode.test": "تجريبي",
+  "payments.mode.live": "مباشر",
+  "payments.method.title": "ادفع باستخدام",
+  "payments.method.hyperpay": "بطاقة (مدى / فيزا)",
+  "payments.method.tap": "Tap (Apple Pay، KNET، بطاقات)",
+  "payments.method.stcpay": "محفظة STC Pay",
+  "payments.checkout.processing": "جارٍ معالجة الدفع…",
+  "payments.checkout.waiting": "في انتظار التأكيد…",
+  "payments.checkout.success": "تم استلام الدفعة",
+  "payments.checkout.failed": "فشلت عملية الدفع",
+  "payments.checkout.open_gateway": "فتح صفحة الدفع",
+  "payments.checkout.amount": "المبلغ",
+  "payments.checkout.cancel": "إلغاء",
+  "payments.checkout.retry": "إعادة المحاولة",
+  "payments.checkout.phone_required": "رقم الجوال مطلوب لـ STC Pay",
+
 };
 
 
