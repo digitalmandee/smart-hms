@@ -94,8 +94,8 @@ export default function PaymentGatewaysPage() {
   return (
     <div className="space-y-6">
       <ModernPageHeader
-        title={t("payments.settings.title", "Payment Gateways")}
-        description={t("payments.settings.description", "Enable Mada, Visa, Tap, and STC Pay for KSA card and wallet payments.")}
+        title={t("payments.settings.title")}
+        subtitle={t("payments.settings.description")}
       />
 
       <div className="grid gap-4">
