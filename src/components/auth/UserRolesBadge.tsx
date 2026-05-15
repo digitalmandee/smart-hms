@@ -34,6 +34,10 @@ const ROLE_ICONS: Record<AppRole, React.ComponentType<{ className?: string }>> =
   ot_technician: HeartPulse,
   warehouse_admin: Warehouse,
   warehouse_user: Warehouse,
+  mobile_unit_crew: Truck,
+  home_health_nurse: Home,
+  telemed_doctor: Video,
+  patient: User,
 };
 
 // Color mapping for role categories
