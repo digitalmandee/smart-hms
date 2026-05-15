@@ -14,6 +14,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useIsRTL } from "@/lib/i18n";
 import { useIdleTimeout } from "@/hooks/useIdleTimeout";
 import { IdleTimeoutDialog } from "@/components/IdleTimeoutDialog";
+import { OfflineIndicator } from "@/components/offline/OfflineIndicator";
 
 export const DashboardLayout = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
