@@ -50,6 +50,9 @@ const SyncDashboardPage = React.lazy(() => import("./pages/app/sync/SyncDashboar
 import ClinicDashboard from "./pages/app/clinic/ClinicDashboard";
 import ClinicTokenPage from "./pages/app/clinic/ClinicTokenPage";
 import ClinicReportsPage from "./pages/app/clinic/ClinicReportsPage";
+import MobileUnitsListPage from "./pages/app/mobile-units/MobileUnitsListPage";
+import MobileRoutesPage from "./pages/app/mobile-units/MobileRoutesPage";
+import RouteDetailPage from "./pages/app/mobile-units/RouteDetailPage";
 
 // Public display pages (no auth required)
 import PublicQueueDisplay from "./pages/public/PublicQueueDisplay";
@@ -857,6 +860,11 @@ function App() {
               <Route path="clinic" element={<ClinicDashboard />} />
               <Route path="clinic/token" element={<ClinicTokenPage />} />
               <Route path="clinic/reports" element={<ClinicReportsPage />} />
+
+              {/* Clinic on Wheels (mobile units) */}
+              <Route path="mobile-units" element={<MobileUnitsListPage />} />
+              <Route path="mobile-units/:unitId/routes" element={<MobileRoutesPage />} />
+              <Route path="mobile-units/:unitId/routes/:routeId" element={<RouteDetailPage />} />
               
               {/* Patient routes */}
               <Route path="patients" element={<PatientsListPage />} />
