@@ -10,6 +10,7 @@ import { useHaptics } from "@/hooks/useHaptics";
 import { MobileSideMenu } from "./MobileSideMenu";
 import { useIsRTL } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
+import { OfflineIndicator } from "@/components/offline/OfflineIndicator";
 
 export function MobileHeader() {
   const { profile } = useAuth();
@@ -70,6 +71,7 @@ export function MobileHeader() {
 
           {/* Right side actions */}
           <div className="flex items-center gap-1">
+            <OfflineIndicator className="hidden xs:inline-flex" />
 
             {/* Notifications */}
             <Link to="/app/notifications" onClick={handleAction}>

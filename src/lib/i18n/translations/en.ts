@@ -4370,6 +4370,16 @@ export const en = {
   "security.item.storage_rls.title": "Storage Bucket Access Rules",
   "security.item.storage_rls.desc": "Every bucket holding patient documents, prescriptions, lab reports, or IDs must be private with organisation-scoped policies.",
 
+  "sync.synced": "Synced",
+  "sync.syncing": "Syncing",
+  "sync.offline": "Offline",
+  "sync.pending": "pending",
+  "sync.queued": "queued",
+  "sync.failed": "failed",
+  "sync.conflicts": "conflicts",
+  "sync.aria_label": "Sync status",
+  "sync.never": "never",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;

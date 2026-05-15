@@ -3,6 +3,7 @@ import { User, Session, AuthError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 import { authLogger } from "@/lib/logger";
+import { start as startSyncEngine, stop as stopSyncEngine } from "@/lib/offline-sync/sync-engine";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
@@ -124,6 +125,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
         // Defer data fetching with setTimeout to avoid deadlock
         if (session?.user) {
+          startSyncEngine();
           setTimeout(async () => {
             fetchUserData(session.user.id);
             // Check MFA status
@@ -140,12 +142,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setProfile(null);
           setRoles([]);
           setPermissions([]);
+          stopSyncEngine();
         }
 
         if (event === "SIGNED_OUT") {
           setProfile(null);
           setRoles([]);
           setPermissions([]);
+          stopSyncEngine();
         }
 
         setIsLoading(false);
@@ -158,12 +162,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       setUser(session?.user ?? null);
 
       if (session?.user) {
+        startSyncEngine();
         fetchUserData(session.user.id);
       }
       setIsLoading(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      subscription.unsubscribe();
+      stopSyncEngine();
+    };
   }, []);
 
   const signIn = async (email: string, password: string) => {

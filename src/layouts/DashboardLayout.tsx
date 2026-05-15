@@ -14,6 +14,7 @@ import { LanguageSwitcher } from "@/components/LanguageSwitcher";
 import { useIsRTL } from "@/lib/i18n";
 import { useIdleTimeout } from "@/hooks/useIdleTimeout";
 import { IdleTimeoutDialog } from "@/components/IdleTimeoutDialog";
+import { OfflineIndicator } from "@/components/offline/OfflineIndicator";
 
 export const DashboardLayout = () => {
   const [isMobileOpen, setIsMobileOpen] = useState(false);
@@ -85,7 +86,8 @@ export const DashboardLayout = () => {
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
         {/* Top bar with language switcher */}
-        <div className={cn("flex items-center px-6 pt-3 pb-0", isRTL ? "justify-start" : "justify-end")}>
+        <div className={cn("flex items-center gap-3 px-6 pt-3 pb-0", isRTL ? "justify-start flex-row-reverse" : "justify-end")}>
+          <OfflineIndicator />
           <LanguageSwitcher />
         </div>
         <div className="container py-4 lg:py-6">

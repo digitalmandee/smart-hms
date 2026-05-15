@@ -4277,6 +4277,16 @@ export const ur: Record<TranslationKey, string> = {
   "security.item.storage_rls.title": "سٹوریج بکٹ رسائی قواعد",
   "security.item.storage_rls.desc": "مریض کی دستاویزات، نسخے، لیب رپورٹس یا شناختی دستاویزات والے ہر بکٹ کو پرائیویٹ اور آرگنائزیشن کے دائرہ کار کی پالیسیوں کے ساتھ ہونا چاہیے۔",
 
+  "sync.synced": "ہم وقت ساز",
+  "sync.syncing": "سنک ہو رہا ہے",
+  "sync.offline": "آف لائن",
+  "sync.pending": "زیر التواء",
+  "sync.queued": "قطار میں",
+  "sync.failed": "ناکام",
+  "sync.conflicts": "تنازعات",
+  "sync.aria_label": "سنک کی حالت",
+  "sync.never": "کبھی نہیں",
+
 };
 
 
