@@ -4404,6 +4404,7 @@ export const en = {
   "payments.checkout.phone_required": "Mobile number required for STC Pay",
 
   "common.saved": "Saved",
+  "common.back": "Back",
 
   "mobile.units.title": "Mobile Units",
   "mobile.units.description": "Clinic-on-wheels vehicles, crew, and routes",
