@@ -13,7 +13,6 @@ function timeAgo(ts: number | null): string {
 
 export function OfflineIndicator({ className }: { className?: string }) {
   const { online, pending, failed, conflicts, lastSyncedAt } = useOfflineSync();
-  const { t } = useTranslation();
 
   const hasIssues = failed > 0 || conflicts > 0;
   const hasPending = pending > 0;
@@ -25,17 +24,17 @@ export function OfflineIndicator({ className }: { className?: string }) {
   if (!online) {
     Icon = CloudOff;
     tone = "bg-amber-500/10 text-amber-700 border-amber-500/30";
-    label = `${t("offlineSync.offline") || "Offline"} · ${pending} ${t("offlineSync.queued") || "queued"}`;
+    label = `Offline · ${pending} queued`;
   } else if (hasIssues) {
     Icon = AlertTriangle;
     tone = "bg-rose-500/10 text-rose-700 border-rose-500/30";
-    label = `${conflicts} ${t("offlineSync.conflicts") || "conflicts"}, ${failed} ${t("offlineSync.failed") || "failed"}`;
+    label = `${conflicts} conflicts, ${failed} failed`;
   } else if (hasPending) {
     Icon = Loader2;
     tone = "bg-sky-500/10 text-sky-700 border-sky-500/30";
-    label = `${t("offlineSync.syncing") || "Syncing"} · ${pending} ${t("offlineSync.pending") || "pending"}`;
+    label = `Syncing · ${pending} pending`;
   } else {
-    label = `${t("offlineSync.synced") || "Synced"} · ${timeAgo(lastSyncedAt, t)}`;
+    label = `Synced · ${timeAgo(lastSyncedAt)}`;
   }
 
   return (
