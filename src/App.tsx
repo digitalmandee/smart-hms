@@ -56,6 +56,10 @@ import RouteDetailPage from "./pages/app/mobile-units/RouteDetailPage";
 import HomeVisitsListPage from "./pages/app/home-care/HomeVisitsListPage";
 import HomeVisitDetailPage from "./pages/app/home-care/HomeVisitDetailPage";
 import HomeCarePlansPage from "./pages/app/home-care/CarePlansPage";
+import ImmunizationsListPage from "./pages/app/immunizations/ImmunizationsListPage";
+import VaccineLotsPage from "./pages/app/immunizations/VaccineLotsPage";
+import ColdChainPage from "./pages/app/immunizations/ColdChainPage";
+import ImmunizationSchedulesPage from "./pages/app/immunizations/SchedulesPage";
 
 // Public display pages (no auth required)
 import PublicQueueDisplay from "./pages/public/PublicQueueDisplay";
@@ -873,6 +877,12 @@ function App() {
               <Route path="home-care/visits" element={<HomeVisitsListPage />} />
               <Route path="home-care/visits/:visitId" element={<HomeVisitDetailPage />} />
               <Route path="home-care/care-plans" element={<HomeCarePlansPage />} />
+
+              {/* Immunizations */}
+              <Route path="immunizations" element={<ImmunizationsListPage />} />
+              <Route path="immunizations/lots" element={<VaccineLotsPage />} />
+              <Route path="immunizations/cold-chain" element={<ColdChainPage />} />
+              <Route path="immunizations/schedules" element={<ImmunizationSchedulesPage />} />
               
               {/* Patient routes */}
               <Route path="patients" element={<PatientsListPage />} />
