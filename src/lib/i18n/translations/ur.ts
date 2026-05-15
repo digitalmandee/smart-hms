@@ -4287,6 +4287,31 @@ export const ur: Record<TranslationKey, string> = {
   "sync.aria_label": "سنک کی حالت",
   "sync.never": "کبھی نہیں",
 
+  "payments.settings.title": "پیمنٹ گیٹ ویز",
+  "payments.settings.description": "KSA کارڈ اور والٹ ادائیگیوں کے لیے Mada، Visa، Tap اور STC Pay کو فعال کریں۔",
+  "payments.settings.saved": "محفوظ ہو گیا",
+  "payments.settings.mode": "موڈ",
+  "payments.settings.enabled_hint": "چیک آؤٹ پر دستیاب",
+  "payments.settings.disabled_hint": "غیر فعال — کریڈنشلز شامل کرنے کے بعد فعال کریں",
+  "payments.settings.optional": "اختیاری",
+  "payments.settings.credentials_title": "کریڈنشلز کہاں رکھے جاتے ہیں",
+  "payments.settings.credentials_hint": "خفیہ API کیز (HyperPay، Tap، STC Pay) ڈیٹابیس میں نہیں بلکہ Lovable secrets میں محفوظ ہوتی ہیں۔ ایڈمن سے درخواست کریں کہ وہ پروجیکٹ سیکریٹ پینل میں شامل کرے۔",
+  "payments.mode.test": "ٹیسٹ",
+  "payments.mode.live": "لائیو",
+  "payments.method.title": "ادائیگی کا طریقہ",
+  "payments.method.hyperpay": "کارڈ (Mada / Visa)",
+  "payments.method.tap": "Tap (Apple Pay، KNET، کارڈز)",
+  "payments.method.stcpay": "STC Pay والٹ",
+  "payments.checkout.processing": "ادائیگی پر کارروائی جاری ہے…",
+  "payments.checkout.waiting": "تصدیق کا انتظار…",
+  "payments.checkout.success": "ادائیگی موصول ہو گئی",
+  "payments.checkout.failed": "ادائیگی ناکام",
+  "payments.checkout.open_gateway": "ادائیگی پیج کھولیں",
+  "payments.checkout.amount": "رقم",
+  "payments.checkout.cancel": "منسوخ کریں",
+  "payments.checkout.retry": "دوبارہ کوشش کریں",
+  "payments.checkout.phone_required": "STC Pay کے لیے موبائل نمبر درکار ہے",
+
 };
 
 
