@@ -4277,6 +4277,16 @@ export const ar: Record<TranslationKey, string> = {
   "security.item.storage_rls.title": "قواعد وصول مساحة التخزين",
   "security.item.storage_rls.desc": "يجب أن تكون كل حاوية تخزّن وثائق المرضى أو الوصفات أو تقارير المختبر أو الهويات خاصة وبسياسات محددة بالمنظمة.",
 
+  "sync.synced": "متزامن",
+  "sync.syncing": "جارٍ المزامنة",
+  "sync.offline": "غير متصل",
+  "sync.pending": "قيد الانتظار",
+  "sync.queued": "في الطابور",
+  "sync.failed": "فشل",
+  "sync.conflicts": "تعارضات",
+  "sync.aria_label": "حالة المزامنة",
+  "sync.never": "أبدًا",
+
 };
 
 
