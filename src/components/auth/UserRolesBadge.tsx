@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROLE_LABELS } from "@/constants/roles";
 import { Database } from "@/integrations/supabase/types";
-import { Shield, Crown, Building2, Stethoscope, Heart, UserCheck, Pill, FlaskConical, Scissors, Syringe, Users, Calculator, Warehouse, Droplets, ScanLine, Bed, HeartPulse } from "lucide-react";
+import { Shield, Crown, Building2, Stethoscope, Heart, UserCheck, Pill, FlaskConical, Scissors, Syringe, Users, Calculator, Warehouse, Droplets, ScanLine, Bed, HeartPulse, Truck, Home, Video, User } from "lucide-react";
 import { cn } from "@/lib/utils";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
@@ -34,6 +34,10 @@ const ROLE_ICONS: Record<AppRole, React.ComponentType<{ className?: string }>> =
   ot_technician: HeartPulse,
   warehouse_admin: Warehouse,
   warehouse_user: Warehouse,
+  mobile_unit_crew: Truck,
+  home_health_nurse: Home,
+  telemed_doctor: Video,
+  patient: User,
 };
 
 // Color mapping for role categories
