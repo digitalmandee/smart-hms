@@ -11320,6 +11320,7 @@ export type Database = {
           checkout_at: string | null
           checkout_lat: number | null
           checkout_lng: number | null
+          client_uuid: string | null
           created_at: string
           created_by: string | null
           id: string
@@ -11342,6 +11343,7 @@ export type Database = {
           checkout_at?: string | null
           checkout_lat?: number | null
           checkout_lng?: number | null
+          client_uuid?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -11364,6 +11366,7 @@ export type Database = {
           checkout_at?: string | null
           checkout_lat?: number | null
           checkout_lng?: number | null
+          client_uuid?: string | null
           created_at?: string
           created_by?: string | null
           id?: string
@@ -12202,6 +12205,7 @@ export type Database = {
       immunizations: {
         Row: {
           certificate_url: string | null
+          client_uuid: string | null
           created_at: string
           dose_number: number
           due_date: string | null
@@ -12222,6 +12226,7 @@ export type Database = {
         }
         Insert: {
           certificate_url?: string | null
+          client_uuid?: string | null
           created_at?: string
           dose_number: number
           due_date?: string | null
@@ -12242,6 +12247,7 @@ export type Database = {
         }
         Update: {
           certificate_url?: string | null
+          client_uuid?: string | null
           created_at?: string
           dose_number?: number
           due_date?: string | null

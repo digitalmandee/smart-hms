@@ -1,0 +1,48 @@
+import { Link } from "react-router-dom";
+import { Cloud, CloudOff, Loader2, AlertTriangle } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
+import { cn } from "@/lib/utils";
+function timeAgo(ts: number | null): string {
+  if (!ts) return "never";
+  const s = Math.round((Date.now() - ts) / 1000);
+  if (s < 60) return `${s}s`;
+  if (s < 3600) return `${Math.round(s / 60)}m`;
+  return `${Math.round(s / 3600)}h`;
+}
+
+export function OfflineIndicator({ className }: { className?: string }) {
+  const { online, pending, failed, conflicts, lastSyncedAt } = useOfflineSync();
+
+  const hasIssues = failed > 0 || conflicts > 0;
+  const hasPending = pending > 0;
+
+  let label: string;
+  let Icon = Cloud;
+  let tone = "bg-emerald-500/10 text-emerald-700 border-emerald-500/30";
+
+  if (!online) {
+    Icon = CloudOff;
+    tone = "bg-amber-500/10 text-amber-700 border-amber-500/30";
+    label = `Offline · ${pending} queued`;
+  } else if (hasIssues) {
+    Icon = AlertTriangle;
+    tone = "bg-rose-500/10 text-rose-700 border-rose-500/30";
+    label = `${conflicts} conflicts, ${failed} failed`;
+  } else if (hasPending) {
+    Icon = Loader2;
+    tone = "bg-sky-500/10 text-sky-700 border-sky-500/30";
+    label = `Syncing · ${pending} pending`;
+  } else {
+    label = `Synced · ${timeAgo(lastSyncedAt)}`;
+  }
+
+  return (
+    <Link to="/app/sync" aria-label="Sync status">
+      <Badge variant="outline" className={cn("gap-1.5 cursor-pointer hover:opacity-90 transition", tone, className)}>
+        <Icon className={cn("h-3.5 w-3.5", hasPending && online && !hasIssues && "animate-spin")} />
+        <span className="text-xs font-medium">{label}</span>
+      </Badge>
+    </Link>
+  );
+}

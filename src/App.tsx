@@ -44,6 +44,7 @@ import { LoginPage } from "./pages/auth/LoginPage";
 import { ClientLoginPage } from "./pages/auth/ClientLoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
 import { DashboardPage } from "./pages/app/DashboardPage";
+const SyncDashboardPage = React.lazy(() => import("./pages/app/sync/SyncDashboardPage"));
 
 // Clinic pages
 import ClinicDashboard from "./pages/app/clinic/ClinicDashboard";
@@ -819,7 +820,8 @@ function App() {
             >
               <Route index element={<Navigate to="dashboard" replace />} />
               <Route path="dashboard" element={<DashboardPage />} />
-              
+              <Route path="sync" element={<React.Suspense fallback={<div className="p-6">Loading...</div>}><SyncDashboardPage /></React.Suspense>} />
+
               {/* PWA Mobile-specific adaptive routes */}
               <Route path="profile" element={<ProfilePage />} />
               <Route path="settings/profile" element={<ProfilePage />} />
