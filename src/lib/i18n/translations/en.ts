@@ -4312,6 +4312,7 @@ export const en = {
   "cfo.dso": "DSO (Days)",
   "cfo.dsoHelper": "Days Sales Outstanding",
   "cfo.dpo": "DPO (Days)",
+  "cfo.dpoHelper": "Days Payable Outstanding",
   "cfo.currentRatio": "Current Ratio",
   "cfo.currentRatioHelper": "Current Assets / Liab.",
   "cfo.quickRatio": "Quick Ratio",
