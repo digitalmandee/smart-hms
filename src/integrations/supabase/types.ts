@@ -19234,6 +19234,45 @@ export type Database = {
           },
         ]
       }
+      payment_gateway_settings: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          enabled: boolean
+          id: string
+          mode: string
+          organization_id: string
+          provider: Database["public"]["Enums"]["payment_gateway_provider"]
+          public_config: Json
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          id?: string
+          mode?: string
+          organization_id: string
+          provider: Database["public"]["Enums"]["payment_gateway_provider"]
+          public_config?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          enabled?: boolean
+          id?: string
+          mode?: string
+          organization_id?: string
+          provider?: Database["public"]["Enums"]["payment_gateway_provider"]
+          public_config?: Json
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       payment_gateway_transactions: {
         Row: {
           amount: number
