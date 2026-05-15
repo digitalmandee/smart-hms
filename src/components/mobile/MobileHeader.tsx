@@ -71,6 +71,7 @@ export function MobileHeader() {
 
           {/* Right side actions */}
           <div className="flex items-center gap-1">
+            <OfflineIndicator className="hidden xs:inline-flex" />
 
             {/* Notifications */}
             <Link to="/app/notifications" onClick={handleAction}>
