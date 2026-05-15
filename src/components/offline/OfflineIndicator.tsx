@@ -3,10 +3,8 @@ import { Cloud, CloudOff, Loader2, AlertTriangle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { useOfflineSync } from "@/hooks/useOfflineSync";
 import { cn } from "@/lib/utils";
-import { useTranslation } from "react-i18next";
-
-function timeAgo(ts: number | null, t: (k: string) => string): string {
-  if (!ts) return t("offlineSync.neverSynced") || "never";
+function timeAgo(ts: number | null): string {
+  if (!ts) return "never";
   const s = Math.round((Date.now() - ts) / 1000);
   if (s < 60) return `${s}s`;
   if (s < 3600) return `${Math.round(s / 60)}m`;
