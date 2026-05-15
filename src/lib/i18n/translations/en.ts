@@ -4380,6 +4380,31 @@ export const en = {
   "sync.aria_label": "Sync status",
   "sync.never": "never",
 
+  "payments.settings.title": "Payment Gateways",
+  "payments.settings.description": "Enable Mada, Visa, Tap, and STC Pay for KSA card and wallet payments.",
+  "payments.settings.saved": "Saved",
+  "payments.settings.mode": "Mode",
+  "payments.settings.enabled_hint": "Available at checkout",
+  "payments.settings.disabled_hint": "Disabled — toggle on after adding credentials",
+  "payments.settings.optional": "Optional",
+  "payments.settings.credentials_title": "Where credentials live",
+  "payments.settings.credentials_hint": "Secret API keys (HyperPay access token, Tap secret key, STC Pay merchant secret) are stored as Lovable secrets, not in this database. Ask your admin to add them in the project secrets panel.",
+  "payments.mode.test": "Test",
+  "payments.mode.live": "Live",
+  "payments.method.title": "Pay with",
+  "payments.method.hyperpay": "Card (Mada / Visa)",
+  "payments.method.tap": "Tap (Apple Pay, KNET, cards)",
+  "payments.method.stcpay": "STC Pay wallet",
+  "payments.checkout.processing": "Processing payment…",
+  "payments.checkout.waiting": "Waiting for confirmation…",
+  "payments.checkout.success": "Payment received",
+  "payments.checkout.failed": "Payment failed",
+  "payments.checkout.open_gateway": "Open payment page",
+  "payments.checkout.amount": "Amount",
+  "payments.checkout.cancel": "Cancel",
+  "payments.checkout.retry": "Try again",
+  "payments.checkout.phone_required": "Mobile number required for STC Pay",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;
