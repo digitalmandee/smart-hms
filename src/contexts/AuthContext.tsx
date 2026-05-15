@@ -3,6 +3,7 @@ import { User, Session, AuthError } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
 import { Database } from "@/integrations/supabase/types";
 import { authLogger } from "@/lib/logger";
+import { start as startSyncEngine, stop as stopSyncEngine } from "@/lib/offline-sync/sync-engine";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
 
