@@ -46,7 +46,7 @@ export default function HomeVisitDetailPage() {
     queryKey: ["home_visit_patient", visit?.patient_id],
     enabled: !!visit?.patient_id,
     queryFn: async () => {
-      const { data } = await supabase.from("patients").select("id, first_name, last_name, mrn, phone, address")
+      const { data } = await supabase.from("patients").select("id, first_name, last_name, patient_number, phone, address")
         .eq("id", visit!.patient_id).maybeSingle();
       return data;
     },
@@ -129,7 +129,7 @@ export default function HomeVisitDetailPage() {
         <Card className="lg:col-span-1">
           <CardHeader><CardTitle className="text-base">{t("home.visits.patient", "Patient")}</CardTitle></CardHeader>
           <CardContent className="space-y-2 text-sm">
-            <div><span className="text-muted-foreground">{t("home.visits.mrn", "MRN")}:</span> {patient?.mrn ?? "—"}</div>
+            <div><span className="text-muted-foreground">{t("home.visits.mrn", "MRN")}:</span> {patient?.patient_number ?? "—"}</div>
             <div><span className="text-muted-foreground">{t("home.visits.phone", "Phone")}:</span> {patient?.phone ?? "—"}</div>
             <div><span className="text-muted-foreground">{t("home.visits.address", "Address")}:</span> {patient?.address ?? "—"}</div>
             {visit.checkin_at && (

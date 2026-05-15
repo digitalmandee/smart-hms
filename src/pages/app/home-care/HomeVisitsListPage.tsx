@@ -51,7 +51,7 @@ export default function HomeVisitsListPage() {
     queryKey: ["patients_for_visits", patientIds.join(",")],
     enabled: patientIds.length > 0,
     queryFn: async () => {
-      const { data } = await supabase.from("patients").select("id, first_name, last_name, mrn").in("id", patientIds);
+      const { data } = await supabase.from("patients").select("id, first_name, last_name, patient_number").in("id", patientIds);
       return data ?? [];
     },
   });
@@ -68,7 +68,7 @@ export default function HomeVisitsListPage() {
     queryKey: ["patients_search", orgId],
     enabled: !!orgId && open,
     queryFn: async () => {
-      const { data } = await supabase.from("patients").select("id, first_name, last_name, mrn")
+      const { data } = await supabase.from("patients").select("id, first_name, last_name, patient_number")
         .eq("organization_id", orgId!).order("created_at", { ascending: false }).limit(100);
       return data ?? [];
     },
@@ -116,7 +116,7 @@ export default function HomeVisitsListPage() {
                       <SelectTrigger><SelectValue placeholder={t("home.visits.select_patient", "Select patient")} /></SelectTrigger>
                       <SelectContent>
                         {(patientOptions ?? []).map((p) => (
-                          <SelectItem key={p.id} value={p.id}>{p.first_name} {p.last_name} · {p.mrn}</SelectItem>
+                          <SelectItem key={p.id} value={p.id}>{p.first_name} {p.last_name} · {p.patient_number}</SelectItem>
                         ))}
                       </SelectContent>
                     </Select>
