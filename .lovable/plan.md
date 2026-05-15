@@ -1,119 +1,117 @@
+## Wave 1 — Mobile Health & Outreach (KSA-compliant, enterprise-ready, 6 months)
 
-# Pitch Deck + Landing Page Expansion — KSA Story
+Builds on the existing HMIS (OPD, IPD, Lab, Pharmacy, Finance, NPHIES, Wasfaty, ZATCA, Tabeebi AI, multi-tenant RLS, EN/UR/AR, Hijri). No rewrites of existing modules — new modules plug into the same chart of accounts, patient master, RLS roles, and trigger-based GL posting.
 
-Add **investor narrative** to two surfaces: the executive pitch deck and the public landing page. English only.
+### Modules in scope
 
-## A. Pitch Deck — 4 new slides in `src/pages/ExecutivePresentation.tsx`
+1. Clinic on Wheels (mobile units)
+2. Telemedicine (video, e-Rx, billing)
+3. Home Healthcare (visits, nursing, sample collection)
+4. Vaccination / Immunization Registry (EPI + KSA schedule)
+5. Patient Portal (web)
+6. Patient Mobile App (Capacitor — iOS + Android)
+7. Shared Offline-Sync engine + Route planning
+8. Payment gateway layer (Mada / STC Pay / HyperPay / Tap)
+9. FHIR R4 server endpoints (NPHIES + Sehhaty interop)
 
-Insert order and final layout (deck grows 17 → 21):
+### Phasing (6 months)
 
-1. Title
-2. About Us
-3. Problem
-4. All-in-One
-5. Modules
-6. AI Everywhere
-7. Tabeebi
-8. Insurance
-9. KSA Compliance
-10. **NEW — KSA Industry Gap**
-11. **NEW — KSA Compliance Roadmap**
-12. **NEW — Clinic on Wheels**
-13. Clinical
-14. Diagnostics
-15. Automation
-16. Workflow
-17. Finance & Ops
-18. Tech
-19. ROI
-20. **NEW — Revenue Streams**
-21. CTA
+```text
+Month 1 ── Foundations
+  • Offline-sync engine (IndexedDB + outbox + conflict resolution)
+  • Payments abstraction + Mada/STC Pay/HyperPay/Tap adapters
+  • FHIR R4 server scaffolding (Patient, Encounter, Observation, Immunization)
+  • Patient identity unification (MRN ↔ Iqama/National ID ↔ Sehhaty ID)
+  • i18n EN/UR/AR + Hijri audit across new screens
 
-### Slide content
+Month 2 ── Clinic on Wheels v1
+  • Vehicle / unit / crew master
+  • Route planner (geo, schedule, capacity)
+  • Offline OPD-lite (registration, vitals, consult, e-Rx, dispense, invoice)
+  • Sync to central HMIS on reconnect; conflict log
+  • ZATCA Phase-2 invoice generation offline-capable
+  • CoW dashboard (units, routes, revenue per van)
 
-**1. `ExecKsaIndustryGapSlide.tsx` — "The KSA Healthcare Gap"**
-- Headline: "A $66B market with a software problem"
-- 4 stat tiles: KSA health spend ($66B by 2030), private hospital share growing, 70%+ HMS still legacy/on-prem, fragmented per-module vendors
-- Pain column: disconnected ZATCA, manual NPHIES rejections, no Arabic-first UX, no mobile clinical apps, no Hijri in finance, vendor lock-in
-- Opportunity column: Vision 2030 privatisation, MoH digital mandate, NPHIES becoming mandatory, SFDA Wasfaty enforcement, insurance penetration growth
-- Closing: "The gap isn't features — it's an integrated, KSA-native platform"
+Month 3 ── Telemedicine
+  • Appointment slots (in-person / video / home visit)
+  • WebRTC video room (Daily.co or LiveKit), waiting room, consent
+  • In-call vitals capture, e-Rx (Wasfaty), lab/imaging orders
+  • Pre-paid checkout via payment gateways
+  • Nafath login for KSA patients
+  • Recording + retention policy (consent-gated)
 
-**2. `ExecKsaComplianceRoadmapSlide.tsx` — "Becoming KSA-Compliant"**
-- Headline: "Already integrated. Now getting certified."
-- Status table per regulator (badge: Built / Sandbox / Certifying / Live):
-  - ZATCA Phase 2 — Built — Fatoora onboarding Q2 2026
-  - NPHIES (CCHI) — Built — Production approval Q2 2026
-  - Wasfaty (MoH/SFDA) — Built — Pharmacy cert Q3 2026
-  - Nafath — Built — Production credentials Q2 2026
-  - Tatmeen (SFDA) — Built — Track-and-trace Q3 2026
-  - Sehhaty / HESN — Built — Live Q4 2026
-- Right panel: "What seed funding accelerates" — KSA legal entity, in-country data residency, certification fees, compliance officer
-- Bottom strip: PDPL data-residency commitment, ISO 27001 path, HIPAA-equivalent posture
+Month 4 ── Home Healthcare + Vaccination Registry
+  • Home Healthcare: visit orders, nurse roster, geo check-in/out,
+    sample collection link to Lab module, recurring care plans
+  • Vaccination registry: KSA EPI schedule, dose lifecycle,
+    due-list, certificates (Sehhaty-aligned), batch/lot recall,
+    cold-chain log integration with Pharmacy inventory
 
-**3. `ExecClinicOnWheelsSlide.tsx` — "Clinic on Wheels"**
-- Hero: stylized SVG van with floating capability pills (OPD, POC Lab, Mini Pharmacy, Telemedicine, ECG, Vaccination)
-- Sub: "Healthcare that comes to the patient — Vision 2030 aligned"
-- 4 KPI tiles: Target cities (5), Year-1 vans (20), Underserved reach (~2M), CAPEX vs brick-and-mortar (-70%)
-- Use cases: Hajj/Umrah pilgrim care, Rural villages, Corporate camps (Aramco/SABIC), School screenings, Disaster response
-- Tech callout: "Same HealthOS 24 platform — offline-first, syncs over LTE/Starlink"
+Month 5 ── Patient Portal + Mobile App
+  • Web portal: appointments, results, invoices, deposits,
+    prescriptions, family members, teleconsult join
+  • Capacitor app (iOS/Android): same surface + push
+    notifications + biometric login + Nafath SSO
+  • In-app payments + receipts (ZATCA QR)
+  • WhatsApp Business API channel for reminders
 
-**4. `ExecRevenueStreamsSlide.tsx` — "How We Make Money"**
-- 4-column matrix:
-  - **Single Clinic** — SaaS per-doctor/month — $99–199/doc/mo — 2-week close
-  - **Multi-Branch Hospital** — Per-bed/month + module add-ons — $25–60/bed/mo — 8-week close
-  - **Telemedicine Services** — Per-consult fee + revenue share — 10–15% per consult — partnership model
-  - **Clinic on Wheels** — Van-as-a-Service (hardware + SaaS + support) — $4–8K/van/mo + per-visit — B2G/B2B
-- Bottom: TAM math ("5,000 KSA clinics × $1,500/mo ≈ $90M ARR opportunity")
-- Visual: target year-3 revenue mix donut
+Month 6 ── KSA hardening, interop, performance
+  • FHIR R4 server: expose Patient/Encounter/Observation/
+    Immunization/MedicationRequest with SMART-on-FHIR auth
+  • Sehhaty / NPHIES bidirectional sync hardening
+  • Load test (1k concurrent, 50 vans offline-then-sync)
+  • Pen-test fixes, RLS audit, accessibility (WCAG 2.1 AA)
+  • Pilot rollout playbook (1 hospital + 5 vans)
+```
 
-### Pitch deck wiring
-- Edit `src/pages/ExecutivePresentation.tsx`
-  - Import the 4 new slides
-  - Insert at correct positions
-  - `TOTAL_SLIDES`: 17 → **21**
+### Cross-cutting (every module, day one)
 
-## B. Landing Page — new section in `src/pages/Index.tsx`
+- **KSA compliance**: NPHIES claim hooks, ZATCA Phase-2 invoice chaining, Wasfaty e-Rx, Nafath SSO, Tatmeen drug serialization, HESN reportable conditions.
+- **i18n**: EN/UR/AR strings + RTL via existing `flex-row-reverse` + Hijri dual-calendar.
+- **Security**: RLS per facility/role, PHI masking, audit logs, security-definer RPCs, consent management.
+- **GL**: revenue routes through existing prefix-based router (new prefixes `COW-`, `TELE-`, `HOME-`, `VAC-`) into the existing 4-level CoA via DB triggers — no app-side journals.
+- **Doctor earnings**: reuse `trg_unified_doctor_earnings`.
+- **Patient balance**: keep the Outstanding + Available Deposit display contract.
 
-Add **one consolidated section** `KsaExpansionSection.tsx`, placed right after `KsaComplianceSection`. It mirrors the pitch deck story but in marketing tone.
+### Technical sections
 
-`src/components/landing/KsaExpansionSection.tsx`:
-- Section header: "Built for KSA. Ready to Scale." + subhead about Vision 2030
-- 3-tab/3-card horizontal layout:
-  1. **The Gap** — short bullets on KSA legacy HMS pain points
-  2. **Our Compliance Roadmap** — same regulator status badges (ZATCA, NPHIES, Wasfaty, Nafath, Tatmeen, Sehhaty/HESN)
-  3. **Clinic on Wheels** — stylized SVG van + capability pills + "Coming to KSA 2026" badge
-- Bottom CTA strip: "Operate a clinic, hospital, telehealth service, or mobile unit? — Book a KSA demo" (links to existing demo CTA)
-- Reuse animation pattern (`AnimatedSection`)
+**New tables (high-level, RLS on all)**
+- `mobile_units`, `mobile_unit_crew`, `mobile_routes`, `mobile_route_stops`, `mobile_visits`
+- `telemedicine_sessions`, `telemedicine_recordings`, `telemedicine_consents`
+- `home_visits`, `home_visit_tasks`, `care_plans`, `care_plan_items`
+- `immunizations`, `immunization_schedules`, `vaccine_lots`, `cold_chain_logs`
+- `patient_portal_accounts`, `patient_devices`, `push_subscriptions`
+- `payment_gateway_transactions`, `payment_gateway_refunds`
+- `fhir_resource_cache`, `fhir_subscriptions`
+- `sync_outbox`, `sync_conflicts` (offline engine)
 
-### Landing wiring
-- Edit `src/pages/Index.tsx` — import and place `<KsaExpansionSection />` after `<KsaComplianceSection />`
+**New edge functions**
+- `payments-mada`, `payments-stcpay`, `payments-hyperpay`, `payments-tap` (init, webhook, refund)
+- `nafath-auth` (OIDC-style)
+- `whatsapp-dispatch`
+- `fhir-server` (resource read/search/create with SMART scopes)
+- `sehhaty-sync`
+- `cow-sync` (bulk outbox apply with idempotency keys)
+- `webrtc-token` (LiveKit/Daily JWT minting)
+- `vaccine-certificate` (signed PDF)
 
-## Design conventions (both surfaces)
-- Tailwind semantic tokens only (no raw hex)
-- Lucide icons only
-- Pitch deck: `slide` wrapper 1200×675, top gradient bar, footer "HealthOS 24 | healthos24.com"
-- Landing section: matches existing `KsaComplianceSection` visual language
+**Frontend additions**
+- Routes: `/app/mobile-units/*`, `/app/telemedicine/*`, `/app/home-healthcare/*`, `/app/vaccination/*`
+- Public portal: `/portal/*` (separate layout, patient role)
+- Capacitor app shell reusing portal routes; offline shell for CoW staff at `/app/mobile-units/field`
 
-## Files to create
-- `src/components/executive/ExecKsaIndustryGapSlide.tsx`
-- `src/components/executive/ExecKsaComplianceRoadmapSlide.tsx`
-- `src/components/executive/ExecClinicOnWheelsSlide.tsx`
-- `src/components/executive/ExecRevenueStreamsSlide.tsx`
-- `src/components/landing/KsaExpansionSection.tsx`
+**Reuse & non-goals**
+- Reuse: patient master, lab, pharmacy, billing sessions, invoices, ZATCA, Wasfaty, NPHIES claims, RBAC, Tabeebi AI.
+- Out of scope this wave: ICU/NICU charting, JCI/CBAHI quality module, Oncology, FHIR write-bus to external EHRs beyond Sehhaty/NPHIES, denial-management workbench (separate Wave 2).
 
-## Files to edit
-- `src/pages/ExecutivePresentation.tsx` (imports, slide order, TOTAL_SLIDES)
-- `src/pages/Index.tsx` (insert new landing section)
+### Deliverables per module
+For each module: schema + RLS, edge functions, UI in EN/UR/AR, Hijri-aware dates, ZATCA-compliant invoices, NPHIES claim hook where applicable, audit logs, unit + integration tests, seed data, admin docs.
 
-## Out of scope (deferred)
-- Building actual Clinic-on-Wheels / Telemedicine product modules under `/app/...`
-- Database tables, edge functions, routes, marketing-site backend changes
-- Pricing-page UI (investor narrative only — no public pricing page)
-- Arabic version of the deck or landing section (follow-up)
+### Milestones / exit criteria
+- M2 end: a van can run a full day offline and reconcile cleanly.
+- M3 end: paid video consult → e-Rx at Wasfaty → invoice with ZATCA QR.
+- M4 end: home nurse visit billed; child vaccination certificate downloadable.
+- M5 end: patient books, pays, joins teleconsult, and views results from mobile app.
+- M6 end: external system can read patient history via FHIR R4 with SMART scopes; pilot-ready for 1 hospital + 5 vans.
 
-## Verification
-- Open `/executive` → 21 slides in correct order; PDF export renders new slides at 1200×675
-- Open `/` → new "Built for KSA. Ready to Scale." section visible after the existing KSA Compliance section
-- Lint/typecheck pass via CI
-
-Approve and I'll build all 5 files + 2 wiring edits in one pass.
+Confirm and I'll start with Month 1 foundations (offline-sync engine + payments abstraction + FHIR scaffolding).
