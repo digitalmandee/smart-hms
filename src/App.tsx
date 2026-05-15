@@ -103,6 +103,7 @@ import StaffCreatePage from "./pages/app/settings/StaffCreatePage";
 import { OrganizationSettingsPage } from "./pages/app/settings/OrganizationSettingsPage";
 import CountryRegionSettingsPage from "./pages/app/settings/CountryRegionSettingsPage";
 import { RolesPermissionsPage } from "./pages/app/settings/RolesPermissionsPage";
+import PaymentGatewaysPage from "./pages/app/settings/PaymentGatewaysPage";
 import ServicesListPage from "./pages/app/services/ServicesListPage";
 import ServiceFormPage from "./pages/app/services/ServiceFormPage";
 import ServiceCategoriesPage from "./pages/app/services/ServiceCategoriesPage";
@@ -1409,6 +1410,7 @@ function App() {
               <Route path="settings/organization" element={<OrganizationSettingsPage />} />
               <Route path="settings/country" element={<CountryRegionSettingsPage />} />
               <Route path="settings/roles" element={<RolesPermissionsPage />} />
+              <Route path="settings/payment-gateways" element={<PaymentGatewaysPage />} />
 
               {/* Production-readiness admin pages */}
               <Route path="admin/security-setup" element={<SecuritySetupPage />} />
