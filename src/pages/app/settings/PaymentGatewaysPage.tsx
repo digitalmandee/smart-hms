@@ -82,7 +82,7 @@ export default function PaymentGatewaysPage() {
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success(t("payments.settings.saved", "Saved"));
+      toast.success(t("payments.settings.saved"));
       qc.invalidateQueries({ queryKey: ["payment_gateway_settings", orgId] });
     }
   };
