@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Loader2, WifiOff } from "lucide-react";
 import { toast } from "sonner";
 import { enqueue } from "@/lib/offline-sync/outbox";
-import { kick } from "@/lib/offline-sync/sync-engine";
+import { forceSync } from "@/lib/offline-sync/sync-engine";
 
 interface Props {
   open: boolean;
@@ -78,7 +78,7 @@ export function NewVisitDialog({ open, onOpenChange, organizationId, routeId, st
         operation: "insert",
         payload: { ...payload, created_offline: true },
       });
-      kick();
+      forceSync();
       setSaving(false);
       toast.success(t("mobile.visits.queued", "Saved offline — will sync when reconnected"));
     }
