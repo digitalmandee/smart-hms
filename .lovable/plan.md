@@ -1,117 +1,93 @@
-## Wave 1 — Mobile Health & Outreach (KSA-compliant, enterprise-ready, 6 months)
+## Chunk 1 — Offline-Sync Engine (foundation for Clinic on Wheels & field workflows)
 
-Builds on the existing HMIS (OPD, IPD, Lab, Pharmacy, Finance, NPHIES, Wasfaty, ZATCA, Tabeebi AI, multi-tenant RLS, EN/UR/AR, Hijri). No rewrites of existing modules — new modules plug into the same chart of accounts, patient master, RLS roles, and trigger-based GL posting.
+Goal: durable offline-first writes from any device (van tablet, nurse phone, kiosk). Anything written while offline gets queued locally, retried on reconnect, applied server-side with idempotency, and surfaced in a conflict UI when needed. This is the substrate every later module (CoW, Home Healthcare, Vaccination) plugs into.
 
-### Modules in scope
+### Pieces to build
 
-1. Clinic on Wheels (mobile units)
-2. Telemedicine (video, e-Rx, billing)
-3. Home Healthcare (visits, nursing, sample collection)
-4. Vaccination / Immunization Registry (EPI + KSA schedule)
-5. Patient Portal (web)
-6. Patient Mobile App (Capacitor — iOS + Android)
-7. Shared Offline-Sync engine + Route planning
-8. Payment gateway layer (Mada / STC Pay / HyperPay / Tap)
-9. FHIR R4 server endpoints (NPHIES + Sehhaty interop)
+**1. Client SDK — `src/lib/offline-sync/`**
+- `db.ts` — Dexie (IndexedDB) wrapper with two stores: `outbox` (pending writes) and `cache` (last-known server state per entity).
+- `outbox.ts` — `enqueue({ entity_type, operation, payload })` returns a `client_uuid`; assigns `device_id` (persistent in localStorage) and `client_created_at`.
+- `sync-engine.ts` — background loop: when `navigator.onLine` and authenticated, drains outbox in FIFO batches of 25, calls the `cow-sync` edge function, marks rows applied/conflict/failed, exponential backoff on transient failure.
+- `useOfflineSync()` hook — exposes `pending`, `failed`, `conflicts`, `lastSyncedAt`, `forceSync()`.
+- `OfflineIndicator` component — top-bar pill: "Online · synced 2 min ago" / "Offline · 7 pending" / "3 conflicts" with click-through.
 
-### Phasing (6 months)
+**2. Edge function — `supabase/functions/cow-sync/index.ts`**
+- POST: `{ items: OutboxItem[] }`, validates JWT, validates each item with Zod.
+- For each item, dispatch by `entity_type` to a dedicated handler:
+  - `mobile_visits` → insert/update with `client_uuid` unique guard (idempotent — duplicate replays return the existing record).
+  - `home_visits` → same pattern.
+  - `immunizations` → same pattern, plus decrement `vaccine_lots.quantity_remaining`.
+  - `payment_gateway_transactions` → status update only (cannot create payments offline).
+- Upserts the row in `sync_outbox` with `status = applied | conflict | failed`, sets `applied_record_id`.
+- Conflict detection: server `updated_at` newer than `client_created_at` → write `sync_conflicts` row, return `conflict` so the client can prompt the user.
+- Returns per-item result `{ client_uuid, status, server_id?, error? }`.
 
-```text
-Month 1 ── Foundations
-  • Offline-sync engine (IndexedDB + outbox + conflict resolution)
-  • Payments abstraction + Mada/STC Pay/HyperPay/Tap adapters
-  • FHIR R4 server scaffolding (Patient, Encounter, Observation, Immunization)
-  • Patient identity unification (MRN ↔ Iqama/National ID ↔ Sehhaty ID)
-  • i18n EN/UR/AR + Hijri audit across new screens
+**3. Conflict resolution UI — `src/pages/app/sync/`**
+- `SyncDashboardPage.tsx` at `/app/sync` — lists pending, failed, conflicted items with filters by entity type and date.
+- `ConflictDetailDialog.tsx` — side-by-side server vs client JSON diff, two actions: **Keep server** (discard local) or **Apply local** (overwrite server, posts a follow-up update).
 
-Month 2 ── Clinic on Wheels v1
-  • Vehicle / unit / crew master
-  • Route planner (geo, schedule, capacity)
-  • Offline OPD-lite (registration, vitals, consult, e-Rx, dispense, invoice)
-  • Sync to central HMIS on reconnect; conflict log
-  • ZATCA Phase-2 invoice generation offline-capable
-  • CoW dashboard (units, routes, revenue per van)
-
-Month 3 ── Telemedicine
-  • Appointment slots (in-person / video / home visit)
-  • WebRTC video room (Daily.co or LiveKit), waiting room, consent
-  • In-call vitals capture, e-Rx (Wasfaty), lab/imaging orders
-  • Pre-paid checkout via payment gateways
-  • Nafath login for KSA patients
-  • Recording + retention policy (consent-gated)
-
-Month 4 ── Home Healthcare + Vaccination Registry
-  • Home Healthcare: visit orders, nurse roster, geo check-in/out,
-    sample collection link to Lab module, recurring care plans
-  • Vaccination registry: KSA EPI schedule, dose lifecycle,
-    due-list, certificates (Sehhaty-aligned), batch/lot recall,
-    cold-chain log integration with Pharmacy inventory
-
-Month 5 ── Patient Portal + Mobile App
-  • Web portal: appointments, results, invoices, deposits,
-    prescriptions, family members, teleconsult join
-  • Capacitor app (iOS/Android): same surface + push
-    notifications + biometric login + Nafath SSO
-  • In-app payments + receipts (ZATCA QR)
-  • WhatsApp Business API channel for reminders
-
-Month 6 ── KSA hardening, interop, performance
-  • FHIR R4 server: expose Patient/Encounter/Observation/
-    Immunization/MedicationRequest with SMART-on-FHIR auth
-  • Sehhaty / NPHIES bidirectional sync hardening
-  • Load test (1k concurrent, 50 vans offline-then-sync)
-  • Pen-test fixes, RLS audit, accessibility (WCAG 2.1 AA)
-  • Pilot rollout playbook (1 hospital + 5 vans)
-```
-
-### Cross-cutting (every module, day one)
-
-- **KSA compliance**: NPHIES claim hooks, ZATCA Phase-2 invoice chaining, Wasfaty e-Rx, Nafath SSO, Tatmeen drug serialization, HESN reportable conditions.
-- **i18n**: EN/UR/AR strings + RTL via existing `flex-row-reverse` + Hijri dual-calendar.
-- **Security**: RLS per facility/role, PHI masking, audit logs, security-definer RPCs, consent management.
-- **GL**: revenue routes through existing prefix-based router (new prefixes `COW-`, `TELE-`, `HOME-`, `VAC-`) into the existing 4-level CoA via DB triggers — no app-side journals.
-- **Doctor earnings**: reuse `trg_unified_doctor_earnings`.
-- **Patient balance**: keep the Outstanding + Available Deposit display contract.
+**4. Wiring**
+- Add Dexie dependency.
+- Mount `<OfflineIndicator />` inside the existing app shell header.
+- Add `/app/sync` route in `App.tsx` (admin/branch_admin/mobile_unit_crew/home_health_nurse only).
+- Register the sync engine on auth-ready (start) and on logout (stop + clear outbox for that user).
 
 ### Technical sections
 
-**New tables (high-level, RLS on all)**
-- `mobile_units`, `mobile_unit_crew`, `mobile_routes`, `mobile_route_stops`, `mobile_visits`
-- `telemedicine_sessions`, `telemedicine_recordings`, `telemedicine_consents`
-- `home_visits`, `home_visit_tasks`, `care_plans`, `care_plan_items`
-- `immunizations`, `immunization_schedules`, `vaccine_lots`, `cold_chain_logs`
-- `patient_portal_accounts`, `patient_devices`, `push_subscriptions`
-- `payment_gateway_transactions`, `payment_gateway_refunds`
-- `fhir_resource_cache`, `fhir_subscriptions`
-- `sync_outbox`, `sync_conflicts` (offline engine)
+**Outbox row shape (client + server)**
+```ts
+{
+  client_uuid: string;       // primary key, generated client-side
+  device_id: string;
+  user_id: string;
+  organization_id: string;
+  entity_type: 'mobile_visits' | 'home_visits' | 'immunizations' | 'payment_gateway_transactions';
+  operation: 'insert' | 'update';
+  payload: Record<string, unknown>;
+  client_created_at: string; // ISO
+}
+```
 
-**New edge functions**
-- `payments-mada`, `payments-stcpay`, `payments-hyperpay`, `payments-tap` (init, webhook, refund)
-- `nafath-auth` (OIDC-style)
-- `whatsapp-dispatch`
-- `fhir-server` (resource read/search/create with SMART scopes)
-- `sehhaty-sync`
-- `cow-sync` (bulk outbox apply with idempotency keys)
-- `webrtc-token` (LiveKit/Daily JWT minting)
-- `vaccine-certificate` (signed PDF)
+**Idempotency contract**
+- Every entity table participating in offline writes already has (or will be confirmed to have) a unique `client_uuid` column — `mobile_visits` and `sync_outbox` already do; `home_visits` and `immunizations` will be patched in a tiny follow-up migration if needed at implementation time.
+- Server handlers always `INSERT … ON CONFLICT (client_uuid) DO UPDATE` so retries are safe.
 
-**Frontend additions**
-- Routes: `/app/mobile-units/*`, `/app/telemedicine/*`, `/app/home-healthcare/*`, `/app/vaccination/*`
-- Public portal: `/portal/*` (separate layout, patient role)
-- Capacitor app shell reusing portal routes; offline shell for CoW staff at `/app/mobile-units/field`
+**Auth & RLS**
+- `cow-sync` runs with `verify_jwt = true` (default). Caller's JWT is forwarded to the Supabase client so RLS still applies to writes.
+- Service role is used only for the `sync_outbox` upsert (audit row), never for the entity write itself.
 
-**Reuse & non-goals**
-- Reuse: patient master, lab, pharmacy, billing sessions, invoices, ZATCA, Wasfaty, NPHIES claims, RBAC, Tabeebi AI.
-- Out of scope this wave: ICU/NICU charting, JCI/CBAHI quality module, Oncology, FHIR write-bus to external EHRs beyond Sehhaty/NPHIES, denial-management workbench (separate Wave 2).
+**Failure handling**
+- Network error → keep `pending`, increment `retries`, backoff (5s → 30s → 2min → 10min, capped).
+- 4xx validation error → mark `failed`, surface in dashboard with the server's error message.
+- 409 conflict → mark `conflict`, write `sync_conflicts`, surface in dashboard.
 
-### Deliverables per module
-For each module: schema + RLS, edge functions, UI in EN/UR/AR, Hijri-aware dates, ZATCA-compliant invoices, NPHIES claim hook where applicable, audit logs, unit + integration tests, seed data, admin docs.
+**i18n (EN/UR/AR)**
+- All sync UI strings added to existing translation files. RTL handled via the project's `flex-row-reverse` pattern.
 
-### Milestones / exit criteria
-- M2 end: a van can run a full day offline and reconcile cleanly.
-- M3 end: paid video consult → e-Rx at Wasfaty → invoice with ZATCA QR.
-- M4 end: home nurse visit billed; child vaccination certificate downloadable.
-- M5 end: patient books, pays, joins teleconsult, and views results from mobile app.
-- M6 end: external system can read patient history via FHIR R4 with SMART scopes; pilot-ready for 1 hospital + 5 vans.
+### Out of scope for this chunk
+- The CoW field workflow UI itself (Chunk 3).
+- Server-to-client push of new records to offline devices (deferred until Chunk 3 needs it; can use Supabase realtime or a pull-on-reconnect pattern then).
+- Background sync via Service Worker (initial version uses in-page interval; SW upgrade is Chunk 7 alongside the Capacitor app).
 
-Confirm and I'll start with Month 1 foundations (offline-sync engine + payments abstraction + FHIR scaffolding).
+### Files to add
+- `src/lib/offline-sync/db.ts`
+- `src/lib/offline-sync/outbox.ts`
+- `src/lib/offline-sync/sync-engine.ts`
+- `src/lib/offline-sync/types.ts`
+- `src/hooks/useOfflineSync.ts`
+- `src/components/offline/OfflineIndicator.tsx`
+- `src/pages/app/sync/SyncDashboardPage.tsx`
+- `src/pages/app/sync/ConflictDetailDialog.tsx`
+- `supabase/functions/cow-sync/index.ts`
+
+### Files to edit
+- `src/App.tsx` — add `/app/sync` route, mount `OfflineIndicator` in header.
+- `package.json` — add `dexie` and `dexie-react-hooks`.
+
+### Exit criteria
+- Disconnect network, create a mobile visit via a smoke-test screen → row appears in IndexedDB outbox immediately.
+- Reconnect → row disappears from outbox, appears in `mobile_visits` server-side, indicator shows "synced".
+- Re-submit the same `client_uuid` twice → exactly one server row.
+- Edit the same record server-side then re-sync from another device → conflict appears in `/app/sync`, both resolution paths work.
+
+Reply approve and I'll build it.
