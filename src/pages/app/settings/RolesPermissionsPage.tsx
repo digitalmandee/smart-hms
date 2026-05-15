@@ -70,6 +70,10 @@ const ROLE_LABELS: Record<AppRole, string> = {
   ot_technician: "OT Technician",
   warehouse_admin: "Warehouse Admin",
   warehouse_user: "Warehouse User",
+  mobile_unit_crew: "Mobile Unit Crew",
+  home_health_nurse: "Home Health Nurse",
+  telemed_doctor: "Telemed Doctor",
+  patient: "Patient",
 };
 
 export function RolesPermissionsPage() {
