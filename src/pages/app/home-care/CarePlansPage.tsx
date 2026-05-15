@@ -168,7 +168,7 @@ export default function CarePlansPage() {
                     <Badge variant={p.status === "active" ? "default" : "secondary"}>{p.status}</Badge>
                   </div>
                   <div className="text-sm text-muted-foreground">
-                    {t(`home.care_plans.freq_${p.frequency ?? "weekly"}`, p.frequency ?? "—")} · {p.start_date}
+                    {t(`home.care_plans.freq_${(p.frequency ?? "weekly") as "daily"|"weekly"|"biweekly"|"monthly"|"as_needed"}` as const, p.frequency ?? "—")} · {p.start_date}
                     {p.end_date ? ` → ${p.end_date}` : ""}
                   </div>
                 </CardContent>

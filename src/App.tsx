@@ -55,7 +55,7 @@ import MobileRoutesPage from "./pages/app/mobile-units/MobileRoutesPage";
 import RouteDetailPage from "./pages/app/mobile-units/RouteDetailPage";
 import HomeVisitsListPage from "./pages/app/home-care/HomeVisitsListPage";
 import HomeVisitDetailPage from "./pages/app/home-care/HomeVisitDetailPage";
-import CarePlansPage from "./pages/app/home-care/CarePlansPage";
+import HomeCarePlansPage from "./pages/app/home-care/CarePlansPage";
 
 // Public display pages (no auth required)
 import PublicQueueDisplay from "./pages/public/PublicQueueDisplay";
@@ -872,7 +872,7 @@ function App() {
               {/* Home Healthcare */}
               <Route path="home-care/visits" element={<HomeVisitsListPage />} />
               <Route path="home-care/visits/:visitId" element={<HomeVisitDetailPage />} />
-              <Route path="home-care/care-plans" element={<CarePlansPage />} />
+              <Route path="home-care/care-plans" element={<HomeCarePlansPage />} />
               
               {/* Patient routes */}
               <Route path="patients" element={<PatientsListPage />} />
