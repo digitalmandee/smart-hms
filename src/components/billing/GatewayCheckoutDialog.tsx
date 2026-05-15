@@ -161,7 +161,7 @@ export function GatewayCheckoutDialog(props: GatewayCheckoutDialogProps) {
               <Button onClick={startCheckout}>{t("payments.checkout.retry")}</Button>
             </>
           )}
-          {phase === "success" && <Button onClick={() => onOpenChange(false)}>{t("common.done", "Done")}</Button>}
+          {phase === "success" && <Button onClick={() => onOpenChange(false)}>{t("common.cancel")}</Button>}
           {(phase === "creating" || phase === "awaiting") && (
             <Button variant="outline" onClick={() => onOpenChange(false)}>{t("payments.checkout.cancel")}</Button>
           )}
