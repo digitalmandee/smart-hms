@@ -4313,7 +4313,6 @@ export const ar: Record<TranslationKey, string> = {
   "payments.checkout.phone_required": "رقم الجوال مطلوب لـ STC Pay",
 
   "common.saved": "تم الحفظ",
-  "common.back": "رجوع",
 
   "mobile.units.title": "الوحدات المتنقلة",
   "mobile.units.description": "عيادات متنقلة وفرق وجداول الرحلات",

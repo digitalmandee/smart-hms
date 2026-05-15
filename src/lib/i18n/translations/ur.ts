@@ -4313,7 +4313,6 @@ export const ur: Record<TranslationKey, string> = {
   "payments.checkout.phone_required": "STC Pay کے لیے موبائل نمبر درکار ہے",
 
   "common.saved": "محفوظ ہو گیا",
-  "common.back": "واپس",
 
   "mobile.units.title": "موبائل یونٹس",
   "mobile.units.description": "کلینک آن وہیلز گاڑیاں، عملہ اور روٹس",
