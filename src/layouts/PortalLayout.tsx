@@ -5,6 +5,8 @@ import { useTranslation, useIsRTL } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { usePatientDevice } from "@/hooks/usePatientDevice";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 export function PortalLayout() {
   const { user, signOut } = useAuth();
