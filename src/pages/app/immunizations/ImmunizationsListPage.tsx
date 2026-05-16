@@ -13,17 +13,21 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Loader2, Plus, Syringe, Package, Thermometer, CalendarRange } from "lucide-react";
+import { Loader2, Plus, Syringe, Package, Thermometer, CalendarRange, WifiOff } from "lucide-react";
 import { toast } from "sonner";
+import { enqueue } from "@/lib/offline-sync/outbox";
+import { forceSync } from "@/lib/offline-sync/sync-engine";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
   given: "default", scheduled: "outline", missed: "outline", refused: "outline",
 };
 
 export default function ImmunizationsListPage() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const { online } = useOfflineSync();
   const orgId = profile?.organization_id;
 
   const { data: rows, isLoading } = useQuery({
@@ -77,12 +81,12 @@ export default function ImmunizationsListPage() {
   });
 
   const record = async () => {
-    if (!orgId) return;
+    if (!orgId || !user?.id) return;
     if (!draft.patient_id || !draft.vaccine_code) {
       toast.error(t("imm.validation", "Patient and vaccine are required")); return;
     }
     setSaving(true);
-    const { error } = await supabase.from("immunizations").insert({
+    const payload = {
       organization_id: orgId,
       patient_id: draft.patient_id,
       vaccine_code: draft.vaccine_code,
@@ -93,17 +97,28 @@ export default function ImmunizationsListPage() {
       reaction_notes: draft.reaction_notes || null,
       given_date: new Date(draft.given_date).toISOString(),
       given_by: profile?.id ?? null,
-      status: "given",
-    });
-    setSaving(false);
-    if (error) { toast.error(error.message); return; }
-    if (draft.vaccine_lot_id) {
-      const lot = (lotOptions ?? []).find((l) => l.id === draft.vaccine_lot_id);
-      if (lot && lot.quantity_remaining > 0) {
-        await supabase.from("vaccine_lots").update({ quantity_remaining: lot.quantity_remaining - 1 }).eq("id", lot.id);
-      }
+      status: "given" as const,
+    };
+
+    // Online: insert directly (DB trigger decrements the lot).
+    // Offline: enqueue to the outbox; cow-sync upserts on unique client_uuid and the same trigger fires server-side.
+    if (typeof navigator !== "undefined" && navigator.onLine) {
+      const { error } = await supabase.from("immunizations").insert(payload);
+      setSaving(false);
+      if (error) { toast.error(error.message); return; }
+      toast.success(t("common.saved", "Saved"));
+    } else {
+      await enqueue({
+        user_id: user.id,
+        organization_id: orgId,
+        entity_type: "immunizations",
+        operation: "insert",
+        payload,
+      });
+      forceSync();
+      setSaving(false);
+      toast.success(t("imm.queued", "Saved offline — will sync when back online"));
     }
-    toast.success(t("common.saved", "Saved"));
     setOpen(false);
     qc.invalidateQueries({ queryKey: ["immunizations", orgId] });
     qc.invalidateQueries({ queryKey: ["vaccine_lots_active", orgId] });
@@ -200,6 +215,13 @@ export default function ImmunizationsListPage() {
           </div>
         }
       />
+
+      {!online && (
+        <div className="flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">
+          <WifiOff className="h-4 w-4" />
+          {t("imm.offline_banner", "You're offline. Vaccinations will be queued and synced automatically.")}
+        </div>
+      )}
 
       {isLoading ? (
         <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>

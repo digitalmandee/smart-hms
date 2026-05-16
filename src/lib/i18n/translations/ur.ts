@@ -4455,6 +4455,8 @@ export const ur: Record<TranslationKey, string> = {
   "imm.reaction": "ردِعمل کے نوٹس",
   "imm.validation": "مریض اور ویکسین لازمی ہیں",
   "imm.empty": "ابھی کوئی ویکسین درج نہیں۔",
+  "imm.queued": "آف لائن محفوظ — کنکشن آنے پر سنک ہو جائے گا",
+  "imm.offline_banner": "آپ آف لائن ہیں۔ ویکسینز قطار میں محفوظ ہو کر خودکار سنک ہوں گی۔",
   "imm.not_given": "ابھی نہیں دی گئی",
   "imm.status_given": "دے دی گئی",
   "imm.status_due": "واجب",
