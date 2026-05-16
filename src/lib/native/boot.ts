@@ -20,6 +20,8 @@ import { StatusBar, Style } from "@capacitor/status-bar";
 import { Preferences } from "@capacitor/preferences";
 import { Network } from "@capacitor/network";
 import { PushNotifications } from "@capacitor/push-notifications";
+import { LocalNotifications } from "@capacitor/local-notifications";
+import { Device } from "@capacitor/device";
 import { supabase } from "@/integrations/supabase/client";
 import { forceSync as flushOutbox } from "@/lib/offline-sync/sync-engine";
 
