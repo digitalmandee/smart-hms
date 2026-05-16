@@ -31,7 +31,7 @@ N6  [DONE] Push notifications wiring (FCM/APNs token → push_device_tokens)
 N7  [DONE] Deep-link handler (payments, Nafath, magic links → /~oauth)
 N8  [DONE] Haptics + native gestures (back button, pull-to-refresh, swipe)
 N9  [DONE] Offline sync resume hook (App resume → flush sync_outbox)
-N10 Branded app icon + splash (1024 source → all Android/iOS densities)
+N10 [DONE] Branded app icon + splash (1024 source → all Android/iOS densities)
 N11 Android/iOS native config (permissions manifest, ATS, gradle bumps)
 N12 Build & QA scripts (build:mobile:prod, doctor on Android emulator)
 ```

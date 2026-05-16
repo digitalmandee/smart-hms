@@ -128,3 +128,20 @@ Add inside the main `<activity>` tag:
 | `/portal/invoices/:id/return`          | Payment gateway success/fail return  |
 | `/app/settings/ksa/nafath`             | Nafath identity verification callback|
 | `/portal/dashboard`, `/mobile/dashboard` | Generic open-app deep links        |
+
+## Branded icon + splash (Chunk N10)
+
+Source artwork lives in `resources/` (`icon.png` 1024², `splash.png` 1920²,
+brand color `#0891b2`). After `npx cap add android` / `npx cap add ios`,
+generate every density in one shot:
+
+```bash
+npm run assets:generate
+```
+
+This wraps `npx capacitor-assets generate` and writes Android mipmaps +
+drawables and iOS `AppIcon.appiconset` / `Splash.imageset`. Commit the
+generated files; subsequent `npx cap sync` will copy them into the native
+projects automatically.
+
+Re-run whenever `resources/icon.png` or `resources/splash.png` changes.

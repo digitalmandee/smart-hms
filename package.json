@@ -12,7 +12,8 @@
     "lint": "eslint .",
     "preview": "vite preview",
     "test:e2e": "playwright test",
-    "test:e2e:critical": "playwright test tests/e2e/critical-path"
+    "test:e2e:critical": "playwright test tests/e2e/critical-path",
+    "assets:generate": "capacitor-assets generate --iconBackgroundColor #0891b2 --iconBackgroundColorDark #0891b2 --splashBackgroundColor #0891b2 --splashBackgroundColorDark #0e7490"
   },
   "dependencies": {
     "@aparajita/capacitor-biometric-auth": "^10.0.0",
@@ -104,6 +105,7 @@
     "zod": "^3.25.76"
   },
   "devDependencies": {
+    "@capacitor/assets": "^3.0.5",
     "@eslint/js": "^9.32.0",
     "@tailwindcss/typography": "^0.5.16",
     "@types/node": "^22.16.5",
