@@ -18,9 +18,16 @@ import { Footer } from "@/components/landing/Footer";
 import { StickyCTA } from "@/components/landing/StickyCTA";
 import { AnimatedSection } from "@/components/landing/AnimatedSection";
 
+import { SEO } from "@/components/SEO";
+
 const Index = () => {
   return (
     <div className="min-h-screen bg-background">
+      <SEO
+        title="HealthOS 24 — 24/7 Smart Hospital Management System"
+        description="HealthOS 24 unifies OPD, IPD, pharmacy, lab, radiology, billing, HR and finance into one 24/7 hospital management platform."
+        path="/"
+      />
       <Navbar />
       <main>
         <HeroSection />
