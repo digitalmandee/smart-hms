@@ -322,6 +322,24 @@ export default function MobileLoginPage() {
               "Sign In"
             )}
           </Button>
+
+          {/* Biometric quick sign-in */}
+          {bioAvailable && bioEnabled && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-12 text-base font-medium"
+              disabled={bioBusy}
+              onClick={handleBiometricTap}
+            >
+              {bioBusy ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <Fingerprint className="mr-2 h-5 w-5" />
+              )}
+              {storedEmail ? `Continue as ${storedEmail}` : "Use biometric"}
+            </Button>
+          )}
         </form>
 
         {/* Demo Accounts Note */}
