@@ -39,6 +39,14 @@ const DialysisDocumentation = React.lazy(() => import("./pages/DialysisDocumenta
 const DentalDocumentation = React.lazy(() => import("./pages/DentalDocumentation"));
 const BlogIndex = React.lazy(() => import("./pages/BlogIndex"));
 const BlogPost = React.lazy(() => import("./pages/BlogPost"));
+const PortalLayout = React.lazy(() => import("./layouts/PortalLayout").then(m => ({ default: m.PortalLayout })));
+const PortalLoginPage = React.lazy(() => import("./pages/portal/PortalLoginPage"));
+const PortalDashboardPage = React.lazy(() => import("./pages/portal/PortalDashboardPage"));
+const PortalAppointmentsPage = React.lazy(() => import("./pages/portal/PortalAppointmentsPage"));
+const PortalLabResultsPage = React.lazy(() => import("./pages/portal/PortalLabResultsPage"));
+const PortalPrescriptionsPage = React.lazy(() => import("./pages/portal/PortalPrescriptionsPage"));
+const PortalInvoicesPage = React.lazy(() => import("./pages/portal/PortalInvoicesPage"));
+const PortalProfilePage = React.lazy(() => import("./pages/portal/PortalProfilePage"));
 import KsaDocumentation from "./pages/KsaDocumentation";
 const DemoFaqDocumentation = React.lazy(() => import("./pages/DemoFaqDocumentation"));
 import SystemOverview from "./pages/SystemOverview";
