@@ -286,6 +286,7 @@ import HipaaBreachesPage from "./pages/app/settings/HipaaBreachesPage";
 import BAAManagementPage from "./pages/app/settings/BAAManagementPage";
 import HipaaComplianceDashboardPage from "./pages/app/settings/HipaaComplianceDashboardPage";
 import SMSSettingsPage from "./pages/app/settings/SMSSettingsPage";
+import WhatsAppSettingsPage from "./pages/app/settings/WhatsAppSettingsPage";
 import ReportTemplatesPage from "./pages/app/settings/ReportTemplatesPage";
 import PublicLabReportPage from "./pages/public/PublicLabReportPage";
 import EmailSettingsPage from "./pages/app/settings/EmailSettingsPage";
