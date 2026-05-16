@@ -243,9 +243,7 @@ export async function bootNative(): Promise<void> {
   App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
     const path = resolveDeepLink(event.url);
     if (!path) return;
-    // Use history API so React Router picks it up without a full reload.
-    window.history.pushState({}, "", path);
-    window.dispatchEvent(new PopStateEvent("popstate"));
+    navigateToDeepLink(path);
   });
 
   // --- Android hardware back button ---
