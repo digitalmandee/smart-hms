@@ -1,11 +1,13 @@
 // Runs before `vite dev` and `vite build` (predev/prebuild hooks); writes public/sitemap.xml.
 import { writeFileSync } from "fs";
 import { resolve } from "path";
+import { posts } from "../src/content/blog/posts";
 
 const BASE_URL = "https://healthos24.com";
 
 interface SitemapEntry {
   path: string;
+  lastmod?: string;
   changefreq?: "always" | "hourly" | "daily" | "weekly" | "monthly" | "yearly" | "never";
   priority?: string;
 }
@@ -35,6 +37,13 @@ const entries: SitemapEntry[] = [
   { path: "/ksa-documentation", changefreq: "monthly", priority: "0.5" },
   { path: "/demo-faq-documentation", changefreq: "monthly", priority: "0.5" },
   { path: "/system-overview", changefreq: "monthly", priority: "0.5" },
+  { path: "/blog", changefreq: "weekly", priority: "0.8" },
+  ...posts.map<SitemapEntry>((p) => ({
+    path: `/blog/${p.slug}`,
+    lastmod: p.publishedAt,
+    changefreq: "monthly",
+    priority: "0.7",
+  })),
 ];
 
 const today = new Date().toISOString().slice(0, 10);
@@ -44,7 +53,7 @@ function generateSitemap(items: SitemapEntry[]) {
     [
       `  <url>`,
       `    <loc>${BASE_URL}${e.path}</loc>`,
-      `    <lastmod>${today}</lastmod>`,
+      `    <lastmod>${e.lastmod ?? today}</lastmod>`,
       e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
       e.priority ? `    <priority>${e.priority}</priority>` : null,
       `  </url>`,

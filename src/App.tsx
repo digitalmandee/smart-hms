@@ -37,6 +37,8 @@ const FinanceDocumentation = React.lazy(() => import("./pages/FinanceDocumentati
 const HrDocumentation = React.lazy(() => import("./pages/HrDocumentation"));
 const DialysisDocumentation = React.lazy(() => import("./pages/DialysisDocumentation"));
 const DentalDocumentation = React.lazy(() => import("./pages/DentalDocumentation"));
+const BlogIndex = React.lazy(() => import("./pages/BlogIndex"));
+const BlogPost = React.lazy(() => import("./pages/BlogPost"));
 import KsaDocumentation from "./pages/KsaDocumentation";
 const DemoFaqDocumentation = React.lazy(() => import("./pages/DemoFaqDocumentation"));
 import SystemOverview from "./pages/SystemOverview";
@@ -757,6 +759,8 @@ function App() {
               <Route path="/hr-documentation" element={<><SEO title="HR Module Documentation — HealthOS 24" description="HR, payroll, leaves, gratuity and exit management in HealthOS 24." path="/hr-documentation" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><HrDocumentation /></React.Suspense></>} />
               <Route path="/dialysis-documentation" element={<><SEO title="Dialysis Module Documentation — HealthOS 24" description="Dialysis nurse/doctor workflows and session tracking in HealthOS 24." path="/dialysis-documentation" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><DialysisDocumentation /></React.Suspense></>} />
               <Route path="/dental-documentation" element={<><SEO title="Dental Module Documentation — HealthOS 24" description="3D tooth chart, per-surface dental charting and treatments in HealthOS 24." path="/dental-documentation" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><DentalDocumentation /></React.Suspense></>} />
+              <Route path="/blog" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><BlogIndex /></React.Suspense>} />
+              <Route path="/blog/:slug" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><BlogPost /></React.Suspense>} />
             {/* Public display routes - NO AUTH REQUIRED for TV displays and kiosks */}
             <Route path="/display/queue/:organizationId" element={<PublicQueueDisplay />} />
             <Route path="/display/queue/:organizationId/:deptCode" element={<PublicQueueDisplay />} />
