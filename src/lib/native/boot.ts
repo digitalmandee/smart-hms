@@ -24,6 +24,7 @@ import { LocalNotifications } from "@capacitor/local-notifications";
 import { Device } from "@capacitor/device";
 import { supabase } from "@/integrations/supabase/client";
 import { forceSync as flushOutbox } from "@/lib/offline-sync/sync-engine";
+import { resolveDeepLink, navigateToDeepLink } from "@/lib/native/deep-links";
 
 type SupportedLocale = "en" | "ar" | "ur";
 const LOCALE_KEY = "healthos.locale";
