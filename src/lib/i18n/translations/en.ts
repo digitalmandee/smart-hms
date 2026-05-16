@@ -4730,6 +4730,19 @@ export const en = {
   "fhir.revoked": "Revoked",
   "fhir.revoke": "Revoke",
   "fhir.copied": "Copied",
+  "healthnet.title": "Health Network Sync",
+  "healthnet.description": "Sehhaty + NPHIES bidirectional sync health and recent activity",
+  "healthnet.sandbox": "Sandbox mode — SEHHATY_API_KEY not configured. Activity below uses stub data.",
+  "healthnet.refreshed": "Refreshed",
+  "healthnet.window7d": "Last 7 days",
+  "healthnet.success": "Successful",
+  "healthnet.failed": "Failed",
+  "healthnet.lastSuccess": "Last success",
+  "healthnet.noActivity": "No activity yet",
+  "healthnet.recent": "Recent Sync Activity",
+  "healthnet.recentDesc": "Last 20 pull/push events",
+  "healthnet.empty": "No sync activity yet",
+  "common.refresh": "Refresh",
 } as const;
 
 export type TranslationKey = keyof typeof en;
