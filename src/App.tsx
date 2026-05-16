@@ -37,6 +37,8 @@ const FinanceDocumentation = React.lazy(() => import("./pages/FinanceDocumentati
 const HrDocumentation = React.lazy(() => import("./pages/HrDocumentation"));
 const DialysisDocumentation = React.lazy(() => import("./pages/DialysisDocumentation"));
 const DentalDocumentation = React.lazy(() => import("./pages/DentalDocumentation"));
+const BlogIndex = React.lazy(() => import("./pages/BlogIndex"));
+const BlogPost = React.lazy(() => import("./pages/BlogPost"));
 import KsaDocumentation from "./pages/KsaDocumentation";
 const DemoFaqDocumentation = React.lazy(() => import("./pages/DemoFaqDocumentation"));
 import SystemOverview from "./pages/SystemOverview";
