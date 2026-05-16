@@ -68,23 +68,9 @@ async function restoreLocale(): Promise<SupportedLocale> {
   return "en";
 }
 
-/**
- * Map deep link path → in-app route.
- * Custom URL scheme: `app.lovable.0eeac6953ca245ba87e8f046d5957181://<path>`
- * Universal/App link host: `0eeac695-3ca2-45ba-87e8-f046d5957181.lovableproject.com`
- */
-function resolveDeepLink(rawUrl: string): string | null {
-  try {
-    const url = new URL(rawUrl);
-    // Custom scheme → use pathname + search, with `/` fallback
-    let path = url.pathname || "/";
-    if (!path.startsWith("/")) path = "/" + path;
-    // Preserve query string for OAuth/payment returns
-    return path + (url.search || "") + (url.hash || "");
-  } catch {
-    return null;
-  }
-}
+// Deep-link URL → in-app route resolution lives in `./deep-links.ts`
+// so that other modules (payment dialog, Nafath, etc.) can build matching
+// return URLs via the same scheme.
 
 async function registerPushAsync(): Promise<void> {
   try {
