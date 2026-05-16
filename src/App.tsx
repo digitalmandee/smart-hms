@@ -286,6 +286,7 @@ import HipaaBreachesPage from "./pages/app/settings/HipaaBreachesPage";
 import BAAManagementPage from "./pages/app/settings/BAAManagementPage";
 import HipaaComplianceDashboardPage from "./pages/app/settings/HipaaComplianceDashboardPage";
 import SMSSettingsPage from "./pages/app/settings/SMSSettingsPage";
+import WhatsAppSettingsPage from "./pages/app/settings/WhatsAppSettingsPage";
 import ReportTemplatesPage from "./pages/app/settings/ReportTemplatesPage";
 import PublicLabReportPage from "./pages/public/PublicLabReportPage";
 import EmailSettingsPage from "./pages/app/settings/EmailSettingsPage";
@@ -1501,6 +1502,7 @@ function App() {
               <Route path="settings/payment-methods/:id" element={<PaymentMethodFormPage />} />
               <Route path="settings/notifications" element={<NotificationSettingsPage />} />
               <Route path="settings/sms" element={<SMSSettingsPage />} />
+              <Route path="settings/whatsapp" element={<WhatsAppSettingsPage />} />
               <Route path="settings/email" element={<EmailSettingsPage />} />
               <Route path="settings/email-templates" element={<EmailTemplatesPage />} />
               <Route path="settings/audit-logs" element={<AuditLogsPage />} />
