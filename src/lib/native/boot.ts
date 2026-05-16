@@ -277,11 +277,32 @@ export async function bootNative(): Promise<void> {
   PushNotifications.addListener("registrationError", (err) => {
     console.warn("[native-boot] push registration error", err);
   });
+  // Foreground push → surface as a local notification banner
+  PushNotifications.addListener("pushNotificationReceived", (notif) => {
+    handleForegroundPush({
+      title: notif.title,
+      body: notif.body,
+      data: notif.data as Record<string, any>,
+    });
+  });
+  // Tap on push → deep-link into the app
+  PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
+    handlePushTap(action.notification.data as Record<string, any> | undefined);
+  });
+  // Tap on a locally-scheduled notification (foreground push) → also route
+  LocalNotifications.addListener("localNotificationActionPerformed", (action) => {
+    handlePushTap(action.notification.extra as Record<string, any> | undefined);
+  });
 
-  // Only register push once the user has a session — defer until first auth event.
+  // Request local-notification permission too (Android 13+ / iOS).
+  LocalNotifications.requestPermissions().catch(() => {});
+
+  // Register push when session appears, deactivate tokens on sign-out.
   supabase.auth.onAuthStateChange((event, session) => {
     if (session && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION")) {
       registerPushAsync();
+    } else if (event === "SIGNED_OUT") {
+      deactivateDeviceTokens();
     }
   });
 }
