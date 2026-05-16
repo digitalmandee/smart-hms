@@ -21,7 +21,7 @@ import { Preferences } from "@capacitor/preferences";
 import { Network } from "@capacitor/network";
 import { PushNotifications } from "@capacitor/push-notifications";
 import { supabase } from "@/integrations/supabase/client";
-import { flushOutbox } from "@/lib/offline-sync/sync-engine";
+import { forceSync as flushOutbox } from "@/lib/offline-sync/sync-engine";
 
 type SupportedLocale = "en" | "ar" | "ur";
 const LOCALE_KEY = "healthos.locale";
