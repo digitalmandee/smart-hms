@@ -6,7 +6,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { useToast } from "@/hooks/use-toast";
-import { Heart, Loader2 } from "lucide-react";
+import { Heart, Loader2, Fingerprint } from "lucide-react";
+import { useCountryConfig } from "@/contexts/CountryConfigContext";
 import { useTranslation, useIsRTL } from "@/lib/i18n";
 
 export default function PortalLoginPage() {
@@ -15,9 +16,34 @@ export default function PortalLoginPage() {
   const rtl = useIsRTL();
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { country_code } = useCountryConfig();
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [nationalId, setNationalId] = useState("");
+  const [nafathLoading, setNafathLoading] = useState(false);
   const [loading, setLoading] = useState(false);
+
+  async function onNafath() {
+    if (!/^[12]\d{9}$/.test(nationalId)) {
+      toast({ title: t("nafath.noNationalId" as any), variant: "destructive" });
+      return;
+    }
+    setNafathLoading(true);
+    try {
+      const { data, error } = await supabase.functions.invoke("nafath-gateway", {
+        body: { action: "initiate_verification", national_id: nationalId },
+      });
+      if (error) throw error;
+      toast({
+        title: t("nafath.waiting" as any),
+        description: data?.random_number ? `${t("nafath.selectNumber" as any)} ${data.random_number}` : undefined,
+      });
+    } catch (err: any) {
+      toast({ title: t("nafath.error" as any), description: String(err?.message ?? err), variant: "destructive" });
+    } finally {
+      setNafathLoading(false);
+    }
+  }
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -66,6 +92,24 @@ export default function PortalLoginPage() {
             {t("portal.sign_in" as any)}
           </Button>
         </form>
+
+        {country_code === "SA" && (
+          <div className="space-y-3 bg-card border rounded-lg p-6">
+            <div className="flex items-center gap-2 text-sm font-medium">
+              <Fingerprint className="h-4 w-4 text-primary" />
+              {t("nafath.sso.title" as any)}
+            </div>
+            <p className="text-xs text-muted-foreground">{t("nafath.sso.description" as any)}</p>
+            <div className="space-y-2">
+              <Label htmlFor="nid">{t("nafath.sso.idLabel" as any)}</Label>
+              <Input id="nid" inputMode="numeric" maxLength={10} value={nationalId} onChange={(e) => setNationalId(e.target.value.replace(/\D/g, ""))} placeholder="1xxxxxxxxx" />
+            </div>
+            <Button type="button" variant="outline" className="w-full" disabled={nafathLoading} onClick={onNafath}>
+              {nafathLoading ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <Fingerprint className="h-4 w-4 me-2" />}
+              {t("nafath.sso.continue" as any)}
+            </Button>
+          </div>
+        )}
 
         <p className="text-center text-xs text-muted-foreground">
           {t("portal.need_account" as any)}{" "}

@@ -4590,5 +4590,21 @@ export const ar: Record<TranslationKey, string> = {
   "mobile.permission.notifications": "السماح بالإشعارات",
   "mobile.device.registered": "تم تسجيل الجهاز",
 
+  "whatsapp.queued": "تم وضع رسالة واتساب في قائمة الانتظار",
+  "whatsapp.sent": "تم إرسال رسالة واتساب",
+  "whatsapp.failed": "فشل تسليم واتساب",
+  "whatsapp.template.lab_result_ready": "نتيجة المختبر جاهزة",
+  "whatsapp.template.appointment_booked": "تم تأكيد موعدك",
+  "whatsapp.template.immunization_recorded": "تم تسجيل التطعيم",
+  "whatsapp.log.title": "سجل رسائل واتساب",
+  "whatsapp.log.recipient": "المستلم",
+  "whatsapp.log.template": "القالب",
+  "whatsapp.log.status": "الحالة",
+  "whatsapp.log.sentAt": "وقت الإرسال",
+  "whatsapp.log.empty": "لا توجد رسائل واتساب بعد",
+  "nafath.sso.title": "تسجيل الدخول عبر نفاذ",
+  "nafath.sso.description": "يمكن للمقيمين في السعودية تسجيل الدخول باستخدام هوية نفاذ الوطنية",
+  "nafath.sso.idLabel": "الهوية الوطنية / الإقامة",
+  "nafath.sso.continue": "المتابعة عبر نفاذ",
 };
 

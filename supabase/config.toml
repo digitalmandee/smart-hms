@@ -80,3 +80,6 @@ verify_jwt = false
 
 [functions.payment-status]
 verify_jwt = false
+
+[functions.whatsapp-dispatch]
+verify_jwt = false

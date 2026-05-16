@@ -4684,6 +4684,22 @@ export const en = {
   "mobile.permission.notifications": "Allow notifications",
   "mobile.device.registered": "Device registered",
 
+  "whatsapp.queued": "WhatsApp message queued",
+  "whatsapp.sent": "WhatsApp message sent",
+  "whatsapp.failed": "WhatsApp delivery failed",
+  "whatsapp.template.lab_result_ready": "Your lab result is ready",
+  "whatsapp.template.appointment_booked": "Your appointment is confirmed",
+  "whatsapp.template.immunization_recorded": "Vaccination recorded",
+  "whatsapp.log.title": "WhatsApp Message Log",
+  "whatsapp.log.recipient": "Recipient",
+  "whatsapp.log.template": "Template",
+  "whatsapp.log.status": "Status",
+  "whatsapp.log.sentAt": "Sent At",
+  "whatsapp.log.empty": "No WhatsApp messages yet",
+  "nafath.sso.title": "Sign in with Nafath",
+  "nafath.sso.description": "Saudi residents can sign in using Nafath national identity",
+  "nafath.sso.idLabel": "National ID / Iqama",
+  "nafath.sso.continue": "Continue with Nafath",
 } as const;
 
 export type TranslationKey = keyof typeof en;
