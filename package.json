@@ -13,7 +13,12 @@
     "preview": "vite preview",
     "test:e2e": "playwright test",
     "test:e2e:critical": "playwright test tests/e2e/critical-path",
-    "assets:generate": "capacitor-assets generate --iconBackgroundColor #0891b2 --iconBackgroundColorDark #0891b2 --splashBackgroundColor #0891b2 --splashBackgroundColorDark #0e7490"
+    "assets:generate": "capacitor-assets generate --iconBackgroundColor #0891b2 --iconBackgroundColorDark #0891b2 --splashBackgroundColor #0891b2 --splashBackgroundColorDark #0e7490",
+    "cap:sync:dev": "cp capacitor.config.dev.ts capacitor.config.ts && cap sync",
+    "cap:sync:prod": "git checkout capacitor.config.ts && cap sync",
+    "build:mobile": "npm run build && cap sync",
+    "build:mobile:android": "npm run build && cap sync android && cd android && ./gradlew assembleRelease",
+    "build:mobile:ios": "npm run build && cap sync ios"
   },
   "dependencies": {
     "@aparajita/capacitor-biometric-auth": "^10.0.0",

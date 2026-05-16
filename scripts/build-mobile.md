@@ -305,3 +305,32 @@ After editing native files, run:
 npx cap sync
 cd ios/App && pod install     # iOS only
 ```
+
+---
+
+## Release checklist
+
+Before tagging a release, walk through `scripts/qa-mobile-checklist.md` on a
+real Android device (and iOS if shipping there). Every required row must be
+Pass.
+
+### Convenience npm scripts (added in N12)
+
+```bash
+npm run cap:sync:dev          # swap to dev hot-reload config + cap sync
+npm run cap:sync:prod         # restore production config + cap sync
+npm run build:mobile          # vite build + cap sync (both platforms)
+npm run build:mobile:android  # full APK pipeline (requires Android SDK/JDK locally)
+npm run build:mobile:ios      # build + sync iOS (requires macOS + Xcode)
+npm run assets:generate       # regenerate icon/splash densities from resources/
+```
+
+### Release prerequisites (one-time per platform)
+
+**Android** — keystore in `android/app/build.gradle` `signingConfigs.release`,
+bumped `versionCode` / `versionName`, Play Console privacy policy + data-safety
+form filled.
+
+**iOS** — Apple Developer account, App ID matching `appId` in
+`capacitor.config.ts`, provisioning profile + dist cert in Xcode, bumped
+`CFBundleVersion`, App Privacy labels in App Store Connect.
