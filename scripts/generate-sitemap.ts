@@ -2,7 +2,7 @@
 import { writeFileSync } from "fs";
 import { resolve } from "path";
 
-const BASE_URL = "https://smart-hms.lovable.app";
+const BASE_URL = "https://healthos24.com";
 
 interface SitemapEntry {
   path: string;

@@ -1,0 +1,37 @@
+# HealthOS 24
+
+> 24/7 smart hospital management system covering OPD, IPD, pharmacy, lab, radiology, billing, HR and finance — with Arabic, English and Urdu UI.
+
+HealthOS 24 is an end-to-end hospital operating system. It unifies clinical workflows (OPD, IPD, surgery, dialysis, dental, blood bank, immunization, telemedicine, home care, mobile units), revenue-cycle modules (billing, insurance/NPHIES, ZATCA e-invoicing, deposits, vouchers) and back office (HR, payroll, procurement, warehouse, finance) in one platform.
+
+## Pages
+
+- [Home](/): Product overview and entry point.
+- [System overview](/system-overview): High-level architecture and module map.
+- [Presentation](/presentation): Product walkthrough deck.
+- [Executive presentation](/executive-presentation): Buyer-facing summary deck.
+- [Pricing proposal](/pricing-proposal): Pricing, plans and proposal.
+- [Contract](/contract): Sample engagement contract.
+- [Demo FAQ](/demo-faq): Common questions about the demo.
+
+## Documentation
+
+- [Documentation](/documentation): Master documentation index.
+- [OPD](/opd-documentation): Outpatient workflows.
+- [IPD](/ipd-documentation): Inpatient admissions, wards, discharge.
+- [OT](/ot-documentation): Operating theatre and surgery.
+- [Lab](/lab-documentation): Laboratory orders, specimens, reporting.
+- [Radiology](/radiology-documentation): Imaging orders and reports.
+- [Pharmacy](/pharmacy-documentation): Inventory, POS, dispensing.
+- [Warehouse](/warehouse-documentation): WMS, GRN, requisitions.
+- [Finance](/finance-documentation): Chart of accounts, GL, reconciliation.
+- [Finance demo guide](/finance-demo-guide): Walkthrough of finance flows.
+- [HR](/hr-documentation): Employees, payroll, clearance.
+- [Dialysis](/dialysis-documentation): Sessions, nurse/doctor workflow.
+- [Dental](/dental-documentation): 3D tooth chart and procedures.
+- [KSA compliance](/ksa-documentation): Nafath, Tatmeen, NPHIES, ZATCA.
+- [Pharmacy & Warehouse deck](/pharmacy-warehouse-presentation): Combined module deck.
+
+## Optional
+
+- [Social media posts](/social-media-posts): Marketing copy samples.
