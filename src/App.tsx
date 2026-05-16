@@ -1547,6 +1547,7 @@ function App() {
       </ErrorBoundary>
     </TooltipProvider>
   </QueryClientProvider>
+  </HelmetProvider>
   );
 }
 
