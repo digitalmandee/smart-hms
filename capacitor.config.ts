@@ -11,7 +11,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
  */
 const config: CapacitorConfig = {
   appId: 'app.lovable.0eeac6953ca245ba87e8f046d5957181',
-  appName: 'smart-hms',
+  appName: 'HealthOS 24',
   webDir: 'dist',
   // NOTE: no `server.url` in production — bundle is loaded from `dist/`.
   plugins: {

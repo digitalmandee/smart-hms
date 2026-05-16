@@ -1,50 +1,59 @@
-# Plan — Seed Mobile QA Test Users
+# Rebrand Native App → HealthOS 24
 
-Provision four reusable test accounts attached to **Shifa Medical Center → Main Branch - Gulberg** so we can exercise every mobile dashboard variant (`/mobile/*`) end-to-end.
+## Goal
+The installed Android/iOS build currently shows "smart-hms" under its launcher icon. Rename it to **HealthOS 24** and use the same gradient **"24" heartbeat mark** from the landing page (`HealthOS24Logo`) as the app icon and splash logo, so the phone home-screen matches the web brand.
 
-## Credentials
+## Changes
 
-Shared password: **`Devmine@098`**
+### 1. Capacitor app name
+- `capacitor.config.ts` → `appName: 'HealthOS 24'`
+- `capacitor.config.dev.ts` → `appName: 'HealthOS 24'`
 
-| Email | Role(s) | Lands on |
-|---|---|---|
-| `mobile.doctor@healthos24.test` | `doctor` | `DoctorMobileDashboard` |
-| `mobile.nurse@healthos24.test` | `nurse` | `NurseMobileDashboard` |
-| `mobile.staff@healthos24.test` | `receptionist` | `StaffMobileDashboard` |
-| `mobile.patient@healthos24.test` | `patient` | `PatientMobileDashboard` / portal |
+(`appId` stays the same — changing it would orphan existing installs and break OAuth redirects.)
 
-Org: `b1111111-1111-1111-1111-111111111111`  
-Branch: `c1111111-1111-1111-1111-111111111111`
+### 2. New icon source (1024×1024 PNG)
+Generate `resources/icon.png` from the same visual as `HealthOS24Logo`:
+- Rounded-square background, cyan gradient (`#0891b2 → #0e7490`)
+- White bold **"24"** centered, tight letter-spacing
+- White heartbeat line under the digits
+- Subtle inner highlight stroke for the glass effect
 
-## What the migration does
+Tool: `imagegen` (premium tier, transparent_background=false) at 1024×1024, saved to `resources/icon.png`. Overwrites the existing placeholder.
 
-Single idempotent SQL migration (`ON CONFLICT DO NOTHING`) that:
+### 3. New splash source (1920×1920 PNG)
+Generate `resources/splash.png`:
+- Solid `#0891b2` background
+- Centered "24" mark (~512px) — same gradient tile
+- "HealthOS" wordmark under it in white
 
-1. **`auth.users`** — inserts 4 users with bcrypted password (`crypt('Devmine@098', gen_salt('bf'))`), `email_confirmed_at = now()`, deterministic UUIDs so re-runs are safe.
-2. **`auth.identities`** — matching email identity rows for password login.
-3. **`public.profiles`** — `id`, `email`, `full_name`, `organization_id`, `branch_id`, `is_active = true`.
-4. **`public.user_roles`** — one row per user with the role above (enum `app_role`).
-5. **Doctor extras** — `public.doctors` row (specialization, license, consultation_fee 500) so OPD/appointment screens have a valid provider record.
-6. **Nurse extras** — `public.nurses` row (license, designation).
-7. **Staff extras** — `public.employees` row (designation = Receptionist).
-8. **Patient extras** — `public.patients` row (MRN auto-gen, gender M, DOB, phone) linked back to the auth user via `user_id` so the patient portal/mobile dashboard resolves.
-9. **Optional** — register fake `device_registrations` entries so push-token UI has visible state (skipped unless you want it).
+Saved to `resources/splash.png`.
 
-## Verification after migration
+### 4. QA + scripts text
+- `scripts/qa-mobile-checklist.md` line 11 → update expected app name to **"HealthOS 24"**.
+- Leave `scripts/build-mobile.md` deep-link example URL alone (it's the published web domain, unrelated to app name).
 
-- Login each account on the web preview → should redirect into the correct mobile dashboard when viewport is mobile.
-- Confirm `useAuth().roles` resolves the assigned role.
-- On the APK, walk `scripts/qa-mobile-checklist.md` per persona.
+### 5. Regenerate native assets (user-side step, documented only)
+After they `git pull` they must run:
+```bash
+npm install
+npm run assets:generate   # rewrites mipmap-* + AppIcon.appiconset + Splash.imageset
+npx cap sync
+```
+Then `npx cap run android` / `ios`. This is already covered by `resources/README.md`; no edit needed there.
 
-## Files touched
+## Out of scope (not touched in this pass)
+- `SystemOverview.tsx`, `TestCasesPage.tsx`, FHIR `software.name`, CORS allowlist, `PrintableLabReport` QR URL, `super-admin` page description — these are internal/web copy or backend identifiers, not the installed app label. Happy to rename in a follow-up if you want a full sweep.
+- `appId` — kept stable on purpose.
+- Web favicon / `<title>` — not part of this request (native app only).
 
-- **New migration** (auto-named by the tool) — all inserts above.
-- No app code changes.
+## Files changed
+- `capacitor.config.ts`
+- `capacitor.config.dev.ts`
+- `resources/icon.png` (regenerated)
+- `resources/splash.png` (regenerated)
+- `scripts/qa-mobile-checklist.md`
 
-## Notes / caveats
-
-- Test emails use `.test` TLD so they will never deliver real mail and won't collide with production users.
-- Re-running the migration is safe (ON CONFLICT on every table).
-- If you later want to remove them: `DELETE FROM auth.users WHERE email LIKE 'mobile.%@healthos24.test'` cascades through `profiles`, `user_roles`, `doctors`, `nurses`, `employees`, `patients` (all have ON DELETE CASCADE on `user_id` / `id`).
-
-Approve to run the migration.
+## Verification
+- `grep appName capacitor.config*.ts` → both show `HealthOS 24`.
+- Open `resources/icon.png` preview → cyan-gradient "24" tile matches landing-page logo.
+- After user runs `npm run assets:generate && npx cap sync && npx cap run android`, launcher shows **HealthOS 24** with the "24" icon.

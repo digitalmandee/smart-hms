@@ -8,7 +8,7 @@ Walk through every row on a real Android device and (if available) a real iPhone
 - [ ] Splash dismisses cleanly into dashboard (no white flash)
 - [ ] App icon on home screen matches `resources/icon.png` (rounded teal background, logo centered)
 - [ ] Status bar tinted teal, content not clipped on notch devices
-- [ ] App name reads "smart-hms" (or rebrand value configured in `capacitor.config.ts`)
+- [ ] App name reads "HealthOS 24" (configured in `capacitor.config.ts`)
 
 ## Offline / network
 

@@ -9,7 +9,7 @@ import type { CapacitorConfig } from '@capacitor/cli';
  */
 const config: CapacitorConfig = {
   appId: 'app.lovable.0eeac6953ca245ba87e8f046d5957181',
-  appName: 'smart-hms',
+  appName: 'HealthOS 24',
   webDir: 'dist',
   server: {
     url: 'https://0eeac695-3ca2-45ba-87e8-f046d5957181.lovableproject.com?forceHideBadge=true',
