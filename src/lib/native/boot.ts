@@ -20,6 +20,8 @@ import { StatusBar, Style } from "@capacitor/status-bar";
 import { Preferences } from "@capacitor/preferences";
 import { Network } from "@capacitor/network";
 import { PushNotifications } from "@capacitor/push-notifications";
+import { LocalNotifications } from "@capacitor/local-notifications";
+import { Device } from "@capacitor/device";
 import { supabase } from "@/integrations/supabase/client";
 import { forceSync as flushOutbox } from "@/lib/offline-sync/sync-engine";
 
@@ -100,15 +102,42 @@ async function upsertDeviceToken(token: string) {
   try {
     const { data: { user } } = await supabase.auth.getUser();
     if (!user) return;
+
+    // Lookup organization_id so push fan-out by org works.
+    let organization_id: string | null = null;
+    try {
+      const { data: prof } = await supabase
+        .from("profiles")
+        .select("organization_id")
+        .eq("id", user.id)
+        .maybeSingle();
+      organization_id = prof?.organization_id ?? null;
+    } catch {
+      /* non-fatal */
+    }
+
+    let deviceId: string | null = null;
+    let deviceName = navigator.userAgent.substring(0, 100);
+    try {
+      const id = await Device.getId();
+      deviceId = id.identifier;
+      const info = await Device.getInfo();
+      deviceName = `${info.manufacturer ?? ""} ${info.model ?? info.platform} (${info.osVersion ?? ""})`.trim();
+    } catch {
+      /* fall back to UA */
+    }
+
     const platform = Capacitor.getPlatform();
     await (supabase as any)
       .from("push_device_tokens")
       .upsert(
         {
           user_id: user.id,
+          organization_id,
           token,
           platform,
-          device_name: navigator.userAgent.substring(0, 100),
+          device_id: deviceId,
+          device_name: deviceName,
           is_active: true,
           last_used_at: new Date().toISOString(),
         },
@@ -117,6 +146,60 @@ async function upsertDeviceToken(token: string) {
   } catch (e) {
     console.warn("[native-boot] device token upsert failed", e);
   }
+}
+
+async function deactivateDeviceTokens() {
+  try {
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+    let deviceId: string | null = null;
+    try {
+      const id = await Device.getId();
+      deviceId = id.identifier;
+    } catch {
+      /* ignore */
+    }
+    let q = (supabase as any)
+      .from("push_device_tokens")
+      .update({ is_active: false })
+      .eq("user_id", user.id);
+    if (deviceId) q = q.eq("device_id", deviceId);
+    await q;
+  } catch (e) {
+    console.warn("[native-boot] deactivate device tokens failed", e);
+  }
+}
+
+/** Surface an incoming push as a local notification when the app is foregrounded. */
+async function handleForegroundPush(notification: {
+  title?: string;
+  body?: string;
+  data?: Record<string, any>;
+}) {
+  try {
+    await LocalNotifications.schedule({
+      notifications: [
+        {
+          id: Date.now() % 2147483647,
+          title: notification.title || "HealthOS 24",
+          body: notification.body || "",
+          extra: notification.data ?? {},
+          smallIcon: "ic_stat_icon",
+          iconColor: "#0891b2",
+        },
+      ],
+    });
+  } catch (e) {
+    console.warn("[native-boot] local notification failed", e);
+  }
+}
+
+/** Route into the app when the user taps a push. */
+function handlePushTap(data: Record<string, any> | undefined) {
+  const route = data?.route || data?.url;
+  if (typeof route !== "string" || !route.startsWith("/")) return;
+  window.history.pushState({}, "", route);
+  window.dispatchEvent(new PopStateEvent("popstate"));
 }
 
 /**
@@ -194,11 +277,32 @@ export async function bootNative(): Promise<void> {
   PushNotifications.addListener("registrationError", (err) => {
     console.warn("[native-boot] push registration error", err);
   });
+  // Foreground push → surface as a local notification banner
+  PushNotifications.addListener("pushNotificationReceived", (notif) => {
+    handleForegroundPush({
+      title: notif.title,
+      body: notif.body,
+      data: notif.data as Record<string, any>,
+    });
+  });
+  // Tap on push → deep-link into the app
+  PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
+    handlePushTap(action.notification.data as Record<string, any> | undefined);
+  });
+  // Tap on a locally-scheduled notification (foreground push) → also route
+  LocalNotifications.addListener("localNotificationActionPerformed", (action) => {
+    handlePushTap(action.notification.extra as Record<string, any> | undefined);
+  });
 
-  // Only register push once the user has a session — defer until first auth event.
+  // Request local-notification permission too (Android 13+ / iOS).
+  LocalNotifications.requestPermissions().catch(() => {});
+
+  // Register push when session appears, deactivate tokens on sign-out.
   supabase.auth.onAuthStateChange((event, session) => {
     if (session && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION")) {
       registerPushAsync();
+    } else if (event === "SIGNED_OUT") {
+      deactivateDeviceTokens();
     }
   });
 }
