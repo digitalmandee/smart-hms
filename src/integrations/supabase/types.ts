@@ -26965,6 +26965,59 @@ export type Database = {
           },
         ]
       }
+      whatsapp_message_log: {
+        Row: {
+          created_at: string
+          error_message: string | null
+          id: string
+          language_code: string
+          patient_id: string | null
+          payload: Json
+          provider_message_id: string | null
+          recipient_phone: string
+          sent_at: string | null
+          status: string
+          template_name: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          language_code?: string
+          patient_id?: string | null
+          payload?: Json
+          provider_message_id?: string | null
+          recipient_phone: string
+          sent_at?: string | null
+          status?: string
+          template_name: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          error_message?: string | null
+          id?: string
+          language_code?: string
+          patient_id?: string | null
+          payload?: Json
+          provider_message_id?: string | null
+          recipient_phone?: string
+          sent_at?: string | null
+          status?: string
+          template_name?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "whatsapp_message_log_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Views: {
       [_ in never]: never
@@ -26990,6 +27043,10 @@ export type Database = {
           session_id: string
           session_token: string
         }[]
+      }
+      enqueue_whatsapp_notification: {
+        Args: { p_patient_id: string; p_payload: Json; p_template: string }
+        Returns: undefined
       }
       find_opd_department_by_specialization: {
         Args: { p_branch_id: string; p_specialization_id: string }
