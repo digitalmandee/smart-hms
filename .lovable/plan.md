@@ -12,6 +12,7 @@ Done so far (Chunks 1–10, plus refinements):
 - **Chunk 9** Nafath SSO + WhatsApp dispatch (`whatsapp-dispatch` edge fn + log table)
 - **Chunk 10** FHIR R4 server (`fhir-server` edge fn, SMART config, client credentials)
 - **Chunk 11** Sehhaty bidirectional sync (`sehhaty-sync` edge fn, pull tables, health dashboard)
+- **Chunk 12** Hardening + pilot rollout (PHI mask sweep, k6 load test, pilot playbook)
 - Side track: SEO blog (20 posts), sitemap, GSC verification
 
 Remaining from the original 6-month Wave 1 (Months 5–6):
