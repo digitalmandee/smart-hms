@@ -24,9 +24,10 @@ const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
 };
 
 export default function ImmunizationsListPage() {
-  const { profile } = useAuth();
+  const { profile, user } = useAuth();
   const { t } = useTranslation();
   const qc = useQueryClient();
+  const { online } = useOfflineSync();
   const orgId = profile?.organization_id;
 
   const { data: rows, isLoading } = useQuery({
