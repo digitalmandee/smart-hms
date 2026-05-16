@@ -37,7 +37,7 @@ export function MobileHeader() {
 
   return (
     <>
-      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg supports-[backdrop-filter]:bg-background/80 border-b border-border mobile-header">
+      <header className="sticky top-0 z-40 bg-background/95 backdrop-blur-lg supports-[backdrop-filter]:bg-background/80 border-b border-border mobile-header safe-area-top safe-area-x">
         <div className={cn("flex items-center justify-between h-14 px-4", isRTL && "flex-row-reverse")}>
           {/* Left - Menu & Search */}
           <div className="flex items-center gap-1">
