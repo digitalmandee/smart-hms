@@ -14,11 +14,16 @@ Brand colors (HealthOS24):
 
 ## Regenerate native assets
 
+**MANDATORY** any time you change `resources/icon.png` or `resources/splash.png`
+— `npx cap sync` alone does NOT rebuild the per-density mipmaps / splash images.
 Run **after** `npx cap add android` / `npx cap add ios` has created the native
 platform folders:
 
 ```bash
-npm run assets:generate
+npm install
+npm run assets:generate    # rewrites every Android mipmap + iOS AppIcon + splash
+npx cap sync
+npx cap run android        # or: npx cap run ios
 ```
 
 This invokes `npx capacitor-assets generate --iconBackgroundColor #0891b2 --splashBackgroundColor #0891b2`

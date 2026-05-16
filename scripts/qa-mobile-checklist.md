@@ -6,9 +6,11 @@ Walk through every row on a real Android device and (if available) a real iPhone
 
 - [ ] Cold launch shows HealthOS24 teal splash (`#0891b2`) within < 1.5 s
 - [ ] Splash dismisses cleanly into dashboard (no white flash)
-- [ ] App icon on home screen matches `resources/icon.png` (rounded teal background, logo centered)
+- [ ] Splash shows the cyan **"24" heartbeat** mark (matches `resources/splash.png` and the launcher icon — NOT an old placeholder)
+- [ ] App icon on home screen matches `resources/icon.png` (cyan rounded tile with white "24" + heartbeat)
 - [ ] Status bar tinted teal, content not clipped on notch devices
 - [ ] App name reads "HealthOS 24" (configured in `capacitor.config.ts`)
+- [ ] Tap email/password on the mobile login screen → form stays visible, no blank background when keyboard opens
 
 ## Offline / network
 

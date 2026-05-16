@@ -111,18 +111,22 @@ export default function MobileLoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
-    
+
     try {
       const { error } = await signIn(data.email, data.password);
-      
+
       if (error) {
         toast.error("Login failed", { description: error.message });
         return;
       }
 
       toast.success("Welcome back!");
-      await promptEnableBiometric(data.email);
+      // Navigate first — biometric prompt is fire-and-forget so a native
+      // prompt failure can't take down the post-login flow (Android crash).
       navigate("/mobile/dashboard", { replace: true });
+      void promptEnableBiometric(data.email).catch(() => {
+        /* user declined or native module unavailable */
+      });
     } catch (err) {
       toast.error("An error occurred");
     } finally {
@@ -209,27 +213,27 @@ export default function MobileLoginPage() {
 
   return (
     <div className="min-h-screen flex flex-col bg-background safe-area-all">
-      {/* Header with gradient */}
-      <div className="relative bg-gradient-to-br from-primary to-primary/80 px-6 pt-16 pb-12">
+      {/* Header with gradient — shrinks gracefully when keyboard opens */}
+      <div className="relative bg-gradient-to-br from-primary to-primary/80 px-6 pt-12 pb-10 flex-shrink-0">
         <div className="flex flex-col items-center">
           <HealthOS24Logo variant="icon" size="lg" className="text-white" />
           <h1 className="text-2xl font-bold text-white mt-4">Welcome Back</h1>
           <p className="text-white/80 text-sm mt-1">Sign in to continue</p>
         </div>
-        
+
         {/* Curved bottom */}
-        <div className="absolute bottom-0 left-0 right-0 h-6">
+        <div className="absolute bottom-0 left-0 right-0 h-6 pointer-events-none">
           <svg viewBox="0 0 100 10" preserveAspectRatio="none" className="w-full h-full">
-            <path 
-              d="M0 10 Q50 0 100 10 L100 10 L0 10" 
-              fill="hsl(var(--background))" 
+            <path
+              d="M0 10 Q50 0 100 10 L100 10 L0 10"
+              fill="hsl(var(--background))"
             />
           </svg>
         </div>
       </div>
 
-      {/* Login Form */}
-      <div className="flex-1 px-6 py-8">
+      {/* Login Form — scrollable so the keyboard never hides inputs */}
+      <div className="flex-1 px-6 py-8 overflow-y-auto">
         <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
           {/* Email */}
           <div className="space-y-2">
