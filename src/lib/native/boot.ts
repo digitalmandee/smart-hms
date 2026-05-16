@@ -218,121 +218,99 @@ function handlePushTap(data: Record<string, any> | undefined) {
  * No-op on web.
  */
 export async function bootNative(): Promise<void> {
-  if (booted) return;
+  console.log("[native-boot] enter", { native: Capacitor.isNativePlatform(), platform: Capacitor.getPlatform() });
+  if (booted) { console.log("[native-boot] already booted"); return; }
   booted = true;
 
-  // Always restore locale (web + native) so the document direction is correct
-  // even before React mounts.
-  const locale = await restoreLocale();
-  applyLocaleToDocument(locale);
+  try {
+    const locale = await restoreLocale();
+    console.log("[native-boot] locale restored", locale);
+    applyLocaleToDocument(locale);
+  } catch (e) {
+    console.error("[native-boot] locale step failed", e);
+  }
 
-  if (!Capacitor.isNativePlatform()) return;
+  if (!Capacitor.isNativePlatform()) { console.log("[native-boot] web — exit"); return; }
 
-  // --- Status bar ---
   try {
     await StatusBar.setStyle({ style: Style.Light });
     if (Capacitor.getPlatform() === "android") {
       await StatusBar.setBackgroundColor({ color: "#0891b2" });
     }
-  } catch {
-    /* device may not support it */
-  }
+    console.log("[native-boot] status bar set");
+  } catch (e) { console.warn("[native-boot] status bar failed", e); }
 
-  // --- Splash: hide once first paint is done ---
-  // Defer one tick so the React root has a chance to render its skeleton.
+  // Safety: always force-hide splash after 3s so a JS error can't leave
+  // the user staring at a frozen splash that the OS may kill as ANR.
+  setTimeout(() => { SplashScreen.hide().catch(() => {}); }, 3000);
   requestAnimationFrame(() => {
-    setTimeout(() => {
-      SplashScreen.hide().catch(() => {});
-    }, 200);
+    setTimeout(() => { SplashScreen.hide().catch(() => {}); console.log("[native-boot] splash hidden"); }, 200);
   });
 
-  // --- App lifecycle: resume → flush offline outbox ---
-  App.addListener("appStateChange", ({ isActive }) => {
-    if (isActive) {
-      document.body.classList.remove("app-paused");
-      flushOnResume("resume");
-    } else {
-      document.body.classList.add("app-paused");
-    }
-  });
-
-  // --- Network change: flush outbox when coming back online ---
-  Network.addListener("networkStatusChange", (status) => {
-    if (status.connected) {
-      flushOnResume("online");
-    }
-  });
-
-  // --- Deep links: payment return, magic links, Nafath callbacks ---
-  App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
-    const path = resolveDeepLink(event.url);
-    if (!path) return;
-    navigateToDeepLink(path);
-  });
-
-  // --- Android hardware back button ---
-  // Screens can intercept via `useBackButton(handler)`. Falls through to
-  // history-back, then a "press again to exit" double-tap guard at root.
-  let lastBackPressAt = 0;
-  App.addListener("backButton", async ({ canGoBack }) => {
-    // Walk page-level handlers most-recent first; any truthy return consumes.
-    for (let i = backButtonStack.length - 1; i >= 0; i--) {
-      try {
-        if (await backButtonStack[i]()) return;
-      } catch {
-        /* keep iterating */
-      }
-    }
-    if (canGoBack && window.history.length > 1) {
-      window.history.back();
-      return;
-    }
-    const now = Date.now();
-    if (now - lastBackPressAt < 2000) {
-      App.exitApp();
-      return;
-    }
-    lastBackPressAt = now;
-    try {
-      import("sonner").then(({ toast }) => toast("Press back again to exit"));
-    } catch {
-      /* non-fatal */
-    }
-  });
-
-  // --- Push notifications ---
-  PushNotifications.addListener("registration", (token) => {
-    upsertDeviceToken(token.value);
-  });
-  PushNotifications.addListener("registrationError", (err) => {
-    console.warn("[native-boot] push registration error", err);
-  });
-  // Foreground push → surface as a local notification banner
-  PushNotifications.addListener("pushNotificationReceived", (notif) => {
-    handleForegroundPush({
-      title: notif.title,
-      body: notif.body,
-      data: notif.data as Record<string, any>,
+  try {
+    App.addListener("appStateChange", ({ isActive }) => {
+      console.log("[native-boot] appStateChange", isActive);
+      if (isActive) { document.body.classList.remove("app-paused"); flushOnResume("resume"); }
+      else { document.body.classList.add("app-paused"); }
     });
-  });
-  // Tap on push → deep-link into the app
-  PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
-    handlePushTap(action.notification.data as Record<string, any> | undefined);
-  });
-  // Tap on a locally-scheduled notification (foreground push) → also route
-  LocalNotifications.addListener("localNotificationActionPerformed", (action) => {
-    handlePushTap(action.notification.extra as Record<string, any> | undefined);
-  });
 
-  // Request local-notification permission too (Android 13+ / iOS).
-  LocalNotifications.requestPermissions().catch(() => {});
+    Network.addListener("networkStatusChange", (status) => {
+      console.log("[native-boot] network", status);
+      if (status.connected) flushOnResume("online");
+    });
 
-  // Register push when session appears, deactivate tokens on sign-out.
-  supabase.auth.onAuthStateChange((event, session) => {
-    if (session && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION")) {
-      registerPushAsync();
-    } else if (event === "SIGNED_OUT") {
-      deactivateDeviceTokens();
-    }
-  });
+    App.addListener("appUrlOpen", (event: URLOpenListenerEvent) => {
+      console.log("[native-boot] appUrlOpen", event.url);
+      const path = resolveDeepLink(event.url);
+      if (!path) return;
+      navigateToDeepLink(path);
+    });
+
+    let lastBackPressAt = 0;
+    App.addListener("backButton", async ({ canGoBack }) => {
+      for (let i = backButtonStack.length - 1; i >= 0; i--) {
+        try { if (await backButtonStack[i]()) return; } catch { /* keep iterating */ }
+      }
+      if (canGoBack && window.history.length > 1) { window.history.back(); return; }
+      const now = Date.now();
+      if (now - lastBackPressAt < 2000) { App.exitApp(); return; }
+      lastBackPressAt = now;
+      try { import("sonner").then(({ toast }) => toast("Press back again to exit")); } catch { /* nf */ }
+    });
+    console.log("[native-boot] app listeners registered");
+  } catch (e) { console.error("[native-boot] app listener registration failed", e); }
+
+  try {
+    PushNotifications.addListener("registration", (token) => {
+      console.log("[native-boot] push registration token len", token.value?.length);
+      upsertDeviceToken(token.value).catch((e) => console.warn("[native-boot] upsert failed", e));
+    });
+    PushNotifications.addListener("registrationError", (err) => {
+      console.warn("[native-boot] push registration error", err);
+    });
+    PushNotifications.addListener("pushNotificationReceived", (notif) => {
+      handleForegroundPush({ title: notif.title, body: notif.body, data: notif.data as Record<string, any> });
+    });
+    PushNotifications.addListener("pushNotificationActionPerformed", (action) => {
+      handlePushTap(action.notification.data as Record<string, any> | undefined);
+    });
+    LocalNotifications.addListener("localNotificationActionPerformed", (action) => {
+      handlePushTap(action.notification.extra as Record<string, any> | undefined);
+    });
+    LocalNotifications.requestPermissions().catch((e) => console.warn("[native-boot] local notif perms", e));
+    console.log("[native-boot] push listeners registered");
+  } catch (e) { console.error("[native-boot] push listener registration failed", e); }
+
+  try {
+    supabase.auth.onAuthStateChange((event, session) => {
+      console.log("[native-boot] authStateChange", event, !!session);
+      if (session && (event === "SIGNED_IN" || event === "TOKEN_REFRESHED" || event === "INITIAL_SESSION")) {
+        registerPushAsync().catch((e) => console.warn("[native-boot] registerPushAsync failed", e));
+      } else if (event === "SIGNED_OUT") {
+        deactivateDeviceTokens().catch((e) => console.warn("[native-boot] deactivateDeviceTokens failed", e));
+      }
+    });
+  } catch (e) { console.error("[native-boot] auth subscription failed", e); }
+
+  console.log("[native-boot] complete");
 }
