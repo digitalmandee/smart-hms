@@ -9995,32 +9995,80 @@ export type Database = {
           },
         ]
       }
+      fhir_clients: {
+        Row: {
+          client_id: string
+          client_secret_hash: string
+          created_at: string
+          created_by: string | null
+          display_name: string
+          id: string
+          is_active: boolean
+          last_used_at: string | null
+          organization_id: string
+          scopes: string
+          updated_at: string
+        }
+        Insert: {
+          client_id: string
+          client_secret_hash: string
+          created_at?: string
+          created_by?: string | null
+          display_name: string
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          organization_id: string
+          scopes?: string
+          updated_at?: string
+        }
+        Update: {
+          client_id?: string
+          client_secret_hash?: string
+          created_at?: string
+          created_by?: string | null
+          display_name?: string
+          id?: string
+          is_active?: boolean
+          last_used_at?: string | null
+          organization_id?: string
+          scopes?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       fhir_resource_cache: {
         Row: {
           id: string
           last_updated: string
           organization_id: string
+          patient_id: string | null
           resource: Json
           resource_id: string
           resource_type: string
+          source_updated_at: string | null
           version_id: string | null
         }
         Insert: {
           id?: string
           last_updated?: string
           organization_id: string
+          patient_id?: string | null
           resource: Json
           resource_id: string
           resource_type: string
+          source_updated_at?: string | null
           version_id?: string | null
         }
         Update: {
           id?: string
           last_updated?: string
           organization_id?: string
+          patient_id?: string | null
           resource?: Json
           resource_id?: string
           resource_type?: string
+          source_updated_at?: string | null
           version_id?: string | null
         }
         Relationships: []

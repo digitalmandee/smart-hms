@@ -83,3 +83,6 @@ verify_jwt = false
 
 [functions.whatsapp-dispatch]
 verify_jwt = false
+
+[functions.fhir-server]
+verify_jwt = false

@@ -1,12 +1,16 @@
 ## Wave 1 status recap
 
-Done so far (Chunks 1–6, plus refinements):
+Done so far (Chunks 1–10, plus refinements):
 - **Chunk 1** Offline-Sync Engine (IndexedDB outbox, `cow-sync`, AuthContext wiring, OfflineIndicator)
 - **Chunk 2** KSA Payments (HyperPay, Tap, STC Pay scaffolded — credentials pending)
 - **Chunk 3** Clinic on Wheels (`/app/mobile-units/*`)
 - **Chunk 4** Home Healthcare (`/app/home-care/*`, offline-wired)
 - **Chunk 5** Immunizations + vaccine_lots trigger (`/app/immunizations`)
 - **Chunk 6** Telemedicine (`/app/telemedicine`, consent + duration)
+- **Chunk 7** Patient Portal (`/portal/*`, RLS + portal layout)
+- **Chunk 8** Capacitor mobile shell (native wrappers + push + device registration)
+- **Chunk 9** Nafath SSO + WhatsApp dispatch (`whatsapp-dispatch` edge fn + log table)
+- **Chunk 10** FHIR R4 server (`fhir-server` edge fn, SMART config, client credentials)
 - Side track: SEO blog (20 posts), sitemap, GSC verification
 
 Remaining from the original 6-month Wave 1 (Months 5–6):
