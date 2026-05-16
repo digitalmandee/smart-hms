@@ -4742,7 +4742,6 @@ export const en = {
   "healthnet.recent": "Recent Sync Activity",
   "healthnet.recentDesc": "Last 20 pull/push events",
   "healthnet.empty": "No sync activity yet",
-  "common.refresh": "Refresh",
 } as const;
 
 export type TranslationKey = keyof typeof en;
