@@ -25,7 +25,7 @@ After `git pull` + `npm install` + `npm run build` + `npx cap sync`, the user ca
 N1  [DONE] Switch to production bundle mode (remove server.url, add dev profile)
 N2  [DONE] Native boot orchestrator (splash, status bar, locale, role-routing)
 N3  [DONE] Safe-area + viewport CSS (notch, gesture bar, keyboard avoidance)
-N4  Native shell routing (auto-redirect to /mobile/* on native by role)
+N4  [DONE] Native shell routing (auto-redirect to /mobile/* on native by role)
 N5  Biometric login (Face ID / fingerprint) + secure-storage session
 N6  Push notifications wiring (FCM/APNs token → device_registrations)
 N7  Deep-link handler (payments, Nafath, magic links → /~oauth)
