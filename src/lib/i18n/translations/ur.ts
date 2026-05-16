@@ -4578,5 +4578,17 @@ export const ur: Record<TranslationKey, string> = {
   "portal.profile.nafath_verified": "نفاذ تصدیق شدہ",
   "portal.profile.contact_clinic_to_update": "ذاتی تفصیلات اپڈیٹ کرنے کے لیے کلینک سے رابطہ کریں۔",
 
+  "mobile.install.title": "ایپ انسٹال کریں",
+  "mobile.install.body": "تیز رسائی اور پش نوٹیفکیشن کے لیے اس ایپ کو ہوم اسکرین پر شامل کریں۔",
+  "mobile.install.cta": "انسٹال کریں",
+  "mobile.offline": "آپ آف لائن ہیں",
+  "mobile.online": "دوبارہ آن لائن",
+  "mobile.biometric.enable": "بایومیٹرک لاگ ان فعال کریں",
+  "mobile.biometric.unavailable": "اس ڈیوائس پر بایومیٹرک دستیاب نہیں",
+  "mobile.permission.location": "مقام تک رسائی کی اجازت دیں",
+  "mobile.permission.camera": "کیمرہ تک رسائی کی اجازت دیں",
+  "mobile.permission.notifications": "نوٹیفکیشن کی اجازت دیں",
+  "mobile.device.registered": "ڈیوائس رجسٹرڈ ہو گیا",
+
 };
 

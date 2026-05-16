@@ -4578,5 +4578,17 @@ export const ar: Record<TranslationKey, string> = {
   "portal.profile.nafath_verified": "موثّق بنفاذ",
   "portal.profile.contact_clinic_to_update": "لتحديث البيانات الشخصية، يرجى التواصل مع العيادة.",
 
+  "mobile.install.title": "تثبيت التطبيق",
+  "mobile.install.body": "أضف التطبيق إلى الشاشة الرئيسية للوصول الأسرع والإشعارات الفورية.",
+  "mobile.install.cta": "تثبيت",
+  "mobile.offline": "أنت غير متصل بالإنترنت",
+  "mobile.online": "عاد الاتصال",
+  "mobile.biometric.enable": "تفعيل تسجيل الدخول بالبصمة",
+  "mobile.biometric.unavailable": "البصمة غير متاحة على هذا الجهاز",
+  "mobile.permission.location": "السماح بالوصول إلى الموقع",
+  "mobile.permission.camera": "السماح بالوصول إلى الكاميرا",
+  "mobile.permission.notifications": "السماح بالإشعارات",
+  "mobile.device.registered": "تم تسجيل الجهاز",
+
 };
 
