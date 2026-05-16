@@ -22,8 +22,8 @@ export const MobileLayout = () => {
       
       {/* Main Content - scrollable area with native feel */}
       <main className={cn(
-        "flex-1 overflow-y-auto overscroll-contain scroll-container",
-        !isAuthPage && "pb-20" // Space for bottom navigation
+        "flex-1 overflow-y-auto overscroll-contain scroll-container native-scroll",
+        !isAuthPage && "pb-[calc(5rem+var(--safe-bottom))]" // bottom nav + home indicator
       )}>
         <div className="min-h-full mobile-page-content">
           <Outlet />
