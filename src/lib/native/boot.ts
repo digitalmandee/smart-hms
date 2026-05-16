@@ -25,6 +25,7 @@ import { Device } from "@capacitor/device";
 import { supabase } from "@/integrations/supabase/client";
 import { forceSync as flushOutbox } from "@/lib/offline-sync/sync-engine";
 import { resolveDeepLink, navigateToDeepLink } from "@/lib/native/deep-links";
+import { backButtonStack } from "@/hooks/useBackButton";
 
 type SupportedLocale = "en" | "ar" | "ur";
 const LOCALE_KEY = "healthos.locale";
@@ -247,11 +248,32 @@ export async function bootNative(): Promise<void> {
   });
 
   // --- Android hardware back button ---
-  App.addListener("backButton", ({ canGoBack }) => {
+  // Screens can intercept via `useBackButton(handler)`. Falls through to
+  // history-back, then a "press again to exit" double-tap guard at root.
+  let lastBackPressAt = 0;
+  App.addListener("backButton", async ({ canGoBack }) => {
+    // Walk page-level handlers most-recent first; any truthy return consumes.
+    for (let i = backButtonStack.length - 1; i >= 0; i--) {
+      try {
+        if (await backButtonStack[i]()) return;
+      } catch {
+        /* keep iterating */
+      }
+    }
     if (canGoBack && window.history.length > 1) {
       window.history.back();
-    } else {
+      return;
+    }
+    const now = Date.now();
+    if (now - lastBackPressAt < 2000) {
       App.exitApp();
+      return;
+    }
+    lastBackPressAt = now;
+    try {
+      import("sonner").then(({ toast }) => toast("Press back again to exit"));
+    } catch {
+      /* non-fatal */
     }
   });
 
