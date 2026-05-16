@@ -4671,6 +4671,19 @@ export const en = {
   "portal.profile.nafath_verified": "Nafath verified",
   "portal.profile.contact_clinic_to_update": "To update personal details, please contact your clinic.",
 
+  // Mobile / native
+  "mobile.install.title": "Install the app",
+  "mobile.install.body": "Add this app to your home screen for faster access and push notifications.",
+  "mobile.install.cta": "Install",
+  "mobile.offline": "You are offline",
+  "mobile.online": "Back online",
+  "mobile.biometric.enable": "Enable biometric login",
+  "mobile.biometric.unavailable": "Biometric not available on this device",
+  "mobile.permission.location": "Allow location access",
+  "mobile.permission.camera": "Allow camera access",
+  "mobile.permission.notifications": "Allow notifications",
+  "mobile.device.registered": "Device registered",
+
 } as const;
 
 export type TranslationKey = keyof typeof en;
