@@ -4590,5 +4590,21 @@ export const ur: Record<TranslationKey, string> = {
   "mobile.permission.notifications": "نوٹیفکیشن کی اجازت دیں",
   "mobile.device.registered": "ڈیوائس رجسٹرڈ ہو گیا",
 
+  "whatsapp.queued": "واٹس ایپ پیغام قطار میں ہے",
+  "whatsapp.sent": "واٹس ایپ پیغام بھیج دیا گیا",
+  "whatsapp.failed": "واٹس ایپ ترسیل ناکام",
+  "whatsapp.template.lab_result_ready": "آپ کا لیب نتیجہ تیار ہے",
+  "whatsapp.template.appointment_booked": "آپ کی اپوائنٹمنٹ کی تصدیق ہو گئی",
+  "whatsapp.template.immunization_recorded": "ویکسینیشن ریکارڈ ہو گئی",
+  "whatsapp.log.title": "واٹس ایپ پیغامات کا لاگ",
+  "whatsapp.log.recipient": "وصول کنندہ",
+  "whatsapp.log.template": "ٹیمپلیٹ",
+  "whatsapp.log.status": "حالت",
+  "whatsapp.log.sentAt": "بھیجنے کا وقت",
+  "whatsapp.log.empty": "ابھی کوئی واٹس ایپ پیغام نہیں",
+  "nafath.sso.title": "نفاذ سے سائن ان کریں",
+  "nafath.sso.description": "سعودی رہائشی نفاذ قومی شناخت سے سائن ان کر سکتے ہیں",
+  "nafath.sso.idLabel": "قومی شناخت / اقامہ",
+  "nafath.sso.continue": "نفاذ کے ساتھ جاری رکھیں",
 };
 
