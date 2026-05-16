@@ -57,7 +57,7 @@ export function BottomNavigation() {
   };
 
   return (
-    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border mobile-bottom-nav">
+    <nav className="fixed bottom-0 left-0 right-0 z-50 bg-background/95 backdrop-blur-lg border-t border-border mobile-bottom-nav safe-area-bottom safe-area-x keyboard-hide">
       <div className="flex items-center justify-around h-16 px-1 max-w-lg mx-auto">
         {displayItems.map((item) => {
           const isActive = isPathActive(item.path);
