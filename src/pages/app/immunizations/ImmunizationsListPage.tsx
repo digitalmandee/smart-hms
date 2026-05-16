@@ -13,8 +13,11 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Textarea } from "@/components/ui/textarea";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
-import { Loader2, Plus, Syringe, Package, Thermometer, CalendarRange } from "lucide-react";
+import { Loader2, Plus, Syringe, Package, Thermometer, CalendarRange, WifiOff } from "lucide-react";
 import { toast } from "sonner";
+import { enqueue } from "@/lib/offline-sync/outbox";
+import { forceSync } from "@/lib/offline-sync/sync-engine";
+import { useOfflineSync } from "@/hooks/useOfflineSync";
 
 const STATUS_VARIANT: Record<string, "default" | "secondary" | "outline"> = {
   given: "default", scheduled: "outline", missed: "outline", refused: "outline",
