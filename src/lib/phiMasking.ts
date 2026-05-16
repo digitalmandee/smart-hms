@@ -13,6 +13,12 @@ const DEFAULT_SENSITIVE_FIELDS = [
   'discharge_summary', 'discharge_instructions',
   'condition_summary', 'prehospital_care',
   'address', 'patient_address',
+  // Wave 1 — telemedicine, home care, immunizations, portal
+  'consultation_notes', 'session_notes', 'telemed_notes',
+  'visit_notes', 'home_visit_notes', 'caregiver_notes',
+  'vaccine_lot', 'batch_number', 'lot_number',
+  'guardian_name', 'guardian_phone', 'guardian_cnic',
+  'iqama', 'nafath_id',
 ];
 
 function maskString(value: string): string {
