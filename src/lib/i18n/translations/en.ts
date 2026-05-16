@@ -4548,6 +4548,8 @@ export const en = {
   "imm.reaction": "Reaction notes",
   "imm.validation": "Patient and vaccine are required",
   "imm.empty": "No immunizations recorded yet.",
+  "imm.queued": "Saved offline — will sync when back online",
+  "imm.offline_banner": "You're offline. Vaccinations will be queued and synced automatically.",
   "imm.not_given": "Not given yet",
   "imm.status_given": "Given",
   "imm.status_due": "Due",

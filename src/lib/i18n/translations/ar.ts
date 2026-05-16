@@ -4455,6 +4455,8 @@ export const ar: Record<TranslationKey, string> = {
   "imm.reaction": "ملاحظات التفاعل",
   "imm.validation": "المريض واللقاح مطلوبان",
   "imm.empty": "لا توجد تطعيمات مسجلة بعد.",
+  "imm.queued": "تم الحفظ دون اتصال — ستتم المزامنة عند عودة الاتصال",
+  "imm.offline_banner": "أنت غير متصل. ستُحفظ التطعيمات وتُزامَن تلقائيًا.",
   "imm.not_given": "لم تُعطَ بعد",
   "imm.status_given": "أُعطيت",
   "imm.status_due": "مستحقة",
