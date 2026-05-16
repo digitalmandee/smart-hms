@@ -5,6 +5,8 @@ import { useTranslation, useIsRTL } from "@/lib/i18n";
 import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+import { usePatientDevice } from "@/hooks/usePatientDevice";
+import { usePushNotifications } from "@/hooks/usePushNotifications";
 
 export function PortalLayout() {
   const { user, signOut } = useAuth();
@@ -33,6 +35,10 @@ export function PortalLayout() {
     })();
     return () => { active = false; };
   }, [user, navigate]);
+
+  // Register native device + push token for this portal patient
+  usePatientDevice(account?.patient_id);
+  usePushNotifications();
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("common.loading" as any)}</div>;
