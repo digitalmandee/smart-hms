@@ -40,6 +40,10 @@ export default function MobileLoginPage() {
   const toast = useMobileToast();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [bioAvailable, setBioAvailable] = useState(false);
+  const [bioEnabled, setBioEnabled] = useState(false);
+  const [bioBusy, setBioBusy] = useState(false);
+  const [storedEmail, setStoredEmail] = useState<string | null>(null);
 
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -51,6 +55,59 @@ export default function MobileLoginPage() {
   });
 
   const rememberMe = watch("rememberMe");
+
+  // Detect biometric availability + try auto sign-in on mount
+  useEffect(() => {
+    (async () => {
+      const status = await getBiometricStatus();
+      setBioAvailable(status === "available");
+      const enabled = await isBiometricEnabled();
+      setBioEnabled(enabled);
+      const email = await getStoredEmail();
+      setStoredEmail(email);
+      if (enabled && status === "available" && !user) {
+        // Best-effort silent prompt
+        try {
+          setBioBusy(true);
+          const ok = await signInWithBiometric();
+          if (ok) navigate("/mobile/dashboard", { replace: true });
+        } catch {
+          /* user cancelled or token expired — fall back to form */
+        } finally {
+          setBioBusy(false);
+        }
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleBiometricTap = async () => {
+    try {
+      setBioBusy(true);
+      const ok = await signInWithBiometric();
+      if (ok) {
+        toast.success("Signed in");
+        navigate("/mobile/dashboard", { replace: true });
+      }
+    } catch (e: any) {
+      toast.error("Biometric sign-in failed", { description: e?.message });
+    } finally {
+      setBioBusy(false);
+    }
+  };
+
+  const promptEnableBiometric = async (email: string) => {
+    if (!bioAvailable || bioEnabled) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.refresh_token) return;
+      await enableBiometric({ email, refreshToken: session.refresh_token });
+      setBioEnabled(true);
+      toast.success("Biometric sign-in enabled");
+    } catch {
+      /* user declined */
+    }
+  };
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -64,6 +121,7 @@ export default function MobileLoginPage() {
       }
 
       toast.success("Welcome back!");
+      await promptEnableBiometric(data.email);
       navigate("/mobile/dashboard", { replace: true });
     } catch (err) {
       toast.error("An error occurred");
