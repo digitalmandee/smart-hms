@@ -39,6 +39,14 @@ const DialysisDocumentation = React.lazy(() => import("./pages/DialysisDocumenta
 const DentalDocumentation = React.lazy(() => import("./pages/DentalDocumentation"));
 const BlogIndex = React.lazy(() => import("./pages/BlogIndex"));
 const BlogPost = React.lazy(() => import("./pages/BlogPost"));
+const PortalLayout = React.lazy(() => import("./layouts/PortalLayout").then(m => ({ default: m.PortalLayout })));
+const PortalLoginPage = React.lazy(() => import("./pages/portal/PortalLoginPage"));
+const PortalDashboardPage = React.lazy(() => import("./pages/portal/PortalDashboardPage"));
+const PortalAppointmentsPage = React.lazy(() => import("./pages/portal/PortalAppointmentsPage"));
+const PortalLabResultsPage = React.lazy(() => import("./pages/portal/PortalLabResultsPage"));
+const PortalPrescriptionsPage = React.lazy(() => import("./pages/portal/PortalPrescriptionsPage"));
+const PortalInvoicesPage = React.lazy(() => import("./pages/portal/PortalInvoicesPage"));
+const PortalProfilePage = React.lazy(() => import("./pages/portal/PortalProfilePage"));
 import KsaDocumentation from "./pages/KsaDocumentation";
 const DemoFaqDocumentation = React.lazy(() => import("./pages/DemoFaqDocumentation"));
 import SystemOverview from "./pages/SystemOverview";
@@ -761,6 +769,18 @@ function App() {
               <Route path="/dental-documentation" element={<><SEO title="Dental Module Documentation — HealthOS 24" description="3D tooth chart, per-surface dental charting and treatments in HealthOS 24." path="/dental-documentation" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><DentalDocumentation /></React.Suspense></>} />
               <Route path="/blog" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><BlogIndex /></React.Suspense>} />
               <Route path="/blog/:slug" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><BlogPost /></React.Suspense>} />
+
+              {/* Patient Portal (Chunk 7) */}
+              <Route path="/portal/login" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><PortalLoginPage /></React.Suspense>} />
+              <Route path="/portal" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><PortalLayout /></React.Suspense>}>
+                <Route index element={<Navigate to="/portal/dashboard" replace />} />
+                <Route path="dashboard" element={<React.Suspense fallback={<div>Loading...</div>}><PortalDashboardPage /></React.Suspense>} />
+                <Route path="appointments" element={<React.Suspense fallback={<div>Loading...</div>}><PortalAppointmentsPage /></React.Suspense>} />
+                <Route path="lab-results" element={<React.Suspense fallback={<div>Loading...</div>}><PortalLabResultsPage /></React.Suspense>} />
+                <Route path="prescriptions" element={<React.Suspense fallback={<div>Loading...</div>}><PortalPrescriptionsPage /></React.Suspense>} />
+                <Route path="invoices" element={<React.Suspense fallback={<div>Loading...</div>}><PortalInvoicesPage /></React.Suspense>} />
+                <Route path="profile" element={<React.Suspense fallback={<div>Loading...</div>}><PortalProfilePage /></React.Suspense>} />
+              </Route>
             {/* Public display routes - NO AUTH REQUIRED for TV displays and kiosks */}
             <Route path="/display/queue/:organizationId" element={<PublicQueueDisplay />} />
             <Route path="/display/queue/:organizationId/:deptCode" element={<PublicQueueDisplay />} />

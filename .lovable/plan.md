@@ -1,95 +1,96 @@
-## Goal
+## Wave 1 status recap
 
-Add a new `/blog` section to HealthOS 24 with **20 long-form, SEO-optimized articles** targeting hospital management, KSA compliance, EMR, pharmacy and clinical workflow keywords. Articles are searchable on-site, individually indexable by Google, and listed in the sitemap.
+Done so far (Chunks 1–6, plus refinements):
+- **Chunk 1** Offline-Sync Engine (IndexedDB outbox, `cow-sync`, AuthContext wiring, OfflineIndicator)
+- **Chunk 2** KSA Payments (HyperPay, Tap, STC Pay scaffolded — credentials pending)
+- **Chunk 3** Clinic on Wheels (`/app/mobile-units/*`)
+- **Chunk 4** Home Healthcare (`/app/home-care/*`, offline-wired)
+- **Chunk 5** Immunizations + vaccine_lots trigger (`/app/immunizations`)
+- **Chunk 6** Telemedicine (`/app/telemedicine`, consent + duration)
+- Side track: SEO blog (20 posts), sitemap, GSC verification
 
-## What gets built
+Remaining from the original 6-month Wave 1 (Months 5–6):
+- Patient Portal (web)
+- Patient Mobile App (Capacitor) + push + in-app payments
+- Nafath SSO + WhatsApp Business API
+- FHIR R4 server endpoints (SMART-on-FHIR)
+- Sehhaty / NPHIES bidirectional sync
+- Hardening: load test, pen-test, RLS audit, WCAG 2.1 AA, pilot playbook
 
-### 1. Blog data layer
-- `src/content/blog/posts.ts` — typed array of 20 `BlogPost` objects: `slug, title, description, keywords[], category, author, publishedAt, readingMinutes, heroAlt, content (MDX-like sections)`.
-- Content authored as structured sections (`{ heading, body }[]`) so we can render semantic `<h2>/<p>` without an MDX runtime.
+---
 
-### 2. Routes (added to `src/App.tsx`)
-- `/blog` → `BlogIndex.tsx` — searchable list of all 20 posts.
-- `/blog/:slug` → `BlogPost.tsx` — single article with Article JSON-LD + BreadcrumbList JSON-LD.
+## Chunks 7–12 (remaining)
 
-### 3. Pages
-- **BlogIndex**: hero, search input (client-side fuzzy match on title + description + keywords + category), category filter chips, responsive card grid. Each card → `/blog/:slug`.
-- **BlogPost**: breadcrumbs, H1, meta line (date · reading time · category), prose body, related posts (3 from same category), CTA back to product.
+### Chunk 7 — Patient Portal (web)
+Public-facing portal at `/portal/*` with its own minimal layout (not `DashboardLayout`).
+- Routes: `/portal/login`, `/portal/dashboard`, `/portal/appointments`, `/portal/lab-results`, `/portal/prescriptions`, `/portal/invoices`, `/portal/profile`.
+- Reuses `patient_portal_accounts` table (already created in Wave 1 foundation).
+- RLS: patient can only read their own MRN-linked rows. Adds `has_portal_access(_user_id, _patient_id)` security-definer helper.
+- Auth: Supabase email/OTP + (Chunk 9) Nafath SSO.
+- i18n: EN/AR/UR, RTL layout for AR.
+- ~80 translation keys.
 
-### 4. SEO per article
-- Reuses the existing `<SEO>` component (already used across other public routes) with unique `title`, `description`, `path`.
-- Adds `Article` + `BreadcrumbList` JSON-LD inline in BlogPost via a tiny `<script type="application/ld+json">` block (no new dependency — Helmet not required since `<SEO>` already handles head tags).
-- `og:type=article`, `article:published_time`, `article:section` set per post.
+### Chunk 8 — Patient Mobile App (Capacitor shell)
+Wraps the `/portal/*` routes into a native iOS/Android shell.
+- `capacitor.config.ts`, native projects under `ios/` and `android/` scaffolded but kept out of preview build.
+- Plugins: Push Notifications (FCM/APNs), Geolocation (visit ETA), Camera (upload reports), Biometric (Face ID/Touch ID unlock).
+- Build script `scripts/build-mobile.ts` runs `vite build` → `npx cap sync`.
+- README section on running locally via Android Studio / Xcode (sandbox can't run native builds — user runs locally after export).
+- In-app payments: reuses Chunk 2 `payment-create` + GatewayCheckoutDialog inside Capacitor `Browser` plugin.
 
-### 5. Sitemap
-- Update `scripts/generate-sitemap.ts`:
-  - Add static `/blog` entry (weekly, 0.8).
-  - Loop the imported `posts` array → one entry per `/blog/:slug` (monthly, 0.7, lastmod = `publishedAt`).
-- Regenerate `public/sitemap.xml` via the existing predev hook.
+### Chunk 9 — Nafath SSO + WhatsApp Business API
+- Edge function `nafath-auth`: KSA national-ID OAuth via Elm/Absher Nafath sandbox; returns a Supabase session via custom JWT.
+- Edge function `whatsapp-dispatch`: outbound templates (appointment reminders, OTP, lab-result-ready) via Meta WhatsApp Business Cloud API.
+- New table `whatsapp_message_log` (status, template_name, recipient, payload_hash). RLS: org-scoped.
+- Settings page `/app/settings/integrations` to paste sandbox credentials (stored as Lovable secrets).
+- Triggers added so that `lab_orders.status → 'reported'`, `appointments` insert (T-24h), and `immunizations` insert auto-enqueue WhatsApp messages via a `pg_net` call to the edge function.
 
-### 6. Discoverability
-- Add a "Blog" link to the public navigation/footer on `Index.tsx` so the index page links to `/blog` (helps crawl depth).
-- Internal cross-links: each article links to 2 related product pages (e.g. `/pharmacy-documentation`, `/ksa-documentation`) to spread link equity.
+### Chunk 10 — FHIR R4 server (SMART-on-FHIR)
+- Edge function `fhir-server` exposes read-only `Patient`, `Encounter`, `Observation`, `MedicationRequest`, `Immunization`, `DiagnosticReport` endpoints.
+- SMART scopes: `patient/*.read`, `user/*.read`, `system/*.read`. Token issued by `nafath-auth` (patient scope) or org service account (system scope).
+- New table `fhir_resource_cache` (already created in Wave 1) populated on-demand; cache key = `(resource_type, source_id, updated_at)`.
+- Capability statement at `/.well-known/smart-configuration` + `/fhir/metadata`.
+- Conformance: JSON Bundle paging, `_since`, `_count`, `OperationOutcome` errors.
 
-## The 20 articles (titles + target keyword)
+### Chunk 11 — Sehhaty + NPHIES bidirectional sync
+- Edge function `sehhaty-sync`:
+  - Pull: vaccination certificates, sick leaves, referrals → upsert into local tables.
+  - Push: immunization records (from Chunk 5) → Sehhaty registry. Reuses `vaccine-certificate` function for PDF + QR.
+- NPHIES (extending existing infrastructure):
+  - Eligibility-check on appointment creation (FHIR CoverageEligibilityRequest).
+  - Pre-authorization for IPD admission > SAR threshold.
+  - Claim submission on invoice paid (already partially in place — finalize the loop).
+- Retry/backoff via `sync_outbox` (reusing Chunk 1 infra).
+- Admin dashboard `/app/integrations/health-network` showing pull/push health, last-success timestamps, error log.
 
-Grouped by cluster — covers HMS, KSA compliance, pharmacy, clinical, finance/HR. All English.
+### Chunk 12 — Hardening + pilot rollout
+- **Security**: full RLS audit (`security--run_security_scan`), kill remaining SECURITY DEFINER where avoidable, rotate any leaked test keys, edge-function allowlist review.
+- **PHI masking**: extend the existing masking helpers to all new modules (telemedicine notes, home_visits, immunizations).
+- **Load test**: k6 script in `scripts/loadtest/` simulating 50 concurrent CoW vans + 200 portal users. Target: p95 < 800ms on critical reads.
+- **WCAG 2.1 AA**: contrast pass, focus rings, ARIA labels on new modules (portal, telemed room, CoW). Add `eslint-plugin-jsx-a11y` to CI.
+- **Pen-test prep**: rate limiting on `payment-webhook`, `nafath-auth`, `whatsapp-dispatch`. CSRF tokens on portal mutations.
+- **Pilot playbook** at `docs/pilot-rollout.md`: 1 hospital + 5 vans onboarding checklist, training videos list, support escalation matrix.
 
-**Hospital Management System (HMS / EMR)**
-1. What Is a Hospital Management System? A Complete 2026 Guide — *hospital management system*
-2. HMS vs EMR vs EHR: Differences Hospitals Actually Care About — *hms vs emr*
-3. 12 Must-Have Features in Modern Hospital Software — *hospital software features*
-4. Cloud HMS vs On-Premise: Cost, Security & Scale Compared — *cloud hospital management system*
-5. How to Choose an HMS for a Multi-Branch Hospital — *multi branch hospital software*
+---
 
-**Saudi Arabia / KSA Compliance**
-6. NPHIES Integration Explained for Saudi Hospitals — *nphies integration*
-7. ZATCA Phase 2 E-Invoicing for Healthcare Providers — *zatca e-invoicing healthcare*
-8. Wasfaty E-Prescription: A Practical Implementation Guide — *wasfaty integration*
-9. Nafath & Sehhaty: Patient Identity in Saudi Clinics — *nafath integration healthcare*
-10. CBAHI Accreditation: How HMS Helps You Pass — *cbahi accreditation software*
+## Execution order
 
-**Pharmacy & Inventory**
-11. Pharmacy Inventory Management: FIFO, Expiry & Reorder Levels — *pharmacy inventory management*
-12. Reducing Medication Errors with Barcode Dispensing — *barcode medication dispensing*
-13. GRN to GL: How Pharmacy Stock Posts to Accounting — *grn accounting workflow*
-
-**OPD / IPD / Clinical**
-14. OPD Token Queue Systems That Actually Reduce Wait Times — *opd queue management*
-15. IPD Discharge Workflow: A Step-by-Step Checklist — *ipd discharge process*
-16. Lab Order to Result: Reducing Turnaround Time — *lab turnaround time*
-17. Radiology Reporting Workflows for Faster Verification — *radiology reporting workflow*
-
-**Finance & HR**
-18. Hospital Revenue Cycle Management Best Practices — *hospital revenue cycle management*
-19. Doctor Earnings & Commission Models in Hospitals — *doctor commission software*
-20. Saudi Labor Law: Gratuity Calculation for Healthcare Staff — *saudi gratuity calculation*
-
-Each article: ~800–1,200 words, 4–6 H2 sections, intro, conclusion with CTA, FAQ block where relevant.
-
-## Out of scope
-
-- Arabic/Urdu translations (deferred per user choice).
-- CMS-backed authoring (content stays in code; cheap to add later).
-- Comments, likes, author profiles.
-- Newsletter signup.
-
-## Technical notes
-
-- No new dependencies. Search uses a simple `toLowerCase().includes()` filter; sufficient at 20 posts.
-- BlogPost renders raw structured content — no `dangerouslySetInnerHTML`, no MDX runtime, no markdown parser.
-- Routes added to the public `<Route>` block in `src/App.tsx`, lazy-loaded with `React.Suspense` to match neighbors.
-- Sitemap script imports `posts` from `src/content/blog/posts.ts` directly (already runs under `tsx`).
-- Canonical for each post: `https://healthos24.com/blog/{slug}` (matches the primary verified custom domain).
-
-## File touch list
+Recommended sequence (each = one chunk = one user "next chunk" reply):
 
 ```text
-src/content/blog/posts.ts          (new — 20 entries)
-src/pages/BlogIndex.tsx            (new)
-src/pages/BlogPost.tsx             (new)
-src/App.tsx                        (add 2 routes)
-src/pages/Index.tsx                (add Blog nav link)
-scripts/generate-sitemap.ts        (append /blog + per-post entries)
-public/sitemap.xml                 (regenerated)
+Chunk 7  → Patient Portal (web)              [~M5 start]
+Chunk 8  → Capacitor mobile shell + push      [M5]
+Chunk 9  → Nafath SSO + WhatsApp              [M5 end]
+Chunk 10 → FHIR R4 server                     [M6]
+Chunk 11 → Sehhaty + NPHIES bidirectional     [M6]
+Chunk 12 → Hardening + pilot playbook         [M6 end]
 ```
+
+## i18n rule (project memory)
+Every chunk ships EN/AR/UR translations and respects the existing RTL bypass pattern (`flex-row-reverse`, `text-end`).
+
+## Out of scope (still deferred to Wave 2)
+ICU/NICU charting, JCI/CBAHI workflows, Oncology, denial-management, FHIR write-bus to external EHRs beyond Sehhaty/NPHIES.
+
+## Approval
+Approve this plan to start with **Chunk 7 — Patient Portal (web)**. After it lands, reply "next chunk" to roll through 8 → 12.
