@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.trg_decrement_vaccine_lot() FROM PUBLIC, anon, authenticated;
