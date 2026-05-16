@@ -10,6 +10,7 @@ import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { HelmetProvider } from "react-helmet-async";
 import { SEO } from "@/components/SEO";
 import { AuthProvider } from "@/contexts/AuthContext";
+import { NativeRouteGuard } from "@/components/native/NativeRouteGuard";
 import { CountryConfigProvider, useCountryConfig } from "@/contexts/CountryConfigContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
 import { AuthLayout } from "@/layouts/AuthLayout";
