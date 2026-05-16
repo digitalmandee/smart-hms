@@ -23139,6 +23139,105 @@ export type Database = {
           },
         ]
       }
+      sehhaty_referrals: {
+        Row: {
+          created_at: string
+          id: string
+          organization_id: string
+          patient_id: string
+          payload: Json | null
+          pulled_at: string
+          receiving_facility: string | null
+          referral_date: string | null
+          referring_facility: string | null
+          sehhaty_referral_id: string
+          specialty: string | null
+          status: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          organization_id: string
+          patient_id: string
+          payload?: Json | null
+          pulled_at?: string
+          receiving_facility?: string | null
+          referral_date?: string | null
+          referring_facility?: string | null
+          sehhaty_referral_id: string
+          specialty?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          organization_id?: string
+          patient_id?: string
+          payload?: Json | null
+          pulled_at?: string
+          receiving_facility?: string | null
+          referral_date?: string | null
+          referring_facility?: string | null
+          sehhaty_referral_id?: string
+          specialty?: string | null
+          status?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      sehhaty_sick_leaves: {
+        Row: {
+          created_at: string
+          days_count: number | null
+          end_date: string | null
+          id: string
+          issuing_doctor_name: string | null
+          issuing_facility: string | null
+          organization_id: string
+          patient_id: string
+          payload: Json | null
+          pulled_at: string
+          reason: string | null
+          sehhaty_sickleave_id: string
+          start_date: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          days_count?: number | null
+          end_date?: string | null
+          id?: string
+          issuing_doctor_name?: string | null
+          issuing_facility?: string | null
+          organization_id: string
+          patient_id: string
+          payload?: Json | null
+          pulled_at?: string
+          reason?: string | null
+          sehhaty_sickleave_id: string
+          start_date?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          days_count?: number | null
+          end_date?: string | null
+          id?: string
+          issuing_doctor_name?: string | null
+          issuing_facility?: string | null
+          organization_id?: string
+          patient_id?: string
+          payload?: Json | null
+          pulled_at?: string
+          reason?: string | null
+          sehhaty_sickleave_id?: string
+          start_date?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       sehhaty_sync_log: {
         Row: {
           created_at: string
@@ -23205,6 +23304,54 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      sehhaty_vaccination_certificates: {
+        Row: {
+          administered_date: string | null
+          certificate_number: string | null
+          created_at: string
+          dose_number: number | null
+          id: string
+          issued_at: string | null
+          organization_id: string
+          patient_id: string
+          payload: Json | null
+          pulled_at: string
+          sehhaty_certificate_id: string
+          updated_at: string
+          vaccine_name: string | null
+        }
+        Insert: {
+          administered_date?: string | null
+          certificate_number?: string | null
+          created_at?: string
+          dose_number?: number | null
+          id?: string
+          issued_at?: string | null
+          organization_id: string
+          patient_id: string
+          payload?: Json | null
+          pulled_at?: string
+          sehhaty_certificate_id: string
+          updated_at?: string
+          vaccine_name?: string | null
+        }
+        Update: {
+          administered_date?: string | null
+          certificate_number?: string | null
+          created_at?: string
+          dose_number?: number | null
+          id?: string
+          issued_at?: string | null
+          organization_id?: string
+          patient_id?: string
+          payload?: Json | null
+          pulled_at?: string
+          sehhaty_certificate_id?: string
+          updated_at?: string
+          vaccine_name?: string | null
+        }
+        Relationships: []
       }
       service_categories: {
         Row: {

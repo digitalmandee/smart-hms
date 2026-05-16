@@ -4636,5 +4636,17 @@ export const ur: Record<TranslationKey, string> = {
   "fhir.revoked": "منسوخ",
   "fhir.revoke": "منسوخ کریں",
   "fhir.copied": "کاپی ہو گیا",
+  "healthnet.title": "ہیلتھ نیٹ ورک سنک",
+  "healthnet.description": "Sehhaty + NPHIES دو طرفہ سنک کی صحت اور حالیہ سرگرمی",
+  "healthnet.sandbox": "سینڈ باکس موڈ — SEHHATY_API_KEY کنفیگر نہیں۔ نیچے کی سرگرمی اسٹب ڈیٹا استعمال کر رہی ہے۔",
+  "healthnet.refreshed": "ریفریش ہو گیا",
+  "healthnet.window7d": "پچھلے 7 دن",
+  "healthnet.success": "کامیاب",
+  "healthnet.failed": "ناکام",
+  "healthnet.lastSuccess": "آخری کامیابی",
+  "healthnet.noActivity": "ابھی کوئی سرگرمی نہیں",
+  "healthnet.recent": "حالیہ سنک سرگرمی",
+  "healthnet.recentDesc": "آخری 20 pull/push ایونٹس",
+  "healthnet.empty": "ابھی کوئی سنک سرگرمی نہیں",
 };
 
