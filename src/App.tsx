@@ -1506,6 +1506,8 @@ function App() {
               <Route path="settings/sms" element={<SMSSettingsPage />} />
               <Route path="settings/whatsapp" element={<WhatsAppSettingsPage />} />
               <Route path="settings/fhir" element={<FhirServerSettingsPage />} />
+              <Route path="integrations/health-network" element={<HealthNetworkDashboard /></Route>" />
+              <Route path="integrations/health-network" element={<HealthNetworkDashboard />} />
               <Route path="settings/email" element={<EmailSettingsPage />} />
               <Route path="settings/email-templates" element={<EmailTemplatesPage />} />
               <Route path="settings/audit-logs" element={<AuditLogsPage />} />
