@@ -745,6 +745,7 @@ function App() {
         <Sonner />
         <BrowserRouter>
           <AuthProvider>
+            <NativeRouteGuard>
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<Index />} />
