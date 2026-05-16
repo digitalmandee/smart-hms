@@ -4636,5 +4636,17 @@ export const ar: Record<TranslationKey, string> = {
   "fhir.revoked": "ملغى",
   "fhir.revoke": "إلغاء",
   "fhir.copied": "تم النسخ",
+  "healthnet.title": "مزامنة شبكة الصحة",
+  "healthnet.description": "صحة المزامنة الثنائية مع صحتي و NPHIES والنشاط الأخير",
+  "healthnet.sandbox": "وضع الاختبار — لم يتم تكوين SEHHATY_API_KEY. النشاط أدناه يستخدم بيانات تجريبية.",
+  "healthnet.refreshed": "تم التحديث",
+  "healthnet.window7d": "آخر 7 أيام",
+  "healthnet.success": "ناجحة",
+  "healthnet.failed": "فشلت",
+  "healthnet.lastSuccess": "آخر نجاح",
+  "healthnet.noActivity": "لا يوجد نشاط بعد",
+  "healthnet.recent": "نشاط المزامنة الأخير",
+  "healthnet.recentDesc": "آخر 20 عملية سحب/دفع",
+  "healthnet.empty": "لا يوجد نشاط مزامنة بعد",
 };
 
