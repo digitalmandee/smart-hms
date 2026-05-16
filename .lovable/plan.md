@@ -22,8 +22,8 @@ After `git pull` + `npm install` + `npm run build` + `npx cap sync`, the user ca
 ## Chunk plan (12 chunks, ship in 1 push)
 
 ```text
-N1  Switch to production bundle mode (remove server.url, add dev profile)
-N2  Native boot orchestrator (splash, status bar, locale, role-routing)
+N1  [DONE] Switch to production bundle mode (remove server.url, add dev profile)
+N2  [DONE] Native boot orchestrator (splash, status bar, locale, role-routing)
 N3  Safe-area + viewport CSS (notch, gesture bar, keyboard avoidance)
 N4  Native shell routing (auto-redirect to /mobile/* on native by role)
 N5  Biometric login (Face ID / fingerprint) + secure-storage session
