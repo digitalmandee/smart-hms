@@ -24,8 +24,31 @@ import { LocalNotifications } from "@capacitor/local-notifications";
 import { Device } from "@capacitor/device";
 import { supabase } from "@/integrations/supabase/client";
 import { forceSync as flushOutbox } from "@/lib/offline-sync/sync-engine";
+import { counts as outboxCounts } from "@/lib/offline-sync/outbox";
 import { resolveDeepLink, navigateToDeepLink } from "@/lib/native/deep-links";
 import { backButtonStack } from "@/hooks/useBackButton";
+
+/**
+ * Flush the outbox and, when there were pending items, surface a small
+ * toast so users know their offline edits were just synced.
+ */
+async function flushOnResume(trigger: "resume" | "online") {
+  try {
+    const before = await outboxCounts().catch(() => null);
+    const pending = before?.pending ?? 0;
+    const result = await flushOutbox();
+    if (pending > 0 && result?.processed) {
+      const { toast } = await import("sonner");
+      toast.success(
+        trigger === "online"
+          ? `Back online — synced ${result.processed} change${result.processed === 1 ? "" : "s"}`
+          : `Synced ${result.processed} pending change${result.processed === 1 ? "" : "s"}`
+      );
+    }
+  } catch (e) {
+    console.warn("[native-boot] resume flush failed", e);
+  }
+}
 
 type SupportedLocale = "en" | "ar" | "ur";
 const LOCALE_KEY = "healthos.locale";
