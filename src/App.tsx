@@ -7,6 +7,8 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { HelmetProvider } from "react-helmet-async";
+import { SEO } from "@/components/SEO";
 import { AuthProvider } from "@/contexts/AuthContext";
 import { CountryConfigProvider, useCountryConfig } from "@/contexts/CountryConfigContext";
 import { ProtectedRoute } from "@/components/ProtectedRoute";
@@ -722,6 +724,7 @@ function RTLDirectionSetter() {
 
 function App() {
   return (
+  <HelmetProvider>
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
       <ErrorBoundary>
@@ -732,28 +735,28 @@ function App() {
             <Routes>
               {/* Public routes */}
               <Route path="/" element={<Index />} />
-              <Route path="/presentation" element={<Presentation />} />
-              <Route path="/executive-presentation" element={<ExecutivePresentation />} />
-              <Route path="/pharmacy-warehouse-presentation" element={<PharmacyWarehousePresentation />} />
-              <Route path="/pricing-proposal" element={<PricingProposal />} />
-              <Route path="/contract" element={<ContractPage />} />
-              <Route path="/social-media-posts" element={<SocialMediaPosts />} />
-              <Route path="/pharmacy-documentation" element={<PharmacyDocumentation />} />
-              <Route path="/ksa-documentation" element={<KsaDocumentation />} />
-              <Route path="/demo-faq-documentation" element={<React.Suspense fallback={<div>Loading...</div>}><DemoFaqDocumentation /></React.Suspense>} />
-              <Route path="/system-overview" element={<SystemOverview />} />
-              <Route path="/documentation" element={<DocumentationHub />} />
-              <Route path="/finance-demo-guide" element={<React.Suspense fallback={<div>Loading...</div>}><FinanceDemoGuide /></React.Suspense>} />
-              <Route path="/opd-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><OpdDocumentation /></React.Suspense>} />
-              <Route path="/ipd-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><IpdDocumentation /></React.Suspense>} />
-              <Route path="/ot-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><OtDocumentation /></React.Suspense>} />
-              <Route path="/lab-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><LabDocumentation /></React.Suspense>} />
-              <Route path="/radiology-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><RadiologyDocumentation /></React.Suspense>} />
-              <Route path="/warehouse-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><WarehouseDocumentation /></React.Suspense>} />
-              <Route path="/finance-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><FinanceDocumentation /></React.Suspense>} />
-              <Route path="/hr-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><HrDocumentation /></React.Suspense>} />
-              <Route path="/dialysis-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><DialysisDocumentation /></React.Suspense>} />
-              <Route path="/dental-documentation" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><DentalDocumentation /></React.Suspense>} />
+              <Route path="/presentation" element={<><SEO title="HealthOS 24 Product Presentation" description="Full product walkthrough for HealthOS 24 covering clinical, pharmacy, finance and compliance modules." path="/presentation" /><Presentation /></>} />
+              <Route path="/executive-presentation" element={<><SEO title="HealthOS 24 Executive Overview" description="Executive-level overview of HealthOS 24: ROI, operations, compliance and growth across hospital workflows." path="/executive-presentation" /><ExecutivePresentation /></>} />
+              <Route path="/pharmacy-warehouse-presentation" element={<><SEO title="Pharmacy & Warehouse Presentation — HealthOS 24" description="Pharmacy POS, dispensing, GRN and warehouse stock workflows in HealthOS 24." path="/pharmacy-warehouse-presentation" /><PharmacyWarehousePresentation /></>} />
+              <Route path="/pricing-proposal" element={<><SEO title="HealthOS 24 Pricing Proposal" description="Transparent pricing and licensing options for HealthOS 24 hospital management deployments." path="/pricing-proposal" /><PricingProposal /></>} />
+              <Route path="/contract" element={<><SEO title="HealthOS 24 Service Contract" description="Standard service contract terms for HealthOS 24 hospital management subscriptions." path="/contract" /><ContractPage /></>} />
+              <Route path="/social-media-posts" element={<><SEO title="HealthOS 24 Social Media Kit" description="Brand-ready social media posts and assets for HealthOS 24." path="/social-media-posts" /><SocialMediaPosts /></>} />
+              <Route path="/pharmacy-documentation" element={<><SEO title="Pharmacy Module Documentation — HealthOS 24" description="Functional documentation for the HealthOS 24 pharmacy module: inventory, POS, dispensing and returns." path="/pharmacy-documentation" /><PharmacyDocumentation /></>} />
+              <Route path="/ksa-documentation" element={<><SEO title="Saudi Arabia (KSA) Compliance Documentation — HealthOS 24" description="NPHIES, ZATCA, Wasfaty, Nafath and Tatmeen compliance workflows in HealthOS 24." path="/ksa-documentation" /><KsaDocumentation /></>} />
+              <Route path="/demo-faq-documentation" element={<><SEO title="Demo & FAQ Documentation — HealthOS 24" description="Demo guide and frequently asked questions for HealthOS 24 evaluations." path="/demo-faq-documentation" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><DemoFaqDocumentation /></React.Suspense></>} />
+              <Route path="/system-overview" element={<><SEO title="System Overview — HealthOS 24" description="High-level architecture and module map of the HealthOS 24 platform." path="/system-overview" /><SystemOverview /></>} />
+              <Route path="/documentation" element={<><SEO title="Documentation Hub — HealthOS 24" description="Browse documentation for every HealthOS 24 module: OPD, IPD, lab, pharmacy, finance and more." path="/documentation" /><DocumentationHub /></>} />
+              <Route path="/finance-demo-guide" element={<><SEO title="Finance Demo Guide — HealthOS 24" description="Step-by-step finance module demo guide for HealthOS 24." path="/finance-demo-guide" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><FinanceDemoGuide /></React.Suspense></>} />
+              <Route path="/opd-documentation" element={<><SEO title="OPD Module Documentation — HealthOS 24" description="OPD workflows in HealthOS 24: registration, tokens, consultation and billing." path="/opd-documentation" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><OpdDocumentation /></React.Suspense></>} />
+              <Route path="/ipd-documentation" element={<><SEO title="IPD Module Documentation — HealthOS 24" description="IPD admission, ward management, charges and discharge in HealthOS 24." path="/ipd-documentation" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><IpdDocumentation /></React.Suspense></>} />
+              <Route path="/ot-documentation" element={<><SEO title="OT Module Documentation — HealthOS 24" description="Operation theatre scheduling, consumables and post-op workflows in HealthOS 24." path="/ot-documentation" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><OtDocumentation /></React.Suspense></>} />
+              <Route path="/lab-documentation" element={<><SEO title="Laboratory Module Documentation — HealthOS 24" description="Lab orders, specimens, results and reporting lifecycle in HealthOS 24." path="/lab-documentation" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><LabDocumentation /></React.Suspense></>} />
+              <Route path="/radiology-documentation" element={<><SEO title="Radiology Module Documentation — HealthOS 24" description="Imaging orders, reporting, verification and delivery in HealthOS 24." path="/radiology-documentation" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><RadiologyDocumentation /></React.Suspense></>} />
+              <Route path="/warehouse-documentation" element={<><SEO title="Warehouse Module Documentation — HealthOS 24" description="Standalone warehouse management workflows in HealthOS 24." path="/warehouse-documentation" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><WarehouseDocumentation /></React.Suspense></>} />
+              <Route path="/finance-documentation" element={<><SEO title="Finance Module Documentation — HealthOS 24" description="Chart of accounts, journals, billing and closing workflows in HealthOS 24." path="/finance-documentation" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><FinanceDocumentation /></React.Suspense></>} />
+              <Route path="/hr-documentation" element={<><SEO title="HR Module Documentation — HealthOS 24" description="HR, payroll, leaves, gratuity and exit management in HealthOS 24." path="/hr-documentation" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><HrDocumentation /></React.Suspense></>} />
+              <Route path="/dialysis-documentation" element={<><SEO title="Dialysis Module Documentation — HealthOS 24" description="Dialysis nurse/doctor workflows and session tracking in HealthOS 24." path="/dialysis-documentation" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><DialysisDocumentation /></React.Suspense></>} />
+              <Route path="/dental-documentation" element={<><SEO title="Dental Module Documentation — HealthOS 24" description="3D tooth chart, per-surface dental charting and treatments in HealthOS 24." path="/dental-documentation" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><DentalDocumentation /></React.Suspense></>} />
             {/* Public display routes - NO AUTH REQUIRED for TV displays and kiosks */}
             <Route path="/display/queue/:organizationId" element={<PublicQueueDisplay />} />
             <Route path="/display/queue/:organizationId/:deptCode" element={<PublicQueueDisplay />} />
@@ -769,9 +772,9 @@ function App() {
             <Route path="/campaign/:orgSlug/:campaignNumber" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><PublicCampaignPage /></React.Suspense>} />
             
             {/* Tabeebi AI Doctor */}
-            <Route path="/tabeebi" element={<TabeebiLandingPage />} />
-            <Route path="/tabeebi/chat" element={<TabeebiChatPage />} />
-            <Route path="/tabeebi/voice" element={<TabeebiVoicePage />} />
+            <Route path="/tabeebi" element={<><SEO title="Tabeebi — AI Doctor Assistant by HealthOS 24" description="Tabeebi is a multilingual AI doctor assistant for symptom triage, voice consultation and health guidance." path="/tabeebi" /><TabeebiLandingPage /></>} />
+            <Route path="/tabeebi/chat" element={<><SEO title="Tabeebi Chat — AI Doctor by HealthOS 24" description="Chat with Tabeebi, the multilingual AI doctor assistant from HealthOS 24." path="/tabeebi/chat" /><TabeebiChatPage /></>} />
+            <Route path="/tabeebi/voice" element={<><SEO title="Tabeebi Voice — AI Doctor by HealthOS 24" description="Talk to Tabeebi, the AI doctor with real-time voice consultation by HealthOS 24." path="/tabeebi/voice" /><TabeebiVoicePage /></>} />
             
             {/* Test Cases Documentation (hidden - not linked from landing page) */}
             <Route path="/test-cases" element={<TestCasesPage />} />
@@ -1545,6 +1548,7 @@ function App() {
       </ErrorBoundary>
     </TooltipProvider>
   </QueryClientProvider>
+  </HelmetProvider>
   );
 }
 

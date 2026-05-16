@@ -4,6 +4,7 @@ import { navigationLogger } from "@/lib/logger";
 import { useAuth } from "@/contexts/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Home, ArrowLeft } from "lucide-react";
+import { SEO } from "@/components/SEO";
 
 const NotFound = () => {
   const location = useLocation();
@@ -37,6 +38,7 @@ const NotFound = () => {
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
+      <SEO title="Page not found — HealthOS 24" description="The page you requested does not exist on HealthOS 24." path={location.pathname} noindex />
       <div className="text-center space-y-6 p-8">
         <div className="space-y-2">
           <h1 className="text-6xl font-bold text-foreground">404</h1>
