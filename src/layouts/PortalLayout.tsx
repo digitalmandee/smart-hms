@@ -36,6 +36,10 @@ export function PortalLayout() {
     return () => { active = false; };
   }, [user, navigate]);
 
+  // Register native device + push token for this portal patient
+  usePatientDevice(account?.patient_id);
+  usePushNotifications();
+
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("common.loading" as any)}</div>;
   }
