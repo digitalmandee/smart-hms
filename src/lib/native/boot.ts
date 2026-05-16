@@ -227,7 +227,7 @@ export async function bootNative(): Promise<void> {
   App.addListener("appStateChange", ({ isActive }) => {
     if (isActive) {
       document.body.classList.remove("app-paused");
-      flushOutbox().catch(() => {});
+      flushOnResume("resume");
     } else {
       document.body.classList.add("app-paused");
     }
@@ -236,7 +236,7 @@ export async function bootNative(): Promise<void> {
   // --- Network change: flush outbox when coming back online ---
   Network.addListener("networkStatusChange", (status) => {
     if (status.connected) {
-      flushOutbox().catch(() => {});
+      flushOnResume("online");
     }
   });
 
