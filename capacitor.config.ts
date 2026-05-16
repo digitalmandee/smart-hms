@@ -29,7 +29,9 @@ const config: CapacitorConfig = {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
     Keyboard: {
-      resize: 'native',
+      // 'body' resizes the document so flex/scroll layouts stay intact when
+      // the soft keyboard opens. 'native' caused the login form to collapse.
+      resize: 'body',
       resizeOnFullScreen: true,
     },
     StatusBar: {

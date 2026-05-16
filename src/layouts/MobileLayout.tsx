@@ -15,23 +15,28 @@ export const MobileLayout = () => {
     return null;
   }
 
+  // Auth pages need a natural-flow scrollable layout so the soft keyboard
+  // can resize the viewport without clipping the form.
+  if (isAuthPage) {
+    return (
+      <div className="min-h-screen bg-background">
+        <Outlet />
+      </div>
+    );
+  }
+
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
-      {/* Mobile Header */}
-      {!isAuthPage && <MobileHeader />}
-      
-      {/* Main Content - scrollable area with native feel */}
+      <MobileHeader />
       <main className={cn(
         "flex-1 overflow-y-auto overscroll-contain scroll-container native-scroll",
-        !isAuthPage && "pb-[calc(5rem+var(--safe-bottom))]" // bottom nav + home indicator
+        "pb-[calc(5rem+var(--safe-bottom))]"
       )}>
         <div className="min-h-full mobile-page-content">
           <Outlet />
         </div>
       </main>
-      
-      {/* Bottom Navigation - fixed at bottom */}
-      {!isAuthPage && <BottomNavigation />}
+      <BottomNavigation />
     </div>
   );
 };
