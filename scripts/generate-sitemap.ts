@@ -37,6 +37,13 @@ const entries: SitemapEntry[] = [
   { path: "/ksa-documentation", changefreq: "monthly", priority: "0.5" },
   { path: "/demo-faq-documentation", changefreq: "monthly", priority: "0.5" },
   { path: "/system-overview", changefreq: "monthly", priority: "0.5" },
+  { path: "/blog", changefreq: "weekly", priority: "0.8" },
+  ...posts.map<SitemapEntry>((p) => ({
+    path: `/blog/${p.slug}`,
+    lastmod: p.publishedAt,
+    changefreq: "monthly",
+    priority: "0.7",
+  })),
 ];
 
 const today = new Date().toISOString().slice(0, 10);
@@ -46,7 +53,7 @@ function generateSitemap(items: SitemapEntry[]) {
     [
       `  <url>`,
       `    <loc>${BASE_URL}${e.path}</loc>`,
-      `    <lastmod>${today}</lastmod>`,
+      `    <lastmod>${e.lastmod ?? today}</lastmod>`,
       e.changefreq ? `    <changefreq>${e.changefreq}</changefreq>` : null,
       e.priority ? `    <priority>${e.priority}</priority>` : null,
       `  </url>`,
