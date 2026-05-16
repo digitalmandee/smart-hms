@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Eye, EyeOff, Loader2, Shield } from "lucide-react";
+import { Eye, EyeOff, Fingerprint, Loader2, Shield } from "lucide-react";
 import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMobileToast } from "@/hooks/useMobileToast";
 import { cn } from "@/lib/utils";
+import {
+  enableBiometric,
+  getBiometricStatus,
+  getStoredEmail,
+  isBiometricEnabled,
+  signInWithBiometric,
+} from "@/lib/native/biometric";
+import { supabase } from "@/integrations/supabase/client";
 import { UserRolesBadge } from "@/components/auth/UserRolesBadge";
 import { ROLE_LABELS } from "@/constants/roles";
 import { Database } from "@/integrations/supabase/types";
@@ -32,6 +40,10 @@ export default function MobileLoginPage() {
   const toast = useMobileToast();
   const [showPassword, setShowPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
+  const [bioAvailable, setBioAvailable] = useState(false);
+  const [bioEnabled, setBioEnabled] = useState(false);
+  const [bioBusy, setBioBusy] = useState(false);
+  const [storedEmail, setStoredEmail] = useState<string | null>(null);
 
   const { register, handleSubmit, formState: { errors }, setValue, watch } = useForm<LoginFormData>({
     resolver: zodResolver(loginSchema),
@@ -43,6 +55,59 @@ export default function MobileLoginPage() {
   });
 
   const rememberMe = watch("rememberMe");
+
+  // Detect biometric availability + try auto sign-in on mount
+  useEffect(() => {
+    (async () => {
+      const status = await getBiometricStatus();
+      setBioAvailable(status === "available");
+      const enabled = await isBiometricEnabled();
+      setBioEnabled(enabled);
+      const email = await getStoredEmail();
+      setStoredEmail(email);
+      if (enabled && status === "available" && !user) {
+        // Best-effort silent prompt
+        try {
+          setBioBusy(true);
+          const ok = await signInWithBiometric();
+          if (ok) navigate("/mobile/dashboard", { replace: true });
+        } catch {
+          /* user cancelled or token expired — fall back to form */
+        } finally {
+          setBioBusy(false);
+        }
+      }
+    })();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const handleBiometricTap = async () => {
+    try {
+      setBioBusy(true);
+      const ok = await signInWithBiometric();
+      if (ok) {
+        toast.success("Signed in");
+        navigate("/mobile/dashboard", { replace: true });
+      }
+    } catch (e: any) {
+      toast.error("Biometric sign-in failed", { description: e?.message });
+    } finally {
+      setBioBusy(false);
+    }
+  };
+
+  const promptEnableBiometric = async (email: string) => {
+    if (!bioAvailable || bioEnabled) return;
+    try {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session?.refresh_token) return;
+      await enableBiometric({ email, refreshToken: session.refresh_token });
+      setBioEnabled(true);
+      toast.success("Biometric sign-in enabled");
+    } catch {
+      /* user declined */
+    }
+  };
 
   const onSubmit = async (data: LoginFormData) => {
     setIsLoading(true);
@@ -56,6 +121,7 @@ export default function MobileLoginPage() {
       }
 
       toast.success("Welcome back!");
+      await promptEnableBiometric(data.email);
       navigate("/mobile/dashboard", { replace: true });
     } catch (err) {
       toast.error("An error occurred");
@@ -256,6 +322,24 @@ export default function MobileLoginPage() {
               "Sign In"
             )}
           </Button>
+
+          {/* Biometric quick sign-in */}
+          {bioAvailable && bioEnabled && (
+            <Button
+              type="button"
+              variant="outline"
+              className="w-full h-12 text-base font-medium"
+              disabled={bioBusy}
+              onClick={handleBiometricTap}
+            >
+              {bioBusy ? (
+                <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+              ) : (
+                <Fingerprint className="mr-2 h-5 w-5" />
+              )}
+              {storedEmail ? `Continue as ${storedEmail}` : "Use biometric"}
+            </Button>
+          )}
         </form>
 
         {/* Demo Accounts Note */}
