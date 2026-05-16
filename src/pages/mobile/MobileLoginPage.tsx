@@ -1,9 +1,9 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { Eye, EyeOff, Loader2, Shield } from "lucide-react";
+import { Eye, EyeOff, Fingerprint, Loader2, Shield } from "lucide-react";
 import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -12,6 +12,14 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useAuth } from "@/contexts/AuthContext";
 import { useMobileToast } from "@/hooks/useMobileToast";
 import { cn } from "@/lib/utils";
+import {
+  enableBiometric,
+  getBiometricStatus,
+  getStoredEmail,
+  isBiometricEnabled,
+  signInWithBiometric,
+} from "@/lib/native/biometric";
+import { supabase } from "@/integrations/supabase/client";
 import { UserRolesBadge } from "@/components/auth/UserRolesBadge";
 import { ROLE_LABELS } from "@/constants/roles";
 import { Database } from "@/integrations/supabase/types";
