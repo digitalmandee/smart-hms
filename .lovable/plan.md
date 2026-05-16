@@ -1,70 +1,50 @@
-# Pause Wave 2 — Native mobile build (COMPLETE)
+# Plan — Seed Mobile QA Test Users
 
-## Chunk status
+Provision four reusable test accounts attached to **Shifa Medical Center → Main Branch - Gulberg** so we can exercise every mobile dashboard variant (`/mobile/*`) end-to-end.
 
-```text
-N1  [DONE] Production bundle mode (no server.url) + dev profile
-N2  [DONE] Native boot orchestrator (splash, status bar, locale, role-routing)
-N3  [DONE] Safe-area + viewport CSS (notch, gesture bar, keyboard)
-N4  [DONE] Native shell routing (auto-redirect by role)
-N5  [DONE] Biometric login (Face ID / fingerprint) + secure-storage session
-N6  [DONE] Push notifications wiring (FCM/APNs → device_registrations)
-N7  [DONE] Deep-link handler (payments, Nafath, magic links → /~oauth)
-N8  [DONE] Haptics + native gestures (back button, pull-to-refresh)
-N9  [DONE] Offline sync resume hook (App resume → flush sync_outbox)
-N10 [DONE] Branded app icon + splash (1024 source → all densities)
-N11 [DONE] Android/iOS native config (permissions, ATS, gradle bumps)
-N12 [DONE] Build & QA scripts + QA checklist
-```
+## Credentials
 
-## Wave-2 deliverable status (final)
+Shared password: **`Devmine@098`**
 
-| # | Chunk | Evidence |
+| Email | Role(s) | Lands on |
 |---|---|---|
-| N1 | Prod / dev config split | `capacitor.config.ts` (no `server.url`) + `capacitor.config.dev.ts` |
-| N2 | Boot orchestrator | `src/lib/native/boot.ts` invoked from `src/main.tsx` |
-| N3 | Safe-area + viewport CSS | `index.css` tokens + `safe-area-*` classes on `BottomNavigation` |
-| N4 | Role-based routing | `src/components/native/NativeRouteGuard.tsx` mounted in `App.tsx` |
-| N5 | Biometric login | `src/lib/native/biometric.ts` + login-page integration |
-| N6 | Push notifications | `usePushNotifications` registers token + upserts `device_registrations` |
-| N7 | Deep-link handler | `src/lib/native/deep-links.ts` + `App.appUrlOpen` in boot |
-| N8 | Haptics + back button | `useHaptics`, `useBackButton`, single shared boot listener |
-| N9 | Offline sync resume | `flushOnResume` in boot, toast surfaces synced count |
-| N10 | Branded icon + splash | `resources/icon.png`, `resources/splash.png`, `npm run assets:generate` |
-| N11 | Native config | Documented in `scripts/build-mobile.md` (manifests are post-`cap add`) |
-| N12 | Build + QA scripts | `package.json` mobile scripts + `scripts/qa-mobile-checklist.md` |
+| `mobile.doctor@healthos24.test` | `doctor` | `DoctorMobileDashboard` |
+| `mobile.nurse@healthos24.test` | `nurse` | `NurseMobileDashboard` |
+| `mobile.staff@healthos24.test` | `receptionist` | `StaffMobileDashboard` |
+| `mobile.patient@healthos24.test` | `patient` | `PatientMobileDashboard` / portal |
 
-## Native-optimized modules
+Org: `b1111111-1111-1111-1111-111111111111`  
+Branch: `c1111111-1111-1111-1111-111111111111`
 
-Role-aware native shells exist for **Patient, Doctor, Nurse, Staff/Reception, Pharmacist, Lab technician** (via `BottomNavigation` filter + `NativeRouteGuard`). Native pages: Dashboard, Appointments, Tasks, Pharmacy, Lab, Notifications, Profile, More.
+## What the migration does
 
-Modules that intentionally use the responsive desktop layout inside the WebView (Wave-2 scope decision — no dedicated mobile twin): Finance reports, HR admin, Warehouse WMS, Surgery OT board, Super-admin. A "Switch to desktop view" toggle in profile lets power users opt in everywhere.
+Single idempotent SQL migration (`ON CONFLICT DO NOTHING`) that:
 
-## Branding completeness
+1. **`auth.users`** — inserts 4 users with bcrypted password (`crypt('Devmine@098', gen_salt('bf'))`), `email_confirmed_at = now()`, deterministic UUIDs so re-runs are safe.
+2. **`auth.identities`** — matching email identity rows for password login.
+3. **`public.profiles`** — `id`, `email`, `full_name`, `organization_id`, `branch_id`, `is_active = true`.
+4. **`public.user_roles`** — one row per user with the role above (enum `app_role`).
+5. **Doctor extras** — `public.doctors` row (specialization, license, consultation_fee 500) so OPD/appointment screens have a valid provider record.
+6. **Nurse extras** — `public.nurses` row (license, designation).
+7. **Staff extras** — `public.employees` row (designation = Receptionist).
+8. **Patient extras** — `public.patients` row (MRN auto-gen, gender M, DOB, phone) linked back to the auth user via `user_id` so the patient portal/mobile dashboard resolves.
+9. **Optional** — register fake `device_registrations` entries so push-token UI has visible state (skipped unless you want it).
 
-- Brand color `#0891b2` (teal-cyan) wired into: SplashScreen plugin, StatusBar, Android `backgroundColor`, iOS `backgroundColor`, generated icon background, splash background.
-- Source assets in `resources/icon.png` (1024²) and `resources/splash.png` (1920²).
-- Per-density Android / iOS PNGs produced by `npm run assets:generate` after the user runs `npx cap add android/ios` locally.
-- App display name: `smart-hms` in `capacitor.config.ts` — rename here if the public name should differ.
+## Verification after migration
 
-## What ships in this push vs. what the user runs locally
+- Login each account on the web preview → should redirect into the correct mobile dashboard when viewport is mobile.
+- Confirm `useAuth().roles` resolves the assigned role.
+- On the APK, walk `scripts/qa-mobile-checklist.md` per persona.
 
-| Done in sandbox | User runs locally after `git pull` |
-|---|---|
-| All TS/CSS/config/docs/assets | `npm install` |
-| `package.json` mobile scripts | `npx cap add android` (and/or `ios`) |
-| `scripts/qa-mobile-checklist.md` | `npm run assets:generate` |
-| `scripts/build-mobile.md` release section | `npm run build:mobile:android` |
-| i18n strings (EN/AR/UR) | Walk QA checklist on real device |
+## Files touched
 
-## Out of scope (deferred to Wave 3)
+- **New migration** (auto-named by the tool) — all inserts above.
+- No app code changes.
 
-- App Store / Play Store submission (signing keys, screenshots, listing copy)
-- CodePush / over-the-air updates
-- Background sync (WorkManager / BGTaskScheduler)
-- In-app purchase (Apple/Google billing)
-- Dedicated mobile twins for Finance / HR / Warehouse / Surgery / Super-admin
+## Notes / caveats
 
----
+- Test emails use `.test` TLD so they will never deliver real mail and won't collide with production users.
+- Re-running the migration is safe (ON CONFLICT on every table).
+- If you later want to remove them: `DELETE FROM auth.users WHERE email LIKE 'mobile.%@healthos24.test'` cascades through `profiles`, `user_roles`, `doctors`, `nurses`, `employees`, `patients` (all have ON DELETE CASCADE on `user_id` / `id`).
 
-**Wave 2 closed.** Run `git pull` → `npm install` → `npx cap add android` → `npm run assets:generate` → `npm run build:mobile:android` to produce the APK, then walk `scripts/qa-mobile-checklist.md`.
+Approve to run the migration.
