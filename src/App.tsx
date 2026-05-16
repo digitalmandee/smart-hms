@@ -1504,6 +1504,7 @@ function App() {
               <Route path="settings/notifications" element={<NotificationSettingsPage />} />
               <Route path="settings/sms" element={<SMSSettingsPage />} />
               <Route path="settings/whatsapp" element={<WhatsAppSettingsPage />} />
+              <Route path="settings/fhir" element={<FhirServerSettingsPage />} />
               <Route path="settings/email" element={<EmailSettingsPage />} />
               <Route path="settings/email-templates" element={<EmailTemplatesPage />} />
               <Route path="settings/audit-logs" element={<AuditLogsPage />} />
