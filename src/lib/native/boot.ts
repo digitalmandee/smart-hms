@@ -251,7 +251,15 @@ export async function bootNative(): Promise<void> {
   // Screens can intercept via `useBackButton(handler)`. Falls through to
   // history-back, then a "press again to exit" double-tap guard at root.
   let lastBackPressAt = 0;
-  App.addListener("backButton", ({ canGoBack }) => {
+  App.addListener("backButton", async ({ canGoBack }) => {
+    // Walk page-level handlers most-recent first; any truthy return consumes.
+    for (let i = backButtonStack.length - 1; i >= 0; i--) {
+      try {
+        if (await backButtonStack[i]()) return;
+      } catch {
+        /* keep iterating */
+      }
+    }
     if (canGoBack && window.history.length > 1) {
       window.history.back();
       return;
@@ -263,7 +271,6 @@ export async function bootNative(): Promise<void> {
     }
     lastBackPressAt = now;
     try {
-      // Dynamic import keeps the boot bundle small and avoids a hard dep on sonner.
       import("sonner").then(({ toast }) => toast("Press back again to exit"));
     } catch {
       /* non-fatal */
