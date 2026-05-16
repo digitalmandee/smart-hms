@@ -474,21 +474,49 @@
    Mobile Native Styles - Capacitor/Native App Support
    ======================================== */
 
+/* Safe-area inset tokens (notch, status bar, gesture bar).
+   Exposed as CSS variables so any component can compose them with calc(). */
+:root {
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
 /* Safe area spacing for iPhone notch/home indicator */
 .safe-area-top {
-  padding-top: env(safe-area-inset-top);
+  padding-top: var(--safe-top);
 }
 
 .safe-area-bottom {
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: var(--safe-bottom);
 }
 
 .safe-area-left {
-  padding-left: env(safe-area-inset-left);
+  padding-left: var(--safe-left);
 }
 
 .safe-area-right {
-  padding-right: env(safe-area-inset-right);
+  padding-right: var(--safe-right);
+}
+
+.safe-area-x {
+  padding-left: var(--safe-left);
+  padding-right: var(--safe-right);
+}
+
+.safe-area-y {
+  padding-top: var(--safe-top);
+  padding-bottom: var(--safe-bottom);
+}
+
+/* Headers / bottom nav with a minimum tap target plus safe inset */
+.safe-header {
+  padding-top: max(var(--safe-top), 12px);
+}
+
+.safe-footer {
+  padding-bottom: max(var(--safe-bottom), 12px);
 }
 
 /* Native-like scrolling behavior */
@@ -525,20 +553,42 @@ body.capacitor-native {
   width: 100%;
   height: 100%;
   overflow: hidden;
+  /* Disable iOS long-press text selection on chrome elements */
+  -webkit-touch-callout: none;
+  /* Disable pull-to-refresh; we wire our own */
+  overscroll-behavior-y: none;
+}
+
+/* Root mount uses full viewport (incl. inset region) on native */
+body.capacitor-native #root {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
 }
 
 /* Platform-specific adjustments */
 body.platform-ios {
-  /* iOS specific styles */
+  /* iOS uses translucent status bar - we paint behind it */
 }
 
 body.platform-android {
-  /* Android specific styles */
+  /* Android keyboard resize: 'native' shrinks the viewport,
+     so we don't need extra padding tricks. */
 }
 
-/* Keyboard open state */
+/* App lifecycle: when backgrounded, mask PHI for security */
+body.app-paused #root {
+  filter: blur(12px);
+  transition: filter 120ms ease-out;
+}
+
+/* Keyboard open state — collapse safe-bottom so footer sits on keyboard */
 body.keyboard-open {
-  /* Adjust layout when keyboard is visible */
+  --safe-bottom: 0px;
+}
+
+body.keyboard-open .keyboard-hide {
+  display: none !important;
 }
 
 /* Mobile-specific button tap states */
