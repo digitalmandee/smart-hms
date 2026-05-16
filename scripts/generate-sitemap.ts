@@ -1,6 +1,7 @@
 // Runs before `vite dev` and `vite build` (predev/prebuild hooks); writes public/sitemap.xml.
 import { writeFileSync } from "fs";
 import { resolve } from "path";
+import { posts } from "../src/content/blog/posts";
 
 const BASE_URL = "https://healthos24.com";
 
