@@ -8,6 +8,7 @@ import { useTranslation } from "@/lib/i18n";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { GatewayProvider } from "./PaymentMethodPicker";
+import { getNativeReturnUrl } from "@/lib/native/deep-links";
 
 export interface GatewayCheckoutDialogProps {
   open: boolean;
@@ -62,7 +63,9 @@ export function GatewayCheckoutDialog(props: GatewayCheckoutDialogProps) {
         amount,
         currency,
         customer: { ...customer, phone: phone || customer?.phone },
-        return_url: window.location.href,
+        return_url: getNativeReturnUrl(
+          invoiceId ? `/portal/invoices/${invoiceId}/return` : "/portal/dashboard"
+        ),
       },
     });
     if (error || (data as any)?.error) {

@@ -28,7 +28,7 @@ N3  [DONE] Safe-area + viewport CSS (notch, gesture bar, keyboard avoidance)
 N4  [DONE] Native shell routing (auto-redirect to /mobile/* on native by role)
 N5  [DONE] Biometric login (Face ID / fingerprint) + secure-storage session
 N6  [DONE] Push notifications wiring (FCM/APNs token → push_device_tokens)
-N7  Deep-link handler (payments, Nafath, magic links → /~oauth)
+N7  [DONE] Deep-link handler (payments, Nafath, magic links → /~oauth)
 N8  Haptics + native gestures (back button, pull-to-refresh, swipe)
 N9  Offline sync resume hook (App resume → flush sync_outbox)
 N10 Branded app icon + splash (1024 source → all Android/iOS densities)
