@@ -33,7 +33,7 @@ const entries: SitemapEntry[] = [
   { path: "/dialysis-documentation", changefreq: "monthly", priority: "0.5" },
   { path: "/dental-documentation", changefreq: "monthly", priority: "0.5" },
   { path: "/ksa-documentation", changefreq: "monthly", priority: "0.5" },
-  { path: "/demo-faq", changefreq: "monthly", priority: "0.5" },
+  { path: "/demo-faq-documentation", changefreq: "monthly", priority: "0.5" },
   { path: "/system-overview", changefreq: "monthly", priority: "0.5" },
 ];
 
