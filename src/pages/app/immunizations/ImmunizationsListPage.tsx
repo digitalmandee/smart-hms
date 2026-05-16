@@ -81,12 +81,12 @@ export default function ImmunizationsListPage() {
   });
 
   const record = async () => {
-    if (!orgId) return;
+    if (!orgId || !user?.id) return;
     if (!draft.patient_id || !draft.vaccine_code) {
       toast.error(t("imm.validation", "Patient and vaccine are required")); return;
     }
     setSaving(true);
-    const { error } = await supabase.from("immunizations").insert({
+    const payload = {
       organization_id: orgId,
       patient_id: draft.patient_id,
       vaccine_code: draft.vaccine_code,
@@ -97,17 +97,28 @@ export default function ImmunizationsListPage() {
       reaction_notes: draft.reaction_notes || null,
       given_date: new Date(draft.given_date).toISOString(),
       given_by: profile?.id ?? null,
-      status: "given",
-    });
-    setSaving(false);
-    if (error) { toast.error(error.message); return; }
-    if (draft.vaccine_lot_id) {
-      const lot = (lotOptions ?? []).find((l) => l.id === draft.vaccine_lot_id);
-      if (lot && lot.quantity_remaining > 0) {
-        await supabase.from("vaccine_lots").update({ quantity_remaining: lot.quantity_remaining - 1 }).eq("id", lot.id);
-      }
+      status: "given" as const,
+    };
+
+    // Online: insert directly (DB trigger decrements the lot).
+    // Offline: enqueue to the outbox; cow-sync upserts on unique client_uuid and the same trigger fires server-side.
+    if (typeof navigator !== "undefined" && navigator.onLine) {
+      const { error } = await supabase.from("immunizations").insert(payload);
+      setSaving(false);
+      if (error) { toast.error(error.message); return; }
+      toast.success(t("common.saved", "Saved"));
+    } else {
+      await enqueue({
+        user_id: user.id,
+        organization_id: orgId,
+        entity_type: "immunizations",
+        operation: "insert",
+        payload,
+      });
+      forceSync();
+      setSaving(false);
+      toast.success(t("imm.queued", "Saved offline — will sync when back online"));
     }
-    toast.success(t("common.saved", "Saved"));
     setOpen(false);
     qc.invalidateQueries({ queryKey: ["immunizations", orgId] });
     qc.invalidateQueries({ queryKey: ["vaccine_lots_active", orgId] });
