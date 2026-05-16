@@ -63,7 +63,9 @@ export function GatewayCheckoutDialog(props: GatewayCheckoutDialogProps) {
         amount,
         currency,
         customer: { ...customer, phone: phone || customer?.phone },
-        return_url: window.location.href,
+        return_url: getNativeReturnUrl(
+          invoiceId ? `/portal/invoices/${invoiceId}/return` : "/portal/dashboard"
+        ),
       },
     });
     if (error || (data as any)?.error) {
