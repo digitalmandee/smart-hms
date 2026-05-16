@@ -247,11 +247,25 @@ export async function bootNative(): Promise<void> {
   });
 
   // --- Android hardware back button ---
+  // Screens can intercept via `useBackButton(handler)`. Falls through to
+  // history-back, then a "press again to exit" double-tap guard at root.
+  let lastBackPressAt = 0;
   App.addListener("backButton", ({ canGoBack }) => {
     if (canGoBack && window.history.length > 1) {
       window.history.back();
-    } else {
+      return;
+    }
+    const now = Date.now();
+    if (now - lastBackPressAt < 2000) {
       App.exitApp();
+      return;
+    }
+    lastBackPressAt = now;
+    try {
+      // Dynamic import keeps the boot bundle small and avoids a hard dep on sonner.
+      import("sonner").then(({ toast }) => toast("Press back again to exit"));
+    } catch {
+      /* non-fatal */
     }
   });
 
