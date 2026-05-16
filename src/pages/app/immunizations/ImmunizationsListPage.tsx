@@ -216,6 +216,13 @@ export default function ImmunizationsListPage() {
         }
       />
 
+      {!online && (
+        <div className="flex items-center gap-2 rounded-md border border-amber-500/40 bg-amber-500/10 px-3 py-2 text-sm text-amber-700 dark:text-amber-300">
+          <WifiOff className="h-4 w-4" />
+          {t("imm.offline_banner", "You're offline. Vaccinations will be queued and synced automatically.")}
+        </div>
+      )}
+
       {isLoading ? (
         <div className="flex justify-center p-12"><Loader2 className="animate-spin" /></div>
       ) : !rows?.length ? (
