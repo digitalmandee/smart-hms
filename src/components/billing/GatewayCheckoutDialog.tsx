@@ -8,6 +8,7 @@ import { useTranslation } from "@/lib/i18n";
 import { CheckCircle2, XCircle, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import type { GatewayProvider } from "./PaymentMethodPicker";
+import { getNativeReturnUrl } from "@/lib/native/deep-links";
 
 export interface GatewayCheckoutDialogProps {
   open: boolean;
