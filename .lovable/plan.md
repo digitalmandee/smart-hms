@@ -1,69 +1,70 @@
-# Chunk N12 — Build & QA Scripts + Final Native-Readiness Audit
+# Pause Wave 2 — Native mobile build (COMPLETE)
 
-Final chunk. Two parts: (1) ship the missing build/QA tooling, (2) audit every prior chunk against the codebase and produce a pass/fail matrix so we can honestly answer *"is everything native-optimized and branded?"*.
+## Chunk status
 
-## Part A — Build & QA tooling (the only code work left)
+```text
+N1  [DONE] Production bundle mode (no server.url) + dev profile
+N2  [DONE] Native boot orchestrator (splash, status bar, locale, role-routing)
+N3  [DONE] Safe-area + viewport CSS (notch, gesture bar, keyboard)
+N4  [DONE] Native shell routing (auto-redirect by role)
+N5  [DONE] Biometric login (Face ID / fingerprint) + secure-storage session
+N6  [DONE] Push notifications wiring (FCM/APNs → device_registrations)
+N7  [DONE] Deep-link handler (payments, Nafath, magic links → /~oauth)
+N8  [DONE] Haptics + native gestures (back button, pull-to-refresh)
+N9  [DONE] Offline sync resume hook (App resume → flush sync_outbox)
+N10 [DONE] Branded app icon + splash (1024 source → all densities)
+N11 [DONE] Android/iOS native config (permissions, ATS, gradle bumps)
+N12 [DONE] Build & QA scripts + QA checklist
+```
 
-1. **`package.json` scripts** — add convenience commands:
-   - `cap:sync:dev` — copy `capacitor.config.dev.ts` → `capacitor.config.ts`, then `cap sync`
-   - `cap:sync:prod` — restore production config from git, then `cap sync`
-   - `build:mobile` — `npm run build && npx cap sync`
-   - `build:mobile:android` — full prod APK pipeline (build + sync + gradle assembleRelease) documented (gradle step runs locally, not in sandbox)
-   - `assets:generate` — already added in N10, verify intact
+## Wave-2 deliverable status (final)
 
-2. **`scripts/qa-mobile-checklist.md`** (new) — manual QA matrix the tester walks through on a real device:
-   - Cold launch < 3 s, branded splash visible
-   - Offline launch works after first login (auth cached)
-   - Biometric enrol + re-login (Face ID / fingerprint)
-   - Push token registered → row appears in `device_registrations`
-   - Deep link: open `app.lovable.<id>://~oauth?code=...` from another app → routes correctly
-   - Payment return: HyperPay sandbox → redirects back into app
-   - Hardware back button on Android: pops route, prompts on root
-   - Pull-to-refresh on Dashboard / Appointments / Tasks
-   - Safe-area: no notch overlap, no home-indicator overlap, keyboard does not cover inputs
-   - Role routing: doctor → `/mobile/doctor`, nurse → `/mobile/nurse`, staff → `/mobile/staff`, patient → `/portal/dashboard`
-   - i18n: switch to Arabic → RTL flips, switch to Urdu → strings translated
-   - Outbox flush on resume: airplane-mode an edit → restore network → toast "Synced N pending changes"
+| # | Chunk | Evidence |
+|---|---|---|
+| N1 | Prod / dev config split | `capacitor.config.ts` (no `server.url`) + `capacitor.config.dev.ts` |
+| N2 | Boot orchestrator | `src/lib/native/boot.ts` invoked from `src/main.tsx` |
+| N3 | Safe-area + viewport CSS | `index.css` tokens + `safe-area-*` classes on `BottomNavigation` |
+| N4 | Role-based routing | `src/components/native/NativeRouteGuard.tsx` mounted in `App.tsx` |
+| N5 | Biometric login | `src/lib/native/biometric.ts` + login-page integration |
+| N6 | Push notifications | `usePushNotifications` registers token + upserts `device_registrations` |
+| N7 | Deep-link handler | `src/lib/native/deep-links.ts` + `App.appUrlOpen` in boot |
+| N8 | Haptics + back button | `useHaptics`, `useBackButton`, single shared boot listener |
+| N9 | Offline sync resume | `flushOnResume` in boot, toast surfaces synced count |
+| N10 | Branded icon + splash | `resources/icon.png`, `resources/splash.png`, `npm run assets:generate` |
+| N11 | Native config | Documented in `scripts/build-mobile.md` (manifests are post-`cap add`) |
+| N12 | Build + QA scripts | `package.json` mobile scripts + `scripts/qa-mobile-checklist.md` |
 
-3. **`scripts/build-mobile.md`** — append a final "Release checklist" section linking to the QA file and listing keystore / provisioning-profile prerequisites.
+## Native-optimized modules
 
-4. **`.lovable/plan.md`** — mark N12 `[DONE]`, add a "Wave-2 deliverable status" summary at the bottom.
+Role-aware native shells exist for **Patient, Doctor, Nurse, Staff/Reception, Pharmacist, Lab technician** (via `BottomNavigation` filter + `NativeRouteGuard`). Native pages: Dashboard, Appointments, Tasks, Pharmacy, Lab, Notifications, Profile, More.
 
-## Part B — Audit matrix (read-only, included in plan response after approval)
+Modules that intentionally use the responsive desktop layout inside the WebView (Wave-2 scope decision — no dedicated mobile twin): Finance reports, HR admin, Warehouse WMS, Surgery OT board, Super-admin. A "Switch to desktop view" toggle in profile lets power users opt in everywhere.
 
-Each prior chunk re-verified against actual files. Expected findings:
+## Branding completeness
 
-| # | Chunk | Code present | Notes |
-|---|---|---|---|
-| N1 | Prod config split | `capacitor.config.ts` (no server.url) + `capacitor.config.dev.ts` | PASS |
-| N2 | Boot orchestrator | `src/lib/native/boot.ts` invoked from `main.tsx` | PASS |
-| N3 | Safe-area CSS | `index.css` tokens + `mobile-bottom-nav`/`safe-area-*` classes used in `BottomNavigation` | PASS |
-| N4 | Native role routing | `NativeRouteGuard` mounted in App router | verify |
-| N5 | Biometric | `src/lib/native/biometric.ts` + login-page integration | PASS |
-| N6 | Push registration | `usePushNotifications` registers + upserts `device_registrations` | verify table name (`push_device_tokens` vs `device_registrations`) |
-| N7 | Deep links | `src/lib/native/deep-links.ts` + `App.appUrlOpen` in boot | PASS |
-| N8 | Haptics + back btn | `useHaptics`, `useBackButton`, single boot listener | PASS |
-| N9 | Resume sync | `flushOnResume` in boot, toast surfaced | PASS |
-| N10 | Icon + splash | `resources/icon.png`, `resources/splash.png`, `assets:generate` script | PASS |
-| N11 | Native config | Documented in `scripts/build-mobile.md` (manifests are generated post-`cap add`) | PASS — docs only, as designed |
+- Brand color `#0891b2` (teal-cyan) wired into: SplashScreen plugin, StatusBar, Android `backgroundColor`, iOS `backgroundColor`, generated icon background, splash background.
+- Source assets in `resources/icon.png` (1024²) and `resources/splash.png` (1920²).
+- Per-density Android / iOS PNGs produced by `npm run assets:generate` after the user runs `npx cap add android/ios` locally.
+- App display name: `smart-hms` in `capacitor.config.ts` — rename here if the public name should differ.
 
-**Native modules optimized?** — Every page that has a `/mobile/*` twin is reachable via `NativeRouteGuard`. Modules without a dedicated mobile screen (Finance reports, HR admin, Warehouse WMS, Surgery OT board) intentionally fall back to the responsive desktop layout inside the WebView — this is by design (Wave 2 scope), not a gap. Will call this out explicitly in the deliverable summary so it isn't mistaken for a bug.
+## What ships in this push vs. what the user runs locally
 
-**Branding completed?** — Brand assets (`#0891b2` teal-cyan, HealthOS24 logo) wired into: splash plugin config, status bar, Android `backgroundColor`, iOS `backgroundColor`, generated icon + splash sources. The actual per-density PNGs are produced by `npm run assets:generate` after `npx cap add android/ios` runs locally — that's a one-command step in the user's terminal, not something we can ship from the sandbox.
+| Done in sandbox | User runs locally after `git pull` |
+|---|---|
+| All TS/CSS/config/docs/assets | `npm install` |
+| `package.json` mobile scripts | `npx cap add android` (and/or `ios`) |
+| `scripts/qa-mobile-checklist.md` | `npm run assets:generate` |
+| `scripts/build-mobile.md` release section | `npm run build:mobile:android` |
+| i18n strings (EN/AR/UR) | Walk QA checklist on real device |
 
-## What this chunk does NOT do
+## Out of scope (deferred to Wave 3)
 
-- Cannot run `gradlew assembleRelease` from sandbox (no Android SDK / JDK)
-- Cannot execute `npx cap add android/ios` from sandbox (generates platform folders the user must commit)
-- Cannot test on a real device
+- App Store / Play Store submission (signing keys, screenshots, listing copy)
+- CodePush / over-the-air updates
+- Background sync (WorkManager / BGTaskScheduler)
+- In-app purchase (Apple/Google billing)
+- Dedicated mobile twins for Finance / HR / Warehouse / Surgery / Super-admin
 
-These are user-side steps documented in the QA checklist.
+---
 
-## Files touched
-
-- **edit**: `package.json` (scripts only)
-- **edit**: `scripts/build-mobile.md` (append release checklist)
-- **edit**: `.lovable/plan.md` (mark N12 done + Wave-2 status)
-- **new**: `scripts/qa-mobile-checklist.md`
-
-Approve to ship N12 and close out Wave 2.
+**Wave 2 closed.** Run `git pull` → `npm install` → `npx cap add android` → `npm run assets:generate` → `npm run build:mobile:android` to produce the APK, then walk `scripts/qa-mobile-checklist.md`.
