@@ -288,6 +288,7 @@ import HipaaComplianceDashboardPage from "./pages/app/settings/HipaaComplianceDa
 import SMSSettingsPage from "./pages/app/settings/SMSSettingsPage";
 import WhatsAppSettingsPage from "./pages/app/settings/WhatsAppSettingsPage";
 import FhirServerSettingsPage from "./pages/app/settings/FhirServerSettingsPage";
+import HealthNetworkDashboard from "./pages/app/integrations/HealthNetworkDashboard";
 import ReportTemplatesPage from "./pages/app/settings/ReportTemplatesPage";
 import PublicLabReportPage from "./pages/public/PublicLabReportPage";
 import EmailSettingsPage from "./pages/app/settings/EmailSettingsPage";
