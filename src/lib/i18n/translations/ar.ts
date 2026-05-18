@@ -4648,5 +4648,8 @@ export const ar: Record<TranslationKey, string> = {
   "healthnet.recent": "نشاط المزامنة الأخير",
   "healthnet.recentDesc": "آخر 20 عملية سحب/دفع",
   "healthnet.empty": "لا يوجد نشاط مزامنة بعد",
+  "mobile.roleGuard.title": "غير متاح لدورك",
+  "mobile.roleGuard.description": "هذا القسم مقيد. تواصل مع المسؤول إذا كنت تعتقد أنه يجب أن يكون لديك حق الوصول.",
+  "mobile.roleGuard.back": "العودة إلى لوحة التحكم",
 };
 
