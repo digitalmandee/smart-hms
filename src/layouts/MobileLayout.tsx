@@ -29,6 +29,7 @@ export const MobileLayout = () => {
 
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
+      <OfflineBanner />
       <MobileHeader />
       <main className={cn(
         "flex-1 overflow-y-auto overscroll-contain scroll-container native-scroll",
