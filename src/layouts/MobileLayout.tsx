@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { BottomNavigation } from "@/components/mobile/BottomNavigation";
 import { MobileHeader } from "@/components/mobile/MobileHeader";
+import { OfflineBanner } from "@/components/mobile/OfflineBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
@@ -20,6 +21,7 @@ export const MobileLayout = () => {
   if (isAuthPage) {
     return (
       <div className="min-h-screen bg-background">
+        <OfflineBanner />
         <Outlet />
       </div>
     );
@@ -27,6 +29,7 @@ export const MobileLayout = () => {
 
   return (
     <div className="flex flex-col h-screen bg-background overflow-hidden">
+      <OfflineBanner />
       <MobileHeader />
       <main className={cn(
         "flex-1 overflow-y-auto overscroll-contain scroll-container native-scroll",

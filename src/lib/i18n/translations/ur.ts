@@ -4651,5 +4651,10 @@ export const ur: Record<TranslationKey, string> = {
   "mobile.roleGuard.title": "آپ کے کردار کے لیے دستیاب نہیں",
   "mobile.roleGuard.description": "یہ سیکشن محدود ہے۔ اگر آپ سمجھتے ہیں کہ آپ کو رسائی ہونی چاہیے تو اپنے ایڈمنسٹریٹر سے رابطہ کریں۔",
   "mobile.roleGuard.back": "ڈیش بورڈ پر واپس جائیں",
+  "mobile.offline.banner": "آپ آف لائن ہیں — دوبارہ کنیکٹ ہونے پر تبدیلیاں سنک ہو جائیں گی",
+  "mobile.offline.toastTitle": "آپ آف لائن ہیں",
+  "mobile.offline.toastBody": "ہم کیشڈ ڈیٹا کے ساتھ کام جاری رکھیں گے۔",
+  "mobile.online.toastTitle": "دوبارہ آن لائن",
+  "mobile.online.toastBody": "آپ کی تبدیلیاں سنک ہو رہی ہیں\u2026",
 };
 

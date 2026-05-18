@@ -4745,6 +4745,11 @@ export const en = {
   "mobile.roleGuard.title": "Not available for your role",
   "mobile.roleGuard.description": "This section is restricted. Ask your administrator if you think you should have access.",
   "mobile.roleGuard.back": "Back to Dashboard",
+  "mobile.offline.banner": "You're offline — changes will sync when you reconnect",
+  "mobile.offline.toastTitle": "You're offline",
+  "mobile.offline.toastBody": "We'll keep working with your cached data.",
+  "mobile.online.toastTitle": "Back online",
+  "mobile.online.toastBody": "Syncing your changes\u2026",
 } as const;
 
 export type TranslationKey = keyof typeof en;

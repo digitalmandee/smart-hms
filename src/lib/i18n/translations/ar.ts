@@ -4651,5 +4651,10 @@ export const ar: Record<TranslationKey, string> = {
   "mobile.roleGuard.title": "غير متاح لدورك",
   "mobile.roleGuard.description": "هذا القسم مقيد. تواصل مع المسؤول إذا كنت تعتقد أنه يجب أن يكون لديك حق الوصول.",
   "mobile.roleGuard.back": "العودة إلى لوحة التحكم",
+  "mobile.offline.banner": "أنت غير متصل — ستتم مزامنة التغييرات عند إعادة الاتصال",
+  "mobile.offline.toastTitle": "أنت غير متصل",
+  "mobile.offline.toastBody": "سنواصل العمل بالبيانات المخزنة مؤقتاً.",
+  "mobile.online.toastTitle": "عاد الاتصال",
+  "mobile.online.toastBody": "جاري مزامنة التغييرات\u2026",
 };
 

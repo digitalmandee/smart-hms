@@ -16,26 +16,29 @@ const config: CapacitorConfig = {
   // NOTE: no `server.url` in production — bundle is loaded from `dist/`.
   plugins: {
     SplashScreen: {
-      launchShowDuration: 1500,
-      launchAutoHide: false, // manually hidden from boot orchestrator
+      launchShowDuration: 2500,
+      launchAutoHide: false, // manually hidden by boot orchestrator after first paint
+      launchFadeOutDuration: 250,
       backgroundColor: '#0891b2',
       showSpinner: true,
       spinnerColor: '#ffffff',
-      androidScaleType: 'CENTER_CROP',
+      androidSpinnerStyle: 'large',
+      iosSpinnerStyle: 'small',
+      androidScaleType: 'CENTER_INSIDE',
+      androidSplashResourceName: 'splash',
       splashFullScreen: true,
       splashImmersive: true,
+      useDialog: false,
     },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert'],
     },
     Keyboard: {
-      // 'body' resizes the document so flex/scroll layouts stay intact when
-      // the soft keyboard opens. 'native' caused the login form to collapse.
       resize: 'body',
       resizeOnFullScreen: true,
     },
     StatusBar: {
-      style: 'dark',
+      style: 'light', // light icons on the dark cyan brand background
       backgroundColor: '#0891b2',
     },
     LocalNotifications: {

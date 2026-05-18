@@ -233,19 +233,25 @@ export async function bootNative(): Promise<void> {
   if (!Capacitor.isNativePlatform()) { console.log("[native-boot] web — exit"); return; }
 
   try {
-    await StatusBar.setStyle({ style: Style.Light });
+    // Style.Dark = light icons on dark background (matches our cyan brand bar)
+    await StatusBar.setStyle({ style: Style.Dark });
     if (Capacitor.getPlatform() === "android") {
       await StatusBar.setBackgroundColor({ color: "#0891b2" });
     }
     console.log("[native-boot] status bar set");
   } catch (e) { console.warn("[native-boot] status bar failed", e); }
 
-  // Safety: always force-hide splash after 3s so a JS error can't leave
-  // the user staring at a frozen splash that the OS may kill as ANR.
-  setTimeout(() => { SplashScreen.hide().catch(() => {}); }, 3000);
+  // Hide splash after the first React paint (two RAFs ensures DOM is committed),
+  // with a 5 s safety net so a JS error can't leave the user staring at a frozen
+  // splash that the OS may kill as ANR.
+  const hideSplash = () => SplashScreen.hide({ fadeOutDuration: 200 }).catch(() => {});
   requestAnimationFrame(() => {
-    setTimeout(() => { SplashScreen.hide().catch(() => {}); console.log("[native-boot] splash hidden"); }, 200);
+    requestAnimationFrame(() => {
+      // Small grace period so the first frame actually renders before the fade.
+      setTimeout(() => { hideSplash(); console.log("[native-boot] splash hidden"); }, 150);
+    });
   });
+  setTimeout(hideSplash, 5000);
 
   try {
     App.addListener("appStateChange", ({ isActive }) => {
