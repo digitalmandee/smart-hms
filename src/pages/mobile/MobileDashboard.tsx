@@ -3,28 +3,34 @@ import DoctorMobileDashboard from "./DoctorMobileDashboard";
 import NurseMobileDashboard from "./NurseMobileDashboard";
 import PatientMobileDashboard from "./PatientMobileDashboard";
 import StaffMobileDashboard from "./StaffMobileDashboard";
-import { CLINICAL_ROLES, NURSING_ROLES } from "@/constants/roles";
+import { resolveMobilePersona } from "@/constants/roles";
 
 export default function MobileDashboard() {
-  const { roles } = useAuth();
+  const { roles, isLoading } = useAuth();
 
-  // Determine which dashboard to show based on user roles
-  const hasClinicialRole = roles.some(role => CLINICAL_ROLES.includes(role));
-  const hasNursingRole = roles.some(role => NURSING_ROLES.includes(role));
-  const isPatient = roles.length === 0 || roles.includes('patient' as any);
-
-  if (hasClinicialRole) {
-    return <DoctorMobileDashboard />;
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="h-8 w-8 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
   }
 
-  if (hasNursingRole) {
-    return <NurseMobileDashboard />;
-  }
+  const persona = resolveMobilePersona(roles);
 
-  if (isPatient) {
-    return <PatientMobileDashboard />;
+  switch (persona) {
+    case "doctor":
+      return <DoctorMobileDashboard />;
+    case "nurse":
+      return <NurseMobileDashboard />;
+    case "patient":
+      return <PatientMobileDashboard />;
+    case "admin":
+    case "pharmacist":
+    case "lab":
+    case "reception":
+    case "staff":
+    default:
+      return <StaffMobileDashboard />;
   }
-
-  // Default to staff dashboard for other roles
-  return <StaffMobileDashboard />;
 }
