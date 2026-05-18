@@ -1,6 +1,7 @@
 import { Outlet, useLocation } from "react-router-dom";
 import { BottomNavigation } from "@/components/mobile/BottomNavigation";
 import { MobileHeader } from "@/components/mobile/MobileHeader";
+import { OfflineBanner } from "@/components/mobile/OfflineBanner";
 import { useAuth } from "@/contexts/AuthContext";
 import { cn } from "@/lib/utils";
 
