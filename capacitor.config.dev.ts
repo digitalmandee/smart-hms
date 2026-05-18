@@ -14,14 +14,21 @@ const config: CapacitorConfig = {
   server: {
     url: 'https://0eeac695-3ca2-45ba-87e8-f046d5957181.lovableproject.com?forceHideBadge=true',
     cleartext: true,
+    // Branded offline fallback (bundled in dist/) so the native WebView never
+    // shows the OEM "Webpage not available" screen when the sandbox is unreachable.
+    errorPath: '/offline.html',
   },
   plugins: {
     SplashScreen: {
-      launchShowDuration: 1000,
-      launchAutoHide: true,
+      launchShowDuration: 1500,
+      launchAutoHide: false,
       backgroundColor: '#0891b2',
       showSpinner: true,
       spinnerColor: '#ffffff',
+      androidScaleType: 'CENTER_INSIDE',
+      androidSplashResourceName: 'splash',
+      splashFullScreen: true,
+      splashImmersive: true,
     },
     PushNotifications: {
       presentationOptions: ['badge', 'sound', 'alert'],
