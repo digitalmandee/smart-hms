@@ -1,64 +1,70 @@
-## Goal
-Make the mobile app respect the same role/permission system as the web app so each user lands on the right dashboard, sees only the menu items they're allowed to use, and is blocked from pages outside their role.
+## Goals
+1. Make the launch splash feel native — branded HealthOS logo, no white flash, smooth handoff to the app.
+2. When the device loses internet, never show the Android/iOS WebView "Webpage not available" error. Instead show a native-feel offline banner + toast, and auto-recover when the network returns.
 
-## Problems found
+## Findings
 
-1. **`MobileDashboard` routing is too narrow.** Only `doctor`, `surgeon`, `anesthetist` get the doctor view; `nurse` variants get nurse view; everything else (pharmacist, lab_technician, receptionist, accountant, org_admin, etc.) falls through to a generic `StaffMobileDashboard`. No special case for super_admin/org_admin.
-2. **Bottom navigation points to desktop routes** (`/app/dashboard`, `/app/appointments`, `/app/opd/nursing`, `/app/pharmacy`, `/app/lab`, `/app/profile`) instead of the existing `/mobile/*` pages. This is why "after login access" feels broken — taps bounce users out of the mobile shell into the desktop app.
-3. **No role guard on individual mobile pages.** `/mobile/pharmacy`, `/mobile/lab`, `/mobile/tasks` are reachable by any logged-in user, including patients.
-4. **Patient role has no dedicated landing.** Patients on mobile should land on the portal-style `PatientMobileDashboard` with appointments / prescriptions / invoices only.
+### Splash
+- `capacitor.config.ts` uses `launchShowDuration: 1500`, `launchAutoHide: false`, and relies on `resources/splash.png` — but **no `@capacitor/assets` run** has generated the per-density Android `drawable-*/splash.png` + `mipmap-*/ic_launcher_*.png` from the brand logo. Result: Android falls back to the default Capacitor splash / a stretched image, and the icon shown isn't the HealthOS 24 logo.
+- Status bar config says `style: 'dark'` but `boot.ts` sets `Style.Light` — text colour flickers on first paint.
+- The 3 s safety timeout in `boot.ts` hides the splash even when the app is still mounting, causing a brief white flash before the first React paint.
+
+### Offline
+- No network-loss UI exists. `boot.ts` only flushes the outbox when `networkStatusChange` reports connected; there's no banner, toast, or interceptor for the disconnected state.
+- The infamous "Webpage not available" is rendered by the native WebView when `server.url` is unreachable. The **production** config has no `server.url`, so the prod build only fails on network requests — but those requests (Supabase, edge functions) currently throw raw errors with no friendly UX. Dev config (`capacitor.config.dev.ts`) does point at the sandbox URL and will show the WebView error if the device drops Wi-Fi while running a dev build.
 
 ## Plan
 
-### 1. Role grouping helper
-Extend `src/constants/roles.ts` with:
-- `PHARMACY_ROLES` (already there), `LAB_ROLES = ["lab_technician"]`, `RECEPTION_ROLES`, `ADMIN_ROLES = ["super_admin","org_admin","branch_admin"]`, `PATIENT_ROLES = ["patient"]`.
-- `resolveMobilePersona(roles)` → `"admin" | "doctor" | "nurse" | "pharmacist" | "lab" | "reception" | "staff" | "patient"`.
+### 1. Branded splash + icon
+- Add a small script entry `npm run native:assets` that runs `npx @capacitor/assets generate --iconBackgroundColor "#0891b2" --splashBackgroundColor "#0891b2"` against `resources/icon.png` + `resources/splash.png`. Document in `scripts/qa-mobile-checklist.md` that the user runs it once per logo change, then `npx cap sync`.
+- Replace `resources/splash.png` source with a centred HealthOS 24 logo on a 2732×2732 brand-cyan background (generated via `imagegen` — premium for crisp text) and `resources/icon.png` with a 1024×1024 logo mark on the same background.
+- Tune `capacitor.config.ts` SplashScreen plugin:
+  - `launchShowDuration: 2500` (gives JS time to mount on cold start)
+  - `launchAutoHide: false` (kept — boot orchestrator hides manually)
+  - `androidScaleType: 'CENTER_CROP'` → `'CENTER_INSIDE'` so the logo isn't cropped on tall phones
+  - `useDialog: false`, `androidSplashResourceName: 'splash'`
+  - `showSpinner: true`, `spinnerColor: '#ffffff'`
+- Align status bar: change `boot.ts` to `Style.Dark` to match config (white icons on cyan background — matches "dark" style in Capacitor's enum, which is light-on-dark).
+- In `main.tsx`, hide the splash **after the first React commit** (inside a `useEffect` in `App.tsx` root or `requestAnimationFrame` after `createRoot.render` returns), not on a blind 3 s timer. Keep the 5 s safety net as a last-resort fallback only.
 
-### 2. Mobile dashboard router (`MobileDashboard.tsx`)
-Switch on `resolveMobilePersona(roles)`:
-- admin / staff (accountant, hr, store_manager, receptionist, finance_manager) → `StaffMobileDashboard`
-- doctor / surgeon / anesthetist → `DoctorMobileDashboard`
-- nurse variants → `NurseMobileDashboard`
-- pharmacist → reuse `StaffMobileDashboard` for now but with a pharmacy quick-action card (small tweak)
-- lab_technician → same staff dashboard with lab quick-action
-- patient (or no roles) → `PatientMobileDashboard`
+### 2. Native-style offline UX
+- New file `src/lib/native/network.ts`:
+  - `useOnlineStatus()` hook combining `navigator.onLine`, `window` online/offline events, and `@capacitor/network` `networkStatusChange` listener.
+  - Exports a singleton `getOnlineStatus()` for non-React callers.
+- New component `src/components/mobile/OfflineBanner.tsx`:
+  - Sticky top bar (under the safe-area header) that slides in when offline: WiFi-off icon + localised text "You're offline — changes will sync when you reconnect".
+  - Hidden on `/auth/*` and `/mobile/login` so it doesn't clutter the login screen.
+  - Mounted once inside `MobileLayout` (and also `DashboardLayout` for the PWA web view, so the same UX works in the browser).
+- Toasts (sonner) on transition only — single toast per state change, debounced 1 s to avoid flicker on flaky networks:
+  - online → offline: `toast.error("You're offline")` with description "We'll keep working with cached data."
+  - offline → online: `toast.success("Back online")` with description if `outboxCounts().pending > 0`: "Syncing your changes…"
+- i18n strings in **English, Urdu, Arabic** under keys `mobile.offline.*`.
 
-### 3. Fix bottom navigation (`src/components/mobile/BottomNavigation.tsx`)
-- Change every `/app/...` link to its `/mobile/...` equivalent (`/mobile/dashboard`, `/mobile/appointments`, `/mobile/tasks`, `/mobile/pharmacy`, `/mobile/lab`, `/mobile/profile`).
-- Re-derive `getHomePath` against `/mobile/*`.
-- Filter items using the same role groups (`PHARMACY_ROLES`, `LAB_ROLES`, `CLINICAL_ROLES ∪ NURSING_ROLES` for Tasks).
-- Patients see only: Home, Appointments, Profile (hide Tasks / Pharmacy / Lab).
+### 3. Prevent WebView "Webpage not available"
+- Production: confirmed safe — no `server.url`, assets bundle is local. Add a runtime guard: in `boot.ts`, on `networkStatusChange` → `disconnected`, set a flag and have a global `fetch` wrapper short-circuit Supabase calls to a rejected promise with a typed `OfflineError` so callers don't trigger native error pages from XHR redirects.
+- Dev (`capacitor.config.dev.ts`): add `server.errorPath` pointing at a tiny `public/offline.html` so even the dev hot-reload build shows a branded offline page instead of the OEM WebView error. Document this in the dev config header comment.
+- Add `errorPath` only to dev config — production already loads locally and never hits this path.
 
-### 4. Per-page role guard
-Add a small wrapper `MobileRoleGuard` in `src/components/mobile/MobileRoleGuard.tsx`:
-- Accepts `allow: AppRole[]` (super_admin always allowed).
-- If user lacks any allowed role, render a friendly "Not available for your role" screen with a button back to `/mobile/dashboard`.
+### 4. i18n keys (en / ur / ar)
+```
+mobile.offline.banner       "You're offline — changes will sync when you reconnect"
+mobile.offline.toastTitle   "You're offline"
+mobile.offline.toastBody    "We'll keep working with your cached data."
+mobile.online.toastTitle    "Back online"
+mobile.online.toastBody     "Syncing your changes…"
+```
 
-Wrap routes in `src/App.tsx`:
-- `/mobile/tasks`     → allow CLINICAL_ROLES ∪ NURSING_ROLES
-- `/mobile/pharmacy`  → allow PHARMACY_ROLES
-- `/mobile/lab`       → allow LAB_ROLES + doctor (read-only)
-Leave `/mobile/dashboard`, `appointments`, `notifications`, `profile`, `more` open to everyone authenticated.
-
-### 5. Login → redirect by persona
-In `MobileLoginPage.onSubmit` and biometric paths, after login wait briefly for `roles` to load (`useAuth().isLoading === false`) then `navigate(resolveMobileLanding(persona))` where:
-- patient → `/mobile/dashboard` (renders PatientMobileDashboard)
-- pharmacist → `/mobile/pharmacy`
-- lab_technician → `/mobile/lab`
-- everyone else → `/mobile/dashboard`
-
-### 6. i18n
-All new strings (role-guard message, nav labels) go through `src/lib/i18n/index.ts` in **English, Urdu, Arabic** per project rule.
-
-### 7. QA checklist update
-Add to `scripts/qa-mobile-checklist.md`: log in as admin / doctor / nurse / pharmacist / lab tech / patient, verify (a) correct dashboard, (b) bottom nav stays inside `/mobile/*`, (c) blocked pages show the role-guard screen, (d) all 3 languages render.
+### 5. QA checklist additions (`scripts/qa-mobile-checklist.md`)
+- Cold-start launch shows HealthOS logo on cyan splash, status bar icons stay white, no white flash before first paint.
+- Toggle Airplane Mode mid-session → offline banner appears within ~1 s, sonner toast fires once, no WebView error page.
+- Disable Airplane Mode → "Back online" toast, banner hides, outbox flushes.
+- Verify in all 3 languages.
 
 ## Technical notes
-- No database / RLS changes needed — RLS already enforces row access; this work is purely UI gating so users don't hit dead-end pages.
-- `super_admin` bypass is handled inside `MobileRoleGuard` via `roles.includes("super_admin")`.
-- `MobileLayout` and `ProtectedRoute` stay unchanged; the guard sits between route element and page component.
+- No backend, schema, or RLS changes.
+- All native imports stay guarded by `Capacitor.isNativePlatform()` so the web build is unaffected.
+- The splash logo regeneration step requires the user to run `npm run native:assets` once locally (it can't be done from the Lovable sandbox because the generator writes into `android/` / `ios/` native projects). The plan will include clear instructions.
 
 ## Out of scope
-- Building new role-specific mobile pages (e.g. dedicated pharmacist POS on mobile). Existing pages are reused.
-- Changing desktop `BottomNavigation` behavior on web breakpoints — only the mobile shell navigation is touched.
+- Building a full offline-first mode for new pages (queueing every mutation). Existing offline-sync outbox is reused; no new offline workflows.
+- iOS launch-screen storyboard customisation beyond what `@capacitor/assets` produces.
