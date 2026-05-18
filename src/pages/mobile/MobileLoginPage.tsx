@@ -121,9 +121,22 @@ export default function MobileLoginPage() {
       }
 
       toast.success("Welcome back!");
-      // Navigate first — biometric prompt is fire-and-forget so a native
-      // prompt failure can't take down the post-login flow (Android crash).
-      navigate("/mobile/dashboard", { replace: true });
+      // Wait briefly for roles to load, then route by persona
+      let landing = "/mobile/dashboard";
+      try {
+        const { data: { user: signedInUser } } = await supabase.auth.getUser();
+        if (signedInUser) {
+          const { data: roleRows } = await supabase
+            .from("user_roles")
+            .select("role")
+            .eq("user_id", signedInUser.id);
+          const userRoles = (roleRows ?? []).map(r => r.role) as any[];
+          landing = resolveMobileLanding(resolveMobilePersona(userRoles));
+        }
+      } catch {
+        /* fall back to dashboard */
+      }
+      navigate(landing, { replace: true });
       void promptEnableBiometric(data.email).catch(() => {
         /* user declined or native module unavailable */
       });
