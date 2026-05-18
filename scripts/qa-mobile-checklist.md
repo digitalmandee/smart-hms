@@ -108,3 +108,28 @@ If any of these are unusable on phone, file a Wave-3 ticket for a dedicated mobi
 ---
 
 When every required row is Pass, the build is ship-ready. File any failures as blocker tickets before publishing.
+
+---
+
+## Splash & branding (run after replacing `resources/splash.png` or `resources/icon.png`)
+
+```bash
+npm run assets:generate   # regenerates Android & iOS launch assets
+npx cap sync              # copies into android/ + ios/
+```
+
+QA:
+- [ ] Cold-start shows HealthOS 24 logo centered on cyan splash (no stretching)
+- [ ] Status bar icons are white during splash and inside the app
+- [ ] No white flash between splash and first React paint
+- [ ] App icon on home screen is the new HealthOS H24 mark
+
+## Offline behavior
+
+- [ ] Toggle Airplane Mode mid-session → red "You're offline" banner slides in under the status bar within ~1 s
+- [ ] A single sonner toast fires ("You're offline" with helper body) — no spam on flaky signal
+- [ ] Open a few pages while offline — no "Webpage not available" WebView error appears
+- [ ] Disable Airplane Mode → "Back online" toast fires once, banner disappears, outbox flushes
+- [ ] Repeat in **English, Urdu, Arabic** — strings localised correctly, banner respects RTL
+- [ ] (Dev builds only) If the sandbox URL is unreachable, the WebView shows the branded `/offline.html`, not the OEM error
+
