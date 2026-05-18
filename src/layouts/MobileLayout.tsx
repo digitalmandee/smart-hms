@@ -21,6 +21,7 @@ export const MobileLayout = () => {
   if (isAuthPage) {
     return (
       <div className="min-h-screen bg-background">
+        <OfflineBanner />
         <Outlet />
       </div>
     );
