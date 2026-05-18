@@ -4648,5 +4648,8 @@ export const ur: Record<TranslationKey, string> = {
   "healthnet.recent": "حالیہ سنک سرگرمی",
   "healthnet.recentDesc": "آخری 20 pull/push ایونٹس",
   "healthnet.empty": "ابھی کوئی سنک سرگرمی نہیں",
+  "mobile.roleGuard.title": "آپ کے کردار کے لیے دستیاب نہیں",
+  "mobile.roleGuard.description": "یہ سیکشن محدود ہے۔ اگر آپ سمجھتے ہیں کہ آپ کو رسائی ہونی چاہیے تو اپنے ایڈمنسٹریٹر سے رابطہ کریں۔",
+  "mobile.roleGuard.back": "ڈیش بورڈ پر واپس جائیں",
 };
 

@@ -4742,6 +4742,9 @@ export const en = {
   "healthnet.recent": "Recent Sync Activity",
   "healthnet.recentDesc": "Last 20 pull/push events",
   "healthnet.empty": "No sync activity yet",
+  "mobile.roleGuard.title": "Not available for your role",
+  "mobile.roleGuard.description": "This section is restricted. Ask your administrator if you think you should have access.",
+  "mobile.roleGuard.back": "Back to Dashboard",
 } as const;
 
 export type TranslationKey = keyof typeof en;

@@ -698,6 +698,8 @@ import MobileMorePage from "./pages/mobile/MobileMorePage";
 import MobileTasksPage from "./pages/mobile/MobileTasksPage";
 import MobilePharmacyPage from "./pages/mobile/MobilePharmacyPage";
 import MobileLabPage from "./pages/mobile/MobileLabPage";
+import { MobileRoleGuard } from "./components/mobile/MobileRoleGuard";
+import { CLINICAL_ROLES, NURSING_ROLES, PHARMACY_ROLES, LAB_ROLES } from "./constants/roles";
 
 // PWA Adaptive pages (same route, mobile/desktop detection)
 import ProfilePage from "./pages/app/ProfilePage";
@@ -845,9 +847,21 @@ function App() {
               <Route path="profile" element={<MobileProfilePage />} />
               <Route path="appointments" element={<MobileAppointmentsPage />} />
               <Route path="notifications" element={<MobileNotificationsPage />} />
-              <Route path="tasks" element={<MobileTasksPage />} />
-              <Route path="pharmacy" element={<MobilePharmacyPage />} />
-              <Route path="lab" element={<MobileLabPage />} />
+              <Route path="tasks" element={
+                <MobileRoleGuard allow={[...CLINICAL_ROLES, ...NURSING_ROLES]}>
+                  <MobileTasksPage />
+                </MobileRoleGuard>
+              } />
+              <Route path="pharmacy" element={
+                <MobileRoleGuard allow={PHARMACY_ROLES}>
+                  <MobilePharmacyPage />
+                </MobileRoleGuard>
+              } />
+              <Route path="lab" element={
+                <MobileRoleGuard allow={[...LAB_ROLES, ...CLINICAL_ROLES]}>
+                  <MobileLabPage />
+                </MobileRoleGuard>
+              } />
               <Route path="more" element={<MobileMorePage />} />
             </Route>
 

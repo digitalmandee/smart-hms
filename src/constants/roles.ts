@@ -114,6 +114,47 @@ export const ROLE_LABELS: Record<AppRole, string> = {
 };
 
 // Roles that indicate clinical staff (doctor/nurse/etc.)
-export const CLINICAL_ROLES: AppRole[] = ["doctor", "surgeon", "anesthetist"];
-export const NURSING_ROLES: AppRole[] = ["nurse", "opd_nurse", "ipd_nurse", "ot_nurse"];
+export const CLINICAL_ROLES: AppRole[] = ["doctor", "surgeon", "anesthetist", "telemed_doctor"];
+export const NURSING_ROLES: AppRole[] = ["nurse", "opd_nurse", "ipd_nurse", "ot_nurse", "home_health_nurse"];
 export const PHARMACY_ROLES: AppRole[] = ["pharmacist", "ot_pharmacist"];
+export const LAB_ROLES: AppRole[] = ["lab_technician"];
+export const RADIOLOGY_ROLES: AppRole[] = ["radiologist", "radiology_technician"];
+export const RECEPTION_ROLES: AppRole[] = ["receptionist"];
+export const ADMIN_ROLES: AppRole[] = ["super_admin", "org_admin", "branch_admin"];
+export const PATIENT_ROLES: AppRole[] = ["patient"];
+
+export type MobilePersona =
+  | "admin"
+  | "doctor"
+  | "nurse"
+  | "pharmacist"
+  | "lab"
+  | "reception"
+  | "staff"
+  | "patient";
+
+/**
+ * Map the user's assigned roles to a single mobile persona that drives
+ * the dashboard, bottom navigation, and route guards.
+ * Priority: admin > clinical > nursing > pharmacist > lab > reception > patient > staff
+ */
+export const resolveMobilePersona = (roles: AppRole[]): MobilePersona => {
+  if (!roles || roles.length === 0) return "patient";
+  if (roles.some(r => ADMIN_ROLES.includes(r))) return "admin";
+  if (roles.some(r => CLINICAL_ROLES.includes(r))) return "doctor";
+  if (roles.some(r => NURSING_ROLES.includes(r))) return "nurse";
+  if (roles.some(r => PHARMACY_ROLES.includes(r))) return "pharmacist";
+  if (roles.some(r => LAB_ROLES.includes(r))) return "lab";
+  if (roles.some(r => RECEPTION_ROLES.includes(r))) return "reception";
+  if (roles.some(r => PATIENT_ROLES.includes(r))) return "patient";
+  return "staff";
+};
+
+/** Landing route after login for each persona. */
+export const resolveMobileLanding = (persona: MobilePersona): string => {
+  switch (persona) {
+    case "pharmacist": return "/mobile/pharmacy";
+    case "lab": return "/mobile/lab";
+    default: return "/mobile/dashboard";
+  }
+};
