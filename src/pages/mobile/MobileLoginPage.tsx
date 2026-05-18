@@ -21,7 +21,7 @@ import {
 } from "@/lib/native/biometric";
 import { supabase } from "@/integrations/supabase/client";
 import { UserRolesBadge } from "@/components/auth/UserRolesBadge";
-import { ROLE_LABELS } from "@/constants/roles";
+import { ROLE_LABELS, resolveMobilePersona, resolveMobileLanding, AppRole } from "@/constants/roles";
 import { Database } from "@/integrations/supabase/types";
 
 type AppRole = Database["public"]["Enums"]["app_role"];
