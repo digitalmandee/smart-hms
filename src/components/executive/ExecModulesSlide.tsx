@@ -120,7 +120,7 @@ export function ExecModulesSlide() {
         </div>
         <div className="flex items-center gap-2">
           <span className="text-xs font-bold text-primary bg-primary/10 px-3 py-1.5 rounded-full">{totalModules} live</span>
-          <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">7 / 35</span>
+          <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">Appendix · A1</span>
         </div>
       </div>
 

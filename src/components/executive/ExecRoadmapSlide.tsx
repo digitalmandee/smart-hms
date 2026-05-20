@@ -68,7 +68,7 @@ export function ExecRoadmapSlide() {
             Tied to compliance, AI depth and hospital-group readiness. Each milestone unlocks the next revenue tier.
           </p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">24 / 35</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">17 / 20</span>
       </div>
 
       <div className="grid grid-cols-4 gap-3 flex-1">

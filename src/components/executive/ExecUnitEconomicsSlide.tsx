@@ -31,7 +31,7 @@ export function ExecUnitEconomicsSlide() {
             High gross margin, fast payback, recurring expansion. Built for capital efficiency in KSA.
           </p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">21 / 35</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">15 / 20</span>
       </div>
 
       <div className="grid grid-cols-3 gap-3 mb-4">

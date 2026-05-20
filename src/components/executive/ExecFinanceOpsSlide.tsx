@@ -50,7 +50,7 @@ export function ExecFinanceOpsSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Finance & Operations</h2>
           <p className="text-sm text-muted-foreground mt-1">Complete back-office coverage, billing, accounting, HR, procurement, and inventory.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">34 / 35</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">Appendix · A13</span>
       </div>
 
       <div className="grid grid-cols-3 gap-4 flex-1">

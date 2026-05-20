@@ -27,7 +27,7 @@ export function ExecTabeebiSlide() {
             <p className="text-sm text-muted-foreground">Your competitive differentiator, included in every installation</p>
           </div>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">5 / 35</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">5 / 20</span>
       </div>
 
       <div className="grid grid-cols-2 gap-5 mb-6 relative z-10">

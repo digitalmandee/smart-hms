@@ -54,7 +54,7 @@ export function ExecROISlide() {
           <h2 className="text-3xl font-extrabold text-foreground">What customers can expect</h2>
           <p className="text-sm text-muted-foreground mt-1">Modeled on our live deployments in KSA and Pakistan, plus published HMS industry benchmarks.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">19 / 35</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">Appendix · A5</span>
       </div>
 
       <div className="grid grid-cols-2 gap-5 flex-1">

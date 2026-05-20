@@ -54,7 +54,7 @@ export function ExecCustomerStorySlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Before and after HealthOS 24</h2>
           <p className="text-sm text-muted-foreground mt-1">{CUSTOMER_NAME} · {CUSTOMER_DESCRIPTOR}</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">6 / 35</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">Appendix · A4</span>
       </div>
 
       <div className="grid grid-cols-5 gap-6 flex-1">

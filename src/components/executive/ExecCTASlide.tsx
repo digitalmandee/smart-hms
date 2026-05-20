@@ -29,7 +29,7 @@ export function ExecCTASlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Let's win Saudi Arabia together</h2>
           <p className="text-sm text-muted-foreground mt-1">Looking for 2 to 3 strategic investors. Lead check SAR 750K. Closing Q3 2026.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">29 / 35</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">Thank you</span>
       </div>
 
       <div className="flex gap-6 flex-1 relative z-10">
