@@ -22,7 +22,7 @@ export function ExecCompetitionSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Why we win in Saudi Arabia</h2>
           <p className="text-sm text-muted-foreground mt-1">Cerner and Epic are too expensive and too foreign. Local tools are too thin. We are the only platform built Saudi-first with real depth.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">16 / 35</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">10 / 20</span>
       </div>
 
       <div className="flex-1 flex gap-6">

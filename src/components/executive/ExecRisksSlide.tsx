@@ -35,7 +35,7 @@ export function ExecRisksSlide() {
             We name the risks investors will ask about, with concrete mitigations already in motion.
           </p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">26 / 35</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">19 / 20</span>
       </div>
 
       <div className="grid grid-cols-3 gap-4 flex-1">

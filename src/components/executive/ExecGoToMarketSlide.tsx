@@ -46,7 +46,7 @@ export function ExecGoToMarketSlide() {
             Founder-led direct sales in KSA, channel leverage for scale, pilot-to-paid conversion engine.
           </p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">23 / 35</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">13 / 20</span>
       </div>
 
       <div className="grid grid-cols-3 gap-3 mb-4">
