@@ -37,7 +37,7 @@ export function ExecKsaComplianceSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">KSA Regulatory Compliance</h2>
           <p className="text-sm text-muted-foreground mt-1">7 mandatory integrations, fully certified, sandbox-tested, production-ready</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">13 / 32</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">12 / 31</span>
       </div>
 
       {/* 7-Integration Grid (4 + 3 layout) */}

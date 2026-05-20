@@ -35,7 +35,7 @@ export function ExecClinicOnWheelsSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Clinic on Wheels</h2>
           <p className="text-sm text-muted-foreground mt-1">Healthcare that comes to the patient. Vision 2030 aligned</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">16 / 32</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">15 / 31</span>
       </div>
 
       {/* Hero strip: van + capabilities */}

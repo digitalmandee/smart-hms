@@ -12,7 +12,7 @@ import jsPDF from "jspdf";
 import JSZip from "jszip";
 import { toPng } from "html-to-image";
 import { ExecTitleSlide } from "@/components/executive/ExecTitleSlide";
-import { ExecAboutUsSlide } from "@/components/executive/ExecAboutUsSlide";
+
 import { ExecProblemSlide } from "@/components/executive/ExecProblemSlide";
 import { ExecWhyNowSlide } from "@/components/executive/ExecWhyNowSlide";
 import { ExecAllInOneSlide } from "@/components/executive/ExecAllInOneSlide";
@@ -44,7 +44,7 @@ import { ExecCTASlide } from "@/components/executive/ExecCTASlide";
 import { ExecCustomerStorySlide } from "@/components/executive/ExecCustomerStorySlide";
 import { ExecVisionSlide } from "@/components/executive/ExecVisionSlide";
 
-const TOTAL_SLIDES = 32;
+const TOTAL_SLIDES = 31;
 
 const ExecutivePresentation = () => {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -247,7 +247,6 @@ const ExecutivePresentation = () => {
       <div className="bg-muted/30 min-h-screen">
         <div ref={printContainerRef} className="py-8 px-4">
           <ExecTitleSlide />
-          <ExecAboutUsSlide />
           <ExecProblemSlide />
           <ExecWhyNowSlide />
           <ExecAllInOneSlide />

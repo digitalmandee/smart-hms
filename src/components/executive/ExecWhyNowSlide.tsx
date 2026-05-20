@@ -44,7 +44,7 @@ export function ExecWhyNowSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Five Forces Converging in 2026</h2>
           <p className="text-sm text-muted-foreground mt-1">Regulation, capital, and AI hit the same window at the same time.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">4 / 32</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">3 / 31</span>
       </div>
 
       <div className="grid grid-cols-3 gap-4 flex-1">
