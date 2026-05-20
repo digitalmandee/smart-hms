@@ -41,8 +41,10 @@ import { ExecFinancialsSlide } from "@/components/executive/ExecFinancialsSlide"
 import { ExecTeamSlide } from "@/components/executive/ExecTeamSlide";
 import { ExecAskSlide } from "@/components/executive/ExecAskSlide";
 import { ExecCTASlide } from "@/components/executive/ExecCTASlide";
+import { ExecCustomerStorySlide } from "@/components/executive/ExecCustomerStorySlide";
+import { ExecVisionSlide } from "@/components/executive/ExecVisionSlide";
 
-const TOTAL_SLIDES = 30;
+const TOTAL_SLIDES = 32;
 
 const ExecutivePresentation = () => {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -250,10 +252,11 @@ const ExecutivePresentation = () => {
           <ExecWhyNowSlide />
           <ExecAllInOneSlide />
           <ExecModulesSlide />
+          <ExecTabeebiSlide />
+          <ExecCustomerStorySlide />
           <ExecClinicalSlide />
           <ExecDiagnosticsSlide />
           <ExecAIEverywhereSlide />
-          <ExecTabeebiSlide />
           <ExecInsuranceSlide />
           <ExecKsaComplianceSlide />
           <ExecKsaIndustryGapSlide />
@@ -273,6 +276,7 @@ const ExecutivePresentation = () => {
           <ExecFinancialsSlide />
           <ExecTeamSlide />
           <ExecAskSlide />
+          <ExecVisionSlide />
           <ExecCTASlide />
         </div>
       </div>

@@ -36,7 +36,7 @@ export function ExecKsaIndustryGapSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">The KSA Healthcare Gap</h2>
           <p className="text-sm text-muted-foreground mt-1">A $66B market with a software problem</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">13 / 30</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">14 / 32</span>
       </div>
 
       <div className="grid grid-cols-4 gap-3 mb-5">

@@ -2,10 +2,10 @@ import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 import { Building2, FlaskConical, Users, Shield, Bot, Layers, Globe } from "lucide-react";
 
 const stats = [
-  { icon: Building2, value: "500+", label: "Clinics & Hospitals" },
-  { icon: FlaskConical, value: "50+", label: "Lab Networks" },
-  { icon: Users, value: "50K+", label: "Patients Managed" },
-  { icon: Shield, value: "99.9%", label: "Uptime SLA" },
+  { icon: Building2, value: "28", label: "Live Modules" },
+  { icon: FlaskConical, value: "2", label: "Live Deployments" },
+  { icon: Users, value: "3", label: "Languages (EN · AR · UR)" },
+  { icon: Shield, value: "KSA", label: "Native Compliance" },
 ];
 
 export function ExecTitleSlide() {
@@ -18,15 +18,15 @@ export function ExecTitleSlide() {
       <div className="relative z-10 flex flex-col items-center gap-8">
         <HealthOS24Logo variant="full" size="xl" showTagline />
 
-        <div className="space-y-3 max-w-2xl">
+        <div className="space-y-3 max-w-3xl">
           <h1 className="text-5xl font-extrabold text-foreground leading-tight tracking-tight">
-            AI-Powered Hospital<br />Management System
+            The hospital operating system<br />for Saudi Arabia
           </h1>
           <p className="text-xl text-primary font-semibold">
-            One Platform. Every Department. AI Inside.
+            AI-native. Saudi-compliant. Already shipped.
           </p>
-          <p className="text-base text-muted-foreground max-w-lg mx-auto">
-            Replace 10+ disconnected tools with a single, intelligent system that runs your entire hospital, from reception to accounts.
+          <p className="text-base text-muted-foreground max-w-xl mx-auto">
+            One platform that replaces ten. Built for Saudi healthcare from day one. Priced at a fraction of Cerner.
           </p>
         </div>
 

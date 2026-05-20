@@ -1,94 +1,118 @@
-## Goals
+## Honest critique: where the deck is weak as a pitch
 
-Address 7 issues across the executive pitch deck:
+**1. It's a product brochure, not a pitch.** Slides 6 to 20 are 15 consecutive feature slides (Modules, Clinical, Diagnostics, AI, Tabeebi, Insurance, KSA Compliance, KSA Gap, KSA Roadmap, Clinic on Wheels, Mobile, Automation, Workflow, Finance & Ops, Tech). A seed investor will skim or skip. Classic decks are 12 to 18 slides total. We have a 30-slide demo deck dressed up as a pitch.
 
-1. Page counters are wrong (still show old `/16`, `/21`, etc.) — deck has 30 slides in this order.
-2. The "20+ Integrated Modules" grid looks empty — each category card needs more substance.
-3. "How We Make Money" slide title is weak for investors → rename + sharpen.
-4. Em-dashes (`—`) everywhere give an AI-written feel → strip them out.
-5. Mobile Apps slide is all text — needs a phone-style visual like the rest of the brand.
-6. Remove the word "PWA" from the deck.
-7. Slide 5 ("Replace 10 Systems With 1") has the "Available in 3 Languages" pill overlapping the bottom-row module icons (HR & Payroll, Pharmacy, Radiology) — per screenshot.
-8. General humanization pass on tone.
+**2. The story arc is broken.** The order should be: hook, problem, why now, solution, how it works (1-2 slides max), traction, market, competition, business model, financials, team, ask. We currently put Market at slide 21 and Traction at slide 24, after fifteen feature slides. Momentum is dead by then.
 
----
+**3. No founder story.** "Who We Are" is a generic about page. Investors fund founders. We need an origin moment: who you are, what you saw working in (or selling to) Saudi healthcare, and the specific insight that made you build this. That belongs on slide 2 or 3.
 
-## Correct page numbering (source of truth)
+**4. USP is buried.** "Six Unfair Advantages" is slide 23. The single sharpest USP (Saudi-native, AI-first, 1/10th the cost of Cerner, already shipped) belongs on the Title slide as a one-liner and again on the Solution slide.
 
-```
-01 Title              11 Insurance              21 Market
-02 About Us           12 KSA Compliance         22 Competition
-03 Problem            13 KSA Industry Gap       23 Differentiators
-04 Why Now            14 KSA Compliance Roadmap 24 Traction
-05 All-in-One         15 Clinic on Wheels       25 Revenue (was How We Make Money)
-06 20+ Modules        16 Mobile Apps            26 ROI
-07 Clinical           17 Automation             27 Financials
-08 Diagnostics        18 Workflow               28 Team
-09 AI Everywhere      19 Finance & Ops          29 Ask
-10 Tabeebi            20 Tech Stack             30 CTA
-```
+**5. Credibility contradiction.** ROI slide says "500+ facilities". Traction says "2 live + Pakistan". That gap kills trust on first read. Either reframe ROI as modeled / benchmarked, or remove the 500+ number.
 
-Every slide's `X / Y` pill must match this map and use `/ 30`.
+**6. No customer story.** Fifteen slides describing capabilities, zero slides walking through one real patient or one real clinic. "Meet Dr. Khalid at Riyadh Clinic, before and after" is worth more than three feature slides.
+
+**7. Tabeebi (the AI voice agent) is buried at slide 10.** It is probably the most demo-able, most defensible piece of IP in the whole deck. It should sit beside the solution slide, not be the tenth thing the investor sees.
+
+**8. KSA story is over-split.** Three Saudi slides (12, 13, 14) plus Compliance Roadmap. The Industry Gap is market-context and belongs near the Market slide; Compliance + Roadmap should fuse into one "Saudi-ready" credibility slide.
+
+**9. Vision is missing.** No slide answers "where is HealthOS 24 in 5 years?" The North Star (e.g. "the operating system for healthcare across MENA") is what investors underwrite.
+
+**10. No risks / mitigations slide.** Self-aware founders sell better than perfect ones.
+
+**11. No social proof early.** Pilot logos, MoH conversations, NPHIES sandbox access, advisors, Vision 2030 alignment, partnerships, none appear in the first 10 slides.
+
+**12. Very little actual product UI.** Phone mockups on slide 16 are the only real screen we show. We have a working 28-module platform. We should show it.
+
+**13. Currency inconsistency.** Streams priced in USD, Ask in SAR. Pick one for the investor narrative and footnote the other.
+
+**14. CTA slide doesn't ask for anything specific.** What does the meeting end with? Pilot intro? Term sheet? Follow-up?
 
 ---
 
-## Changes per slide
+## Proposed restructure: 30 slides to 18
 
-### Slide 5 — All-in-One (fix overlap)
-- Move the "Available in 3 Languages" pill out of the absolute-positioned overlap zone. Place it inside the centered content column, directly under the subtitle (above the hub-and-spoke diagram), not absolutely positioned at `bottom-12`.
-- Reduce hub-spoke radius slightly if needed so the bottom row never touches the footer.
-- Update counter to `5 / 30`.
+Re-cut the deck into a tight 18-slide investor narrative, with the rest moved to a clearly labeled "Appendix" section after the Ask. Investors get the story; deep-divers get the appendix.
 
-### Slide 6 — 20+ Integrated Modules (fill empty boxes)
-- Keep 7 category cards but make every card feel dense and credible. Add 2-4 modules to thin categories:
-  - Diagnostics: add Blood Bank, Specimen Tracking, Lab Analyzer Integration.
-  - Pharmacy: add Stock & Batch Tracking, e-Prescription (Wasfaty-ready), Drug Interaction Checks.
-  - Finance: add Patient Deposits, Vendor Payments, Daily Closing.
-  - Insurance & RCM: add Denial Management, NPHIES Integration.
-  - Operations: add Asset Management, Biometric Attendance, Document Mgmt.
-  - AI & Intelligence: add AI Lab-Result Flagging, AI Claim Scrubbing, Predictive Forecasting.
-  - Clinical: add Dental, Dialysis, Mother & Child.
-- Show a small count badge per category (e.g. "10 modules") and a total badge ("28 modules live") in the header so the deck stops contradicting itself ("20+" vs. actual count).
-- Counter `6 / 30`.
+```
+Main deck (18):
+01 Title              one-liner USP, logo, contact
+02 Founder Story      who we are, why we built this (replaces About Us)
+03 Problem            (keep, tighten)
+04 Why Now            Vision 2030 + NPHIES mandate + AI inflection
+05 Solution           Replace 10 systems with 1 (one-line USP repeated)
+06 How It Works       single 90-second screenshot tour (NEW)
+07 Tabeebi AI         our defensible IP, voice + Arabic clinical LLM
+08 Mobile + Distribution  every role on mobile, distribution moat
+09 Saudi-Ready        KSA compliance + roadmap merged
+10 Customer Story     one real clinic, before / after (NEW)
+11 Traction           real numbers only, no inflated 500+ claim
+12 Market             KSA-first, TAM/SAM/SOM
+13 Competition        why we win (rewrite as positioning, not 2x2)
+14 Business Model     Revenue slide (renamed, sharpened)
+15 Financials         5-year ARR + unit economics
+16 Team               (keep)
+17 Ask                SAR 2M, milestones, what unlocks Series A
+18 Vision + CTA       where we'll be in 5 years + the specific ask
 
-### Slide 16 — Mobile Apps (visual upgrade, remove "PWA")
-- Add a real visual: two phone-frame mockups (pure CSS / Tailwind, no new dependency) side by side, one showing a "Doctor" screen (today's rounds list + voice note button) and one showing a "Patient" screen (next appointment + lab results card). Use the same gradient + rounded language as the landing page hero cards.
-- 4 role cards (Doctor / Nurse / Patient / Staff) move to a compact row below the phones.
-- Remove the word "PWA" everywhere on this slide. Replace tech chip "Installable PWA — instant install, no store" with "Web app for desktop and tablet workflows".
-- Footer chips: Capacitor (iOS + Android), Offline sync, Biometric login, Push notifications. No mention of PWA.
-- Counter `16 / 30`.
+Appendix (after Ask, optional):
+A1 Full Module Map (current slide 6, denser)
+A2 Clinical Depth
+A3 Diagnostics & Pharmacy
+A4 Insurance & NPHIES
+A5 Clinic on Wheels
+A6 Automation
+A7 Workflow
+A8 Finance & Ops
+A9 Tech Stack
+A10 ROI Benchmarks
+A11 KSA Industry Gap (deep)
+```
 
-### Slide 25 — Revenue (rename + sharpen)
-- Rename header: kicker `Revenue` (not "💰 Business Model"), title `Four Revenue Streams, One Platform`, subtitle `Recurring SaaS at the core, expansion revenue from telemedicine and mobile clinics.`
-- Remove the 💰 emoji.
-- Tighten copy on each stream card so cards read like an investor would expect (model, unit economics, sales motion).
-- Keep the KSA TAM math block and Year-3 mix.
-- Add a small "Recurring revenue share: ~85% by Y3" callout at the bottom.
-- Counter `25 / 30`.
+This drops 12 slides from the main narrative without losing them. Anyone who wants depth can flip to the appendix.
 
-### Em-dash purge (humanization)
-- Replace every `—` across all 30 slide components. Default replacement is a period + new sentence, a comma, or a colon depending on context. Run a one-time edit pass; review each replacement to keep sentences natural.
-- Light copy polish on Why Now, Problem, AI Everywhere, Differentiators, Tabeebi where sentences currently read like marketing AI ("woven into every department", "An Empty Top-Right Quadrant") — soften to conversational investor language.
+---
 
-### Counter fixes (every other slide)
-- About `2/30`, Problem `3/30`, Why Now `4/30`, All-in-One `5/30`, Modules `6/30`, Clinical `7/30`, Diagnostics `8/30`, AI Everywhere `9/30`, Tabeebi `10/30`, Insurance `11/30`, KSA Compliance `12/30`, KSA Industry Gap `13/30`, KSA Roadmap `14/30`, Clinic on Wheels `15/30`, Mobile `16/30`, Automation `17/30`, Workflow `18/30`, Finance & Ops `19/30`, Tech `20/30`, Market `21/30`, Competition `22/30`, Differentiators `23/30`, Traction `24/30`, Revenue `25/30`, ROI `26/30`, Financials `27/30`, Team `28/30`, Ask `29/30`, CTA `30/30`.
+## Specific edits (in priority order)
+
+### Must-fix (credibility + story)
+1. **Title slide** add a 10-word one-liner: "The hospital operating system for Saudi Arabia. AI-native. Already shipped."
+2. **Replace About Us with Founder Story** one slide: founder photo + name, one-paragraph origin, one quote, three credentials. No team grid here (team is slide 16).
+3. **Fix ROI contradiction** change "500+ facilities" to "Modeled on KSA / Pakistan deployments + industry benchmarks" or pull it out entirely.
+4. **Add Customer Story slide** one clinic, named (or anonymized), before vs after on 4 metrics (revenue capture, claim denials, time-per-OPD-visit, doctor satisfaction).
+5. **Move Tabeebi to slide 7** right after Solution, so the AI moat lands while attention is high.
+6. **Merge KSA Compliance + Roadmap** into one "Saudi-Ready" slide. Move KSA Industry Gap to be the lead-in for Market.
+
+### Should-fix (sharpness)
+7. **Rewrite Competition slide title** from "An Empty Top-Right Quadrant" to "Why We Win in Saudi Arabia". Keep the 2x2 but lead with a one-liner.
+8. **Add a Vision slide** before CTA: "By 2030, HealthOS 24 powers 1 in 5 KSA healthcare facilities."
+9. **Sharpen CTA** to one concrete ask: "Looking for 2 to 3 strategic investors. Lead check SAR 750K. Closing Q3 2026."
+10. **Currency consistency** lead everything in SAR for a Saudi-focused deck, USD in footnotes.
+
+### Nice-to-have (polish)
+11. **Add social-proof strip** to slide 3 or 5: pilot clinic logos, MoH / NPHIES sandbox badge, Vision 2030 alignment seal.
+12. **Add real UI screenshots** to the "How It Works" slide instead of cards-of-text.
+13. **Add a Risks slide** to the appendix: 3 risks + 3 mitigations.
+14. **Tighten copy** across all slides to founder-voice (first person, conversational), away from consultant-voice ("woven into every department", "fully integrated diagnostics, zero data re-entry").
 
 ---
 
 ## Out of scope
 
-- No new images (phone mockups built with CSS only).
-- No i18n / Arabic / Urdu changes inside the executive deck (English investor deck).
-- No backend, no data, no auth changes.
-- No edit to other pages (landing, docs, app routes).
+- No changes to non-presentation pages.
+- No new images generated yet (Customer Story + UI screenshots need real assets or stand-ins, will ask before generating).
+- No backend / data work.
 
 ---
 
-## Files touched
+## What I need from you before I start building
 
-- `src/components/executive/ExecAllInOneSlide.tsx` (fix overlap, counter)
-- `src/components/executive/ExecModulesSlide.tsx` (denser cards, counter)
-- `src/components/executive/ExecMobileAppsSlide.tsx` (phone mockups, remove PWA, counter)
-- `src/components/executive/ExecRevenueStreamsSlide.tsx` (rename + sharpen, counter)
-- All 30 `Exec*Slide.tsx` files for counter renumber + em-dash purge + light tone pass.
-- No change to `src/pages/ExecutivePresentation.tsx` (order already correct, TOTAL_SLIDES already 30).
+I am not going to start cutting 12 slides and rewriting your story without your call. Pick one:
+
+A. **Full restructure** to the 18-slide investor deck above, with the 12 product slides moved to a clearly labeled appendix. Highest impact, biggest change.
+
+B. **Story-fix only** keep all 30 slides but renumber, add Founder Story + Customer Story + Vision slides, move Tabeebi earlier, merge KSA slides, fix ROI contradiction, sharpen Title and CTA. Medium change, keeps depth.
+
+C. **Minimum credibility pass** fix ROI 500+ claim, add Title one-liner, sharpen CTA, fix currency. No structural changes.
+
+Also: do you have (1) a founder photo + one-paragraph origin story, (2) one real pilot clinic willing to be named, (3) any partner / advisor logos we can put on a social-proof strip? Without these, the story slides have to stay placeholder.
