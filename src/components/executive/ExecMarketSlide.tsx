@@ -13,9 +13,9 @@ const layers = [
   {
     icon: MapPin,
     label: "SAM",
-    value: "$3.2B",
-    sub: "KSA + UAE + Pakistan HMS by 2030",
-    detail: "Serviceable market across our three priority geographies — $1.8B today, growing 10-12% CAGR.",
+    value: "$2.4B",
+    sub: "KSA + Pakistan HMS by 2030",
+    detail: "Serviceable market across our two priority geographies — $1.3B today, growing 10-12% CAGR. KSA-first.",
     width: "w-3/4",
     color: "from-cyan-500 to-teal-500",
   },

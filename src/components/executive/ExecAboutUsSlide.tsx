@@ -5,7 +5,7 @@ const highlights = [
   { icon: Eye, title: "Our Vision", desc: "A future where every patient receives data-driven care — regardless of hospital size or location." },
   { icon: Award, title: "Track Record", desc: "5+ years building health-tech solutions across clinics, hospitals, and lab networks." },
   { icon: Users, title: "Team Strength", desc: "40+ engineers, designers, and healthcare consultants dedicated to one product." },
-  { icon: Globe, title: "Market Reach", desc: "Deployed across Pakistan with expansion into Saudi Arabia, UAE, and East Africa." },
+  { icon: Globe, title: "Market Reach", desc: "Deployed across Pakistan with Saudi Arabia as our primary expansion market." },
   { icon: Zap, title: "Innovation DNA", desc: "First HMS in the region with a built-in medical AI (Tabeebi) for patient pre-screening." },
 ];
 
