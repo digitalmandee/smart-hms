@@ -4,7 +4,7 @@ const streams = [
   {
     icon: Stethoscope,
     title: "Single Clinic",
-    model: "SaaS — per doctor / month",
+    model: "SaaS, per doctor / month",
     price: "$99 – 199",
     unit: "/doctor/mo",
     cycle: "2-week sales cycle",
@@ -59,7 +59,7 @@ export function ExecRevenueStreamsSlide() {
         <div>
           <p className="text-sm font-semibold mb-1 text-primary">💰 Business Model</p>
           <h2 className="text-3xl font-extrabold text-foreground">How We Make Money</h2>
-          <p className="text-sm text-muted-foreground mt-1">Four parallel revenue streams — same platform, four buyer profiles</p>
+          <p className="text-sm text-muted-foreground mt-1">Four parallel revenue streams, same platform, four buyer profiles</p>
         </div>
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">25 / 30</span>
       </div>
@@ -98,7 +98,7 @@ export function ExecRevenueStreamsSlide() {
               <span className="font-bold text-foreground">≈ $36M ARR</span>
             </div>
             <div className="flex items-center justify-between text-xs px-3 py-2 rounded-lg bg-muted/50 border">
-              <span className="text-foreground">Telemedicine — 10M consults × $2 share</span>
+              <span className="text-foreground">Telemedicine, 10M consults × $2 share</span>
               <span className="font-bold text-foreground">≈ $20M ARR</span>
             </div>
             <div className="flex items-center justify-between text-xs px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
@@ -128,7 +128,7 @@ export function ExecRevenueStreamsSlide() {
               </div>
             ))}
           </div>
-          <p className="text-[10px] text-muted-foreground mt-3 leading-snug">Diversified mix — no single stream &gt;40%, low concentration risk.</p>
+          <p className="text-[10px] text-muted-foreground mt-3 leading-snug">Diversified mix, no single stream &gt;40%, low concentration risk.</p>
         </div>
       </div>
 

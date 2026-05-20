@@ -10,12 +10,12 @@ const statusStyle: Record<Status, string> = {
 };
 
 const rows: { icon: any; name: string; regulator: string; status: Status; milestone: string }[] = [
-  { icon: Receipt, name: "ZATCA Phase 2", regulator: "ZATCA", status: "Built", milestone: "Fatoora onboarding — Q2 2026" },
-  { icon: FileText, name: "NPHIES", regulator: "CCHI", status: "Sandbox", milestone: "Production approval — Q2 2026" },
-  { icon: Pill, name: "Wasfaty", regulator: "MoH / SFDA", status: "Built", milestone: "Pharmacy certification — Q3 2026" },
-  { icon: Fingerprint, name: "Nafath", regulator: "ELM", status: "Built", milestone: "Production credentials — Q2 2026" },
-  { icon: ScanBarcode, name: "Tatmeen", regulator: "SFDA", status: "Built", milestone: "Track & trace go-live — Q3 2026" },
-  { icon: Smartphone, name: "Sehhaty / HESN", regulator: "MoH", status: "Built", milestone: "Patient sync live — Q4 2026" },
+  { icon: Receipt, name: "ZATCA Phase 2", regulator: "ZATCA", status: "Built", milestone: "Fatoora onboarding. Q2 2026" },
+  { icon: FileText, name: "NPHIES", regulator: "CCHI", status: "Sandbox", milestone: "Production approval. Q2 2026" },
+  { icon: Pill, name: "Wasfaty", regulator: "MoH / SFDA", status: "Built", milestone: "Pharmacy certification. Q3 2026" },
+  { icon: Fingerprint, name: "Nafath", regulator: "ELM", status: "Built", milestone: "Production credentials. Q2 2026" },
+  { icon: ScanBarcode, name: "Tatmeen", regulator: "SFDA", status: "Built", milestone: "Track & trace go-live. Q3 2026" },
+  { icon: Smartphone, name: "Sehhaty / HESN", regulator: "MoH", status: "Built", milestone: "Patient sync live. Q4 2026" },
 ];
 
 const accelerators = [
@@ -40,7 +40,7 @@ export function ExecKsaComplianceRoadmapSlide() {
       </div>
 
       <div className="grid grid-cols-3 gap-4 flex-1">
-        {/* Status table — 2 cols */}
+        {/* Status table, 2 cols */}
         <div className="col-span-2 rounded-xl border bg-card p-4">
           <div className="flex items-center justify-between mb-3">
             <h3 className="font-bold text-foreground text-sm">Regulator certification status</h3>
@@ -96,11 +96,11 @@ export function ExecKsaComplianceRoadmapSlide() {
       <div className="mt-4 grid grid-cols-3 gap-3">
         <div className="rounded-lg border bg-card px-3 py-2 text-center">
           <p className="text-[10px] text-muted-foreground">Data Protection</p>
-          <p className="text-xs font-bold text-foreground">PDPL — KSA residency</p>
+          <p className="text-xs font-bold text-foreground">PDPL. KSA residency</p>
         </div>
         <div className="rounded-lg border bg-card px-3 py-2 text-center">
           <p className="text-[10px] text-muted-foreground">Security Posture</p>
-          <p className="text-xs font-bold text-foreground">ISO 27001 — in progress</p>
+          <p className="text-xs font-bold text-foreground">ISO 27001, in progress</p>
         </div>
         <div className="rounded-lg border bg-card px-3 py-2 text-center">
           <p className="text-[10px] text-muted-foreground">Healthcare Privacy</p>

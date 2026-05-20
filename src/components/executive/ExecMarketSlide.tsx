@@ -15,7 +15,7 @@ const layers = [
     label: "SAM",
     value: "$2.4B",
     sub: "KSA + Pakistan HMS by 2030",
-    detail: "Serviceable market across our two priority geographies — $1.3B today, growing 10-12% CAGR. KSA-first.",
+    detail: "Serviceable market across our two priority geographies, $1.3B today, growing 10-12% CAGR. KSA-first.",
     width: "w-3/4",
     color: "from-cyan-500 to-teal-500",
   },
@@ -24,7 +24,7 @@ const layers = [
     label: "SOM",
     value: "$90M",
     sub: "Year-5 ARR target (≈3% of SAM)",
-    detail: "≈300 mid-sized facilities at $300K avg ACV — achievable bottoms-up with KSA-first GTM.",
+    detail: "≈300 mid-sized facilities at $300K avg ACV, achievable bottoms-up with KSA-first GTM.",
     width: "w-1/3",
     color: "from-emerald-500 to-lime-500",
   },
@@ -77,7 +77,7 @@ export function ExecMarketSlide() {
       </div>
 
       <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
-        <span>Sources: Grand View Research, Ken Research, Statista, WHO, MOH KSA — 2024-2025</span>
+        <span>Sources: Grand View Research, Ken Research, Statista, WHO, MOH KSA, 2024-2025</span>
         <span>healthos24.com | Confidential</span>
       </div>
     </div>

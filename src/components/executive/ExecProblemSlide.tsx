@@ -9,7 +9,7 @@ const painPoints = [
   { icon: Database, title: "Data Silos", desc: "Patient data trapped in 10 different systems with no cross-visibility." },
   { icon: Copy, title: "Duplicate Entry", desc: "Staff re-enters the same data 5-7 times across disconnected tools." },
   { icon: TrendingDown, title: "Revenue Leakage", desc: "Unbilled services, missed charges, and manual invoicing errors bleed revenue." },
-  { icon: EyeOff, title: "No Real-Time Visibility", desc: "Management flies blind — no unified dashboard, no live KPIs, no alerts." },
+  { icon: EyeOff, title: "No Real-Time Visibility", desc: "Management flies blind, no unified dashboard, no live KPIs, no alerts." },
 ];
 
 export function ExecProblemSlide() {

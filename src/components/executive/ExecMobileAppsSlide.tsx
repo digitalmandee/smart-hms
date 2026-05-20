@@ -48,8 +48,8 @@ const apps = [
 ];
 
 const techChips = [
-  { icon: Smartphone, label: "Capacitor — iOS + Android binaries" },
-  { icon: Download, label: "Installable PWA — instant install, no store" },
+  { icon: Smartphone, label: "Capacitor, iOS + Android binaries" },
+  { icon: Download, label: "Installable PWA, instant install, no store" },
   { icon: Wifi, label: "Offline sync · Push · Biometric · Deep links" },
 ];
 
@@ -63,7 +63,7 @@ export function ExecMobileAppsSlide() {
           <p className="text-sm text-cyan-600 font-semibold mb-1">Mobile-First, Already Shipped</p>
           <h2 className="text-3xl font-extrabold text-foreground">Native Apps for Every Role</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            iOS + Android + PWA — clinicians, patients, and staff carry the hospital in their pocket.
+            iOS + Android + PWA, clinicians, patients, and staff carry the hospital in their pocket.
           </p>
         </div>
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">16 / 30</span>

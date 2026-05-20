@@ -70,7 +70,7 @@ export function ExecKsaIndustryGapSlide() {
         <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4">
           <div className="flex items-center gap-2 mb-3">
             <Target className="h-4 w-4 text-emerald-600" />
-            <h3 className="font-bold text-foreground text-sm">Why now — the tailwinds</h3>
+            <h3 className="font-bold text-foreground text-sm">Why now, the tailwinds</h3>
           </div>
           <ul className="space-y-1.5">
             {opportunities.map((o) => (
@@ -84,7 +84,7 @@ export function ExecKsaIndustryGapSlide() {
       </div>
 
       <div className="mt-4 px-4 py-2 rounded-lg bg-primary/10 border border-primary/20 text-center">
-        <span className="text-xs font-semibold text-foreground">The gap isn't features — it's an integrated, KSA-native, mobile-first platform.</span>
+        <span className="text-xs font-semibold text-foreground">The gap isn't features, it's an integrated, KSA-native, mobile-first platform.</span>
       </div>
 
       <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">

@@ -98,7 +98,7 @@ export function ExecAskSlide() {
 
       <div className="mt-3 rounded-lg bg-gradient-to-r from-indigo-500/10 via-blue-500/10 to-emerald-500/10 border px-4 py-2 flex items-center justify-between text-xs">
         <span className="font-semibold text-foreground">SAR 45K/mo team burn · 18-mo runway · KSA-only focus</span>
-        <span className="text-muted-foreground">Lean by design — capital deployed into AI + compliance, not overhead.</span>
+        <span className="text-muted-foreground">Lean by design, capital deployed into AI + compliance, not overhead.</span>
       </div>
 
       <div className="mt-3 pt-2 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">

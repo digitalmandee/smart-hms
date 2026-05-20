@@ -4,7 +4,7 @@ const techFeatures = [
   { icon: Cloud, title: "AWS Cloud-Native", desc: "Hosted on Amazon Web Services with auto-scaling, global CDN, and regional data residency options." },
   { icon: Shield, title: "99.9% Uptime SLA", desc: "Enterprise-grade reliability with redundant infrastructure, failover, and 24/7 monitoring." },
   { icon: Lock, title: "AES-256 Encryption", desc: "All data encrypted at rest and in transit. HIPAA-aligned security protocols." },
-  { icon: Users, title: "25+ Role-Based Access", desc: "Granular permissions for doctors, nurses, admin, finance, HR — each sees only what they need." },
+  { icon: Users, title: "25+ Role-Based Access", desc: "Granular permissions for doctors, nurses, admin, finance, HR, each sees only what they need." },
   { icon: Database, title: "Daily Backups", desc: "Automated daily backups with point-in-time recovery. Zero data loss guarantee." },
   { icon: RefreshCw, title: "Continuous Updates", desc: "New features and security patches deployed automatically with zero downtime." },
   { icon: Globe, title: "Multi-Branch Ready", desc: "Single deployment serves multiple branches with branch-level data isolation and central reporting." },

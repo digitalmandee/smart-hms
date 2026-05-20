@@ -34,7 +34,7 @@ export function ExecInsuranceSlide() {
         <div>
           <p className="text-sm text-blue-600 font-semibold mb-1">Revenue Cycle Management</p>
           <h2 className="text-3xl font-extrabold text-foreground">Insurance & NPHIES Integration</h2>
-          <p className="text-sm text-muted-foreground mt-1">Full RCM lifecycle — from eligibility to reconciliation. KSA & Pakistan markets covered.</p>
+          <p className="text-sm text-muted-foreground mt-1">Full RCM lifecycle, from eligibility to reconciliation. KSA & Pakistan markets covered.</p>
         </div>
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">11 / 30</span>
       </div>
@@ -43,7 +43,7 @@ export function ExecInsuranceSlide() {
       <div className="rounded-xl border bg-card p-5 mb-4">
         <div className="flex items-center gap-2 mb-4">
           <div className="px-2.5 py-1 rounded-full bg-blue-500/10 text-blue-600 text-xs font-bold">🇸🇦 KSA</div>
-          <h3 className="font-bold text-foreground text-sm">NPHIES / FHIR — 7-Step Claim Lifecycle</h3>
+          <h3 className="font-bold text-foreground text-sm">NPHIES / FHIR, 7-Step Claim Lifecycle</h3>
         </div>
         <div className="flex items-center gap-1">
           {nphiesSteps.map((step, i) => (

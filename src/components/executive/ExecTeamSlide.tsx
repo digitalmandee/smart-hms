@@ -5,14 +5,14 @@ const founders = [
     initials: "SM",
     name: "Sannan Malik",
     role: "Co-Founder",
-    bio: "Building HealthOS 24 from the ground up — product, engineering, and KSA market entry.",
+    bio: "Building HealthOS 24 from the ground up, product, engineering, and KSA market entry.",
     gradient: "from-indigo-500 to-cyan-500",
   },
   {
     initials: "FS",
     name: "Farhan Saleem",
     role: "Co-Founder",
-    bio: "Building HealthOS 24 from the ground up — clinical workflows, partnerships, and growth.",
+    bio: "Building HealthOS 24 from the ground up, clinical workflows, partnerships, and growth.",
     gradient: "from-blue-500 to-teal-500",
   },
 ];

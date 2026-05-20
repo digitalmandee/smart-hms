@@ -26,7 +26,7 @@ export function ExecTitleSlide() {
             One Platform. Every Department. AI Inside.
           </p>
           <p className="text-base text-muted-foreground max-w-lg mx-auto">
-            Replace 10+ disconnected tools with a single, intelligent system that runs your entire hospital — from reception to accounts.
+            Replace 10+ disconnected tools with a single, intelligent system that runs your entire hospital, from reception to accounts.
           </p>
         </div>
 
