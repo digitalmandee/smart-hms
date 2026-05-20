@@ -47,7 +47,7 @@ import { ExecAutomationSlide } from "@/components/executive/ExecAutomationSlide"
 import { ExecFinanceOpsSlide } from "@/components/executive/ExecFinanceOpsSlide";
 import { ExecClinicOnWheelsSlide } from "@/components/executive/ExecClinicOnWheelsSlide";
 
-const TOTAL_SLIDES = 31;
+const TOTAL_SLIDES = 35;
 
 const ExecutivePresentation = () => {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -249,37 +249,53 @@ const ExecutivePresentation = () => {
 
       <div className="bg-muted/30 min-h-screen">
         <div ref={printContainerRef} className="py-8 px-4">
+          {/* Main investor deck (29 slides) */}
           <ExecTitleSlide />
           <ExecProblemSlide />
           <ExecWhyNowSlide />
           <ExecAllInOneSlide />
-          <ExecModulesSlide />
           <ExecTabeebiSlide />
           <ExecCustomerStorySlide />
+          <ExecModulesSlide />
           <ExecClinicalSlide />
-          <ExecDiagnosticsSlide />
           <ExecAIEverywhereSlide />
-          <ExecInsuranceSlide />
-          <ExecKsaComplianceSlide />
-          <ExecKsaIndustryGapSlide />
-          <ExecKsaComplianceRoadmapSlide />
-          <ExecClinicOnWheelsSlide />
           <ExecMobileAppsSlide />
-          <ExecAutomationSlide />
-          <ExecWorkflowSlide />
-          <ExecFinanceOpsSlide />
           <ExecTechSlide />
+          <ExecKsaIndustryGapSlide />
+          <ExecKsaComplianceSlide />
+          <ExecKsaComplianceRoadmapSlide />
           <ExecMarketSlide />
           <ExecCompetitionSlide />
           <ExecDifferentiatorsSlide />
           <ExecTractionSlide />
-          <ExecRevenueStreamsSlide />
           <ExecROISlide />
+          <ExecRevenueStreamsSlide />
+          <ExecUnitEconomicsSlide />
           <ExecFinancialsSlide />
+          <ExecGoToMarketSlide />
+          <ExecRoadmapSlide />
           <ExecTeamSlide />
-          <ExecAskSlide />
+          <ExecRisksSlide />
           <ExecVisionSlide />
+          <ExecAskSlide />
           <ExecCTASlide />
+
+          {/* Appendix divider */}
+          <div className="no-print max-w-[1200px] mx-auto my-12 flex items-center gap-4">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
+              Appendix · Product Depth
+            </span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+
+          {/* Appendix (6 slides) */}
+          <ExecDiagnosticsSlide />
+          <ExecInsuranceSlide />
+          <ExecWorkflowSlide />
+          <ExecAutomationSlide />
+          <ExecFinanceOpsSlide />
+          <ExecClinicOnWheelsSlide />
         </div>
       </div>
     </>
