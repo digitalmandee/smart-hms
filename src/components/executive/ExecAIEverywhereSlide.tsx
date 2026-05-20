@@ -13,52 +13,45 @@ const aiModules = [
 
 export function ExecAIEverywhereSlide() {
   return (
-    <div className="slide flex flex-col relative overflow-hidden bg-gradient-to-br from-[#0f172a] via-[#1e293b] to-[#0f172a]">
-      <div className="absolute inset-0">
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[400px] h-[400px] rounded-full bg-primary/10 blur-[100px]" />
-        <div className="absolute top-20 right-20 w-[200px] h-[200px] rounded-full bg-pink-500/8 blur-[80px]" />
-        <div className="absolute bottom-20 left-20 w-[200px] h-[200px] rounded-full bg-emerald-500/8 blur-[80px]" />
-      </div>
-
+    <div className="slide flex flex-col relative overflow-hidden bg-gradient-to-br from-pink-500/5 via-background to-emerald-500/5">
       <div className="h-2 bg-gradient-to-r from-pink-500 via-primary to-emerald-500 rounded-t-lg -mx-8 -mt-8 mb-6" />
 
       <div className="flex items-center justify-between mb-6 relative z-10">
         <div>
-          <p className="text-sm text-pink-400 font-semibold mb-1">Intelligence Layer</p>
-          <h2 className="text-3xl font-extrabold text-white">AI Everywhere — Not Just a Chatbot</h2>
-          <p className="text-sm text-slate-400 mt-1">AI is woven into every department — clinical, operational, and financial.</p>
+          <p className="text-sm text-pink-600 font-semibold mb-1">Intelligence Layer</p>
+          <h2 className="text-3xl font-extrabold text-foreground">AI Everywhere — Not Just a Chatbot</h2>
+          <p className="text-sm text-muted-foreground mt-1">AI is woven into every department — clinical, operational, and financial.</p>
         </div>
-        <span className="text-sm text-slate-400 font-medium bg-white/10 px-3 py-1 rounded-full">6 / 16</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">6 / 29</span>
       </div>
 
-      {/* Central AI Core + Grid */}
       <div className="flex-1 relative z-10 flex flex-col items-center">
         <div className="flex items-center gap-3 mb-6">
           <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-pink-500 to-primary flex items-center justify-center shadow-2xl shadow-primary/30">
             <Brain className="h-7 w-7 text-white" />
           </div>
           <div>
-            <h3 className="text-lg font-extrabold text-white">HealthOS AI Core</h3>
-            <p className="text-xs text-slate-400">Powering intelligence across 20+ modules</p>
+            <h3 className="text-lg font-extrabold text-foreground">HealthOS AI Core</h3>
+            <p className="text-xs text-muted-foreground">Powering intelligence across 20+ modules</p>
           </div>
         </div>
 
         <div className="grid grid-cols-4 gap-3 w-full">
           {aiModules.map((m) => (
-            <div key={m.dept} className="rounded-xl border border-white/10 bg-white/5 backdrop-blur-sm p-4 flex flex-col gap-3 hover:bg-white/10 transition-colors">
+            <div key={m.dept} className="rounded-xl border bg-card p-4 flex flex-col gap-3 hover:shadow-md transition-shadow">
               <div className="flex items-center gap-2.5">
                 <div className={`w-9 h-9 rounded-lg ${m.color} flex items-center justify-center shadow-lg`}>
                   <m.icon className="h-4 w-4 text-white" />
                 </div>
-                <h4 className="font-bold text-sm text-white">{m.dept}</h4>
+                <h4 className="font-bold text-sm text-foreground">{m.dept}</h4>
               </div>
-              <p className="text-[11px] text-slate-300 leading-relaxed">{m.capability}</p>
+              <p className="text-[11px] text-muted-foreground leading-relaxed">{m.capability}</p>
             </div>
           ))}
         </div>
       </div>
 
-      <div className="mt-auto pt-4 border-t border-white/10 flex items-center justify-between text-[10px] text-slate-500 relative z-10">
+      <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground relative z-10">
         <span>HealthOS 24 | AI-Powered Hospital Management</span>
         <span>healthos24.com</span>
       </div>
