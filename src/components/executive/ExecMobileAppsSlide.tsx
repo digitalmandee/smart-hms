@@ -66,7 +66,7 @@ export function ExecMobileAppsSlide() {
             iOS + Android + PWA — clinicians, patients, and staff carry the hospital in their pocket.
           </p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">17 / 30</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">16 / 30</span>
       </div>
 
       <div className="grid grid-cols-2 gap-4 flex-1">

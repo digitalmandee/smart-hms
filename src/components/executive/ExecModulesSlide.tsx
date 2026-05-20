@@ -96,7 +96,7 @@ export function ExecModulesSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">20+ Integrated Modules</h2>
           <p className="text-sm text-muted-foreground mt-1">Every department covered. Every workflow connected.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">5 / 16</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">6 / 30</span>
       </div>
 
       <div className="grid grid-cols-4 gap-3 flex-1">

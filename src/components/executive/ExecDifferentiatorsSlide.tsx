@@ -20,7 +20,7 @@ export function ExecDifferentiatorsSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Six Unfair Advantages</h2>
           <p className="text-sm text-muted-foreground mt-1">Each one alone is defensible. Together, they're a moat.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">22 / 30</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">23 / 30</span>
       </div>
 
       <div className="grid grid-cols-3 gap-4 flex-1">

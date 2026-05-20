@@ -27,7 +27,7 @@ export function ExecAskSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Raising SAR 2M Seed</h2>
           <p className="text-sm text-muted-foreground mt-1">KSA-only focus. Fund the AI moat, the infra, and the compliance stack to win Saudi Arabia.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">28 / 30</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">29 / 30</span>
       </div>
 
       <div className="grid grid-cols-4 gap-3 mb-4">

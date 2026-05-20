@@ -61,7 +61,7 @@ export function ExecRevenueStreamsSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">How We Make Money</h2>
           <p className="text-sm text-muted-foreground mt-1">Four parallel revenue streams — same platform, four buyer profiles</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">20 / 21</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">25 / 30</span>
       </div>
 
       <div className="grid grid-cols-4 gap-3 mb-4">

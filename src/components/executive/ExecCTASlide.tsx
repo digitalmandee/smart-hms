@@ -28,7 +28,7 @@ export function ExecCTASlide() {
           <p className="text-sm text-primary font-semibold mb-1">Why Us & Next Steps</p>
           <h2 className="text-3xl font-extrabold text-foreground">Why HealthOS 24 — Let's Get Started</h2>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">16 / 16</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">30 / 30</span>
       </div>
 
       <div className="flex gap-6 flex-1 relative z-10">
