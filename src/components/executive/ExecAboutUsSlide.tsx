@@ -2,7 +2,7 @@ import { Target, Eye, Award, Users, Globe, Zap } from "lucide-react";
 
 const highlights = [
   { icon: Target, title: "Our Mission", desc: "Digitize every hospital in Pakistan & the Middle East with affordable, world-class technology." },
-  { icon: Eye, title: "Our Vision", desc: "A future where every patient receives data-driven care — regardless of hospital size or location." },
+  { icon: Eye, title: "Our Vision", desc: "A future where every patient receives data-driven care, regardless of hospital size or location." },
   { icon: Award, title: "Track Record", desc: "5+ years building health-tech solutions across clinics, hospitals, and lab networks." },
   { icon: Users, title: "Team Strength", desc: "40+ engineers, designers, and healthcare consultants dedicated to one product." },
   { icon: Globe, title: "Market Reach", desc: "Deployed across Pakistan with Saudi Arabia as our primary expansion market." },
@@ -24,7 +24,7 @@ export function ExecAboutUsSlide() {
             Pakistan's leading health-tech company building the future of hospital management.
           </p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">2 / 16</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">2 / 30</span>
       </div>
 
       <div className="grid grid-cols-3 gap-5 flex-1">

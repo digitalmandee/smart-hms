@@ -1,7 +1,7 @@
 import { Bot, Pill, FlaskConical, ShieldCheck, FileCode, BarChart3, Warehouse, CalendarClock, Brain } from "lucide-react";
 
 const aiModules = [
-  { icon: Bot, dept: "Patient Intake", capability: "AI Pre-Screening via Tabeebi — triages symptoms before doctor consultation", color: "bg-pink-500" },
+  { icon: Bot, dept: "Patient Intake", capability: "AI Pre-Screening via Tabeebi, triages symptoms before doctor consultation", color: "bg-pink-500" },
   { icon: Pill, dept: "Pharmacy", capability: "Real-time drug interaction & allergy alerts on every prescription", color: "bg-orange-500" },
   { icon: FlaskConical, dept: "Laboratory", capability: "Auto-flags critical/abnormal lab results and notifies physicians", color: "bg-emerald-500" },
   { icon: ShieldCheck, dept: "Insurance Claims", capability: "AI Claim Scrubbing validates ICD-10, CPT, duplicates before submission", color: "bg-blue-500" },
@@ -19,10 +19,10 @@ export function ExecAIEverywhereSlide() {
       <div className="flex items-center justify-between mb-6 relative z-10">
         <div>
           <p className="text-sm text-pink-600 font-semibold mb-1">Intelligence Layer</p>
-          <h2 className="text-3xl font-extrabold text-foreground">AI Everywhere — Not Just a Chatbot</h2>
-          <p className="text-sm text-muted-foreground mt-1">AI is woven into every department — clinical, operational, and financial.</p>
+          <h2 className="text-3xl font-extrabold text-foreground">AI Everywhere. Not Just a Chatbot</h2>
+          <p className="text-sm text-muted-foreground mt-1">AI is woven into every department, clinical, operational, and financial.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">6 / 30</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">9 / 30</span>
       </div>
 
       <div className="flex-1 relative z-10 flex flex-col items-center">

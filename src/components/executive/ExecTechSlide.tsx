@@ -4,7 +4,7 @@ const techFeatures = [
   { icon: Cloud, title: "AWS Cloud-Native", desc: "Hosted on Amazon Web Services with auto-scaling, global CDN, and regional data residency options." },
   { icon: Shield, title: "99.9% Uptime SLA", desc: "Enterprise-grade reliability with redundant infrastructure, failover, and 24/7 monitoring." },
   { icon: Lock, title: "AES-256 Encryption", desc: "All data encrypted at rest and in transit. HIPAA-aligned security protocols." },
-  { icon: Users, title: "25+ Role-Based Access", desc: "Granular permissions for doctors, nurses, admin, finance, HR — each sees only what they need." },
+  { icon: Users, title: "25+ Role-Based Access", desc: "Granular permissions for doctors, nurses, admin, finance, HR, each sees only what they need." },
   { icon: Database, title: "Daily Backups", desc: "Automated daily backups with point-in-time recovery. Zero data loss guarantee." },
   { icon: RefreshCw, title: "Continuous Updates", desc: "New features and security patches deployed automatically with zero downtime." },
   { icon: Globe, title: "Multi-Branch Ready", desc: "Single deployment serves multiple branches with branch-level data isolation and central reporting." },
@@ -23,7 +23,7 @@ export function ExecTechSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Enterprise-Grade Technology</h2>
           <p className="text-sm text-muted-foreground mt-1">Built for hospitals that demand reliability, security, and scale.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">14 / 16</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">20 / 30</span>
       </div>
 
       <div className="grid grid-cols-4 gap-4 flex-1">

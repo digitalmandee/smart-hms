@@ -1,11 +1,11 @@
 import { Mic, ShieldCheck, Languages, DollarSign, Layers, Cloud } from "lucide-react";
 
 const diffs = [
-  { icon: Mic, title: "Tabeebi AI", body: "Voice-first clinical copilot with ambient SOAP notes and AR/EN/UR support — built in, not bolted on.", color: "bg-rose-500" },
-  { icon: ShieldCheck, title: "Native Compliance Stack", body: "NPHIES, ZATCA Phase 2, Nafath, Tatmeen, Wasfaty, HESN — certified and shipping, not roadmap.", color: "bg-emerald-500" },
-  { icon: Languages, title: "Tri-Lingual RTL First", body: "English, Arabic (RTL), Urdu — every module, every screen, every report. Not a translation layer.", color: "bg-blue-500" },
+  { icon: Mic, title: "Tabeebi AI", body: "Voice-first clinical copilot with ambient SOAP notes and AR/EN/UR support, built in, not bolted on.", color: "bg-rose-500" },
+  { icon: ShieldCheck, title: "Native Compliance Stack", body: "NPHIES, ZATCA Phase 2, Nafath, Tatmeen, Wasfaty, HESN, certified and shipping, not roadmap.", color: "bg-emerald-500" },
+  { icon: Languages, title: "Tri-Lingual RTL First", body: "English, Arabic (RTL), Urdu, every module, every screen, every report. Not a translation layer.", color: "bg-blue-500" },
   { icon: DollarSign, title: "1/10th the Cost", body: "$600-1,200 per bed/year vs $8K-$15K for Cerner/Epic. SMB hospitals can finally afford enterprise-grade.", color: "bg-amber-500" },
-  { icon: Layers, title: "38 Modules, One Platform", body: "OPD, IPD, OT, Lab, Radiology, Pharmacy, Insurance, HR, Finance — no integrations, no data silos.", color: "bg-purple-500" },
+  { icon: Layers, title: "38 Modules, One Platform", body: "OPD, IPD, OT, Lab, Radiology, Pharmacy, Insurance, HR, Finance, no integrations, no data silos.", color: "bg-purple-500" },
   { icon: Cloud, title: "Cloud + Offline Mobile", body: "Multi-tenant cloud-native with offline-capable mobile apps for clinicians and field clinics.", color: "bg-cyan-500" },
 ];
 
@@ -20,7 +20,7 @@ export function ExecDifferentiatorsSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Six Unfair Advantages</h2>
           <p className="text-sm text-muted-foreground mt-1">Each one alone is defensible. Together, they're a moat.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">22 / 30</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">23 / 30</span>
       </div>
 
       <div className="grid grid-cols-3 gap-4 flex-1">

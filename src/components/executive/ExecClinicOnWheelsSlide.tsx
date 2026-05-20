@@ -6,7 +6,7 @@ const capabilities = [
   { icon: Pill, label: "Mini Pharmacy" },
   { icon: Video, label: "Telemedicine" },
   { icon: Activity, label: "ECG / Ultrasound" },
-  { icon: Syringe, label: "Vaccination — cold chain" },
+  { icon: Syringe, label: "Vaccination, cold chain" },
 ];
 
 const kpis = [
@@ -33,9 +33,9 @@ export function ExecClinicOnWheelsSlide() {
         <div>
           <p className="text-sm font-semibold mb-1 text-blue-600">🚐 KSA Expansion Module</p>
           <h2 className="text-3xl font-extrabold text-foreground">Clinic on Wheels</h2>
-          <p className="text-sm text-muted-foreground mt-1">Healthcare that comes to the patient — Vision 2030 aligned</p>
+          <p className="text-sm text-muted-foreground mt-1">Healthcare that comes to the patient. Vision 2030 aligned</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">12 / 21</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">15 / 30</span>
       </div>
 
       {/* Hero strip: van + capabilities */}
@@ -93,7 +93,7 @@ export function ExecClinicOnWheelsSlide() {
       {/* Use cases + tech callout */}
       <div className="grid grid-cols-3 gap-4 flex-1">
         <div className="col-span-2 rounded-xl border bg-card p-4">
-          <h3 className="font-bold text-foreground text-sm mb-2">Use cases — where vans go first</h3>
+          <h3 className="font-bold text-foreground text-sm mb-2">Use cases, where vans go first</h3>
           <div className="flex flex-wrap gap-2">
             {useCases.map((u) => (
               <span key={u} className="text-[11px] font-medium px-2.5 py-1 rounded-full bg-muted border">{u}</span>

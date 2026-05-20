@@ -4,13 +4,13 @@ const drivers = [
   {
     icon: Calendar,
     title: "Vision 2030 Digital Health",
-    body: "KSA mandates full digital health transformation — EHR, telemedicine, and unified patient records across all facilities by 2030.",
+    body: "KSA mandates full digital health transformation. EHR, telemedicine, and unified patient records across all facilities by 2030.",
     color: "bg-emerald-500",
   },
   {
     icon: ShieldCheck,
     title: "NPHIES Mandatory Rollout",
-    body: "CCHI requires every insurer & provider to be NPHIES-connected for eligibility, pre-auth, and claims — 2024-2026 phased enforcement.",
+    body: "CCHI requires every insurer & provider to be NPHIES-connected for eligibility, pre-auth, and claims, 2024-2026 phased enforcement.",
     color: "bg-blue-500",
   },
   {
@@ -68,7 +68,7 @@ export function ExecWhyNowSlide() {
         ))}
         <div className="rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 p-5 flex flex-col justify-center">
           <div className="text-xs text-primary font-semibold uppercase tracking-wider mb-1">The Window</div>
-          <div className="font-bold text-foreground text-base leading-snug">Build the default OS for the next 10,000 MENA facilities — before global incumbents localize.</div>
+          <div className="font-bold text-foreground text-base leading-snug">Build the default OS for the next 10,000 MENA facilities, before global incumbents localize.</div>
         </div>
       </div>
 

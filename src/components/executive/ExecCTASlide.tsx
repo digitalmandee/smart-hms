@@ -3,12 +3,12 @@ import { Phone, Mail, Globe, Calendar, Layers, Bot, Rocket, HeadphonesIcon, Refr
 import { generateQRCodeUrl } from "@/lib/qrcode";
 
 const reasons = [
-  { icon: Layers, title: "True All-in-One", desc: "One unified codebase — clinical, admin, finance, operations. Replace 10+ tools." },
-  { icon: Bot, title: "AI-Powered", desc: "Built-in medical AI (Tabeebi) + AI in every module — not bolted on, built in." },
+  { icon: Layers, title: "True All-in-One", desc: "One unified codebase, clinical, admin, finance, operations. Replace 10+ tools." },
+  { icon: Bot, title: "AI-Powered", desc: "Built-in medical AI (Tabeebi) + AI in every module, not bolted on, built in." },
   { icon: Rocket, title: "4-Week Go-Live", desc: "Deployment in weeks. Data migration, training, and parallel-run included." },
   { icon: HeadphonesIcon, title: "24/7 Support", desc: "Dedicated account manager, on-site training, <2hr response SLA." },
   { icon: Globe, title: "Trilingual + RTL", desc: "English, Arabic & Urdu with full RTL. Multi-branch with central admin." },
-  { icon: RefreshCw, title: "Always Evolving", desc: "Monthly releases, security patches, compliance updates — zero extra cost." },
+  { icon: RefreshCw, title: "Always Evolving", desc: "Monthly releases, security patches, compliance updates, zero extra cost." },
 ];
 
 export function ExecCTASlide() {
@@ -26,9 +26,9 @@ export function ExecCTASlide() {
       <div className="flex items-center justify-between mb-5 relative z-10">
         <div>
           <p className="text-sm text-primary font-semibold mb-1">Why Us & Next Steps</p>
-          <h2 className="text-3xl font-extrabold text-foreground">Why HealthOS 24 — Let's Get Started</h2>
+          <h2 className="text-3xl font-extrabold text-foreground">Why HealthOS 24. Let's Get Started</h2>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">16 / 16</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">30 / 30</span>
       </div>
 
       <div className="flex gap-6 flex-1 relative z-10">

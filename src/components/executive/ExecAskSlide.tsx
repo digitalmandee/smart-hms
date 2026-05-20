@@ -27,7 +27,7 @@ export function ExecAskSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Raising SAR 2M Seed</h2>
           <p className="text-sm text-muted-foreground mt-1">KSA-only focus. Fund the AI moat, the infra, and the compliance stack to win Saudi Arabia.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">28 / 30</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">29 / 30</span>
       </div>
 
       <div className="grid grid-cols-4 gap-3 mb-4">
@@ -98,7 +98,7 @@ export function ExecAskSlide() {
 
       <div className="mt-3 rounded-lg bg-gradient-to-r from-indigo-500/10 via-blue-500/10 to-emerald-500/10 border px-4 py-2 flex items-center justify-between text-xs">
         <span className="font-semibold text-foreground">SAR 45K/mo team burn · 18-mo runway · KSA-only focus</span>
-        <span className="text-muted-foreground">Lean by design — capital deployed into AI + compliance, not overhead.</span>
+        <span className="text-muted-foreground">Lean by design, capital deployed into AI + compliance, not overhead.</span>
       </div>
 
       <div className="mt-3 pt-2 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">

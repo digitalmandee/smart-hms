@@ -1,10 +1,10 @@
 import { Bot, Mic, FileText, ClipboardList, Clock, Globe, MessageCircle, Sparkles } from "lucide-react";
 
 const capabilities = [
-  { icon: Mic, title: "Trilingual Voice", desc: "Patients speak in English, Arabic, or Urdu — Tabeebi understands and responds naturally." },
+  { icon: Mic, title: "Trilingual Voice", desc: "Patients speak in English, Arabic, or Urdu. Tabeebi understands and responds naturally." },
   { icon: ClipboardList, title: "Clinical Summaries", desc: "Structured clinical summary generated and placed on the doctor's dashboard before consultation." },
   { icon: FileText, title: "Prescription Generation", desc: "Auto-generates e-prescriptions with dosages, drug interaction checks, and pharmacy routing." },
-  { icon: Clock, title: "24/7 Pre-Screening", desc: "Immediate AI triage any time of day — filters urgent cases and reduces wait times." },
+  { icon: Clock, title: "24/7 Pre-Screening", desc: "Immediate AI triage any time of day, filters urgent cases and reduces wait times." },
 ];
 
 export function ExecTabeebiSlide() {
@@ -23,11 +23,11 @@ export function ExecTabeebiSlide() {
             <Bot className="h-6 w-6 text-white" />
           </div>
           <div>
-            <h2 className="text-2xl font-extrabold">Built-in Medical AI — <span className="text-pink-500">Tabeebi</span></h2>
-            <p className="text-sm text-muted-foreground">Your competitive differentiator — included in every installation</p>
+            <h2 className="text-2xl font-extrabold">Built-in Medical AI, <span className="text-pink-500">Tabeebi</span></h2>
+            <p className="text-sm text-muted-foreground">Your competitive differentiator, included in every installation</p>
           </div>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">7 / 16</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">10 / 30</span>
       </div>
 
       <div className="grid grid-cols-2 gap-5 mb-6 relative z-10">

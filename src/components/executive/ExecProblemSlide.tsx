@@ -9,7 +9,7 @@ const painPoints = [
   { icon: Database, title: "Data Silos", desc: "Patient data trapped in 10 different systems with no cross-visibility." },
   { icon: Copy, title: "Duplicate Entry", desc: "Staff re-enters the same data 5-7 times across disconnected tools." },
   { icon: TrendingDown, title: "Revenue Leakage", desc: "Unbilled services, missed charges, and manual invoicing errors bleed revenue." },
-  { icon: EyeOff, title: "No Real-Time Visibility", desc: "Management flies blind — no unified dashboard, no live KPIs, no alerts." },
+  { icon: EyeOff, title: "No Real-Time Visibility", desc: "Management flies blind, no unified dashboard, no live KPIs, no alerts." },
 ];
 
 export function ExecProblemSlide() {
@@ -22,7 +22,7 @@ export function ExecProblemSlide() {
           <p className="text-sm text-destructive font-semibold mb-1">The Challenge</p>
           <h2 className="text-3xl font-extrabold text-foreground">The Problem: Fragmented Hospital IT</h2>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">3 / 16</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">3 / 30</span>
       </div>
 
       <div className="grid grid-cols-2 gap-6 flex-1">

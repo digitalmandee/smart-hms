@@ -57,9 +57,9 @@ export function ExecDiagnosticsSlide() {
         <div>
           <p className="text-sm text-emerald-600 font-semibold mb-1">Diagnostics & Pharmacy</p>
           <h2 className="text-3xl font-extrabold text-foreground">Lab · Radiology · Pharmacy</h2>
-          <p className="text-sm text-muted-foreground mt-1">Fully integrated diagnostics and dispensing — zero data re-entry from doctor to report.</p>
+          <p className="text-sm text-muted-foreground mt-1">Fully integrated diagnostics and dispensing, zero data re-entry from doctor to report.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">10 / 16</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">8 / 30</span>
       </div>
 
       <div className="grid grid-cols-3 gap-5 flex-1">

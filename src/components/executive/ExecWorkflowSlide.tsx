@@ -21,9 +21,9 @@ export function ExecWorkflowSlide() {
         <div>
           <p className="text-sm text-primary font-semibold mb-1">End-to-End Flow</p>
           <h2 className="text-3xl font-extrabold text-foreground">Seamless Patient Journey</h2>
-          <p className="text-sm text-muted-foreground mt-1">Walk-in to walkout — zero data re-entry, one unified system.</p>
+          <p className="text-sm text-muted-foreground mt-1">Walk-in to walkout, zero data re-entry, one unified system.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">12 / 16</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">18 / 30</span>
       </div>
 
       {/* Flow diagram */}

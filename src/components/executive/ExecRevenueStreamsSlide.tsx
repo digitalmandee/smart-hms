@@ -1,10 +1,10 @@
-import { Stethoscope, Building2, Video, Truck, DollarSign, TrendingUp } from "lucide-react";
+import { Stethoscope, Building2, Video, Truck, DollarSign, TrendingUp, Repeat } from "lucide-react";
 
 const streams = [
   {
     icon: Stethoscope,
     title: "Single Clinic",
-    model: "SaaS — per doctor / month",
+    model: "SaaS, per doctor / month",
     price: "$99 – 199",
     unit: "/doctor/mo",
     cycle: "2-week sales cycle",
@@ -14,7 +14,7 @@ const streams = [
   {
     icon: Building2,
     title: "Multi-Branch Hospital",
-    model: "Per bed + module add-ons",
+    model: "Per bed, plus module add-ons",
     price: "$25 – 60",
     unit: "/bed/mo",
     cycle: "8-week enterprise cycle",
@@ -23,8 +23,8 @@ const streams = [
   },
   {
     icon: Video,
-    title: "Telemedicine Services",
-    model: "Per-consult fee + rev share",
+    title: "Telemedicine",
+    model: "Per-consult fee, revenue share",
     price: "10 – 15%",
     unit: "/consult",
     cycle: "Partnership / B2B2C",
@@ -34,7 +34,7 @@ const streams = [
   {
     icon: Truck,
     title: "Clinic on Wheels",
-    model: "Van-as-a-Service: HW + SaaS + support",
+    model: "Hardware + SaaS + support",
     price: "$4 – 8K",
     unit: "/van/mo + per-visit",
     cycle: "B2G (MoH) / B2B (corporates)",
@@ -57,11 +57,11 @@ export function ExecRevenueStreamsSlide() {
 
       <div className="flex items-center justify-between mb-4">
         <div>
-          <p className="text-sm font-semibold mb-1 text-primary">💰 Business Model</p>
-          <h2 className="text-3xl font-extrabold text-foreground">How We Make Money</h2>
-          <p className="text-sm text-muted-foreground mt-1">Four parallel revenue streams — same platform, four buyer profiles</p>
+          <p className="text-sm font-semibold mb-1 text-primary uppercase tracking-wider">Revenue</p>
+          <h2 className="text-3xl font-extrabold text-foreground">Four Revenue Streams, One Platform</h2>
+          <p className="text-sm text-muted-foreground mt-1">Recurring SaaS at the core. Expansion revenue from telemedicine and mobile clinics.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">20 / 21</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">25 / 30</span>
       </div>
 
       <div className="grid grid-cols-4 gap-3 mb-4">
@@ -82,7 +82,6 @@ export function ExecRevenueStreamsSlide() {
       </div>
 
       <div className="grid grid-cols-3 gap-4 flex-1">
-        {/* TAM math */}
         <div className="col-span-2 rounded-xl border bg-card p-4">
           <div className="flex items-center gap-2 mb-3">
             <DollarSign className="h-4 w-4 text-emerald-600" />
@@ -98,7 +97,7 @@ export function ExecRevenueStreamsSlide() {
               <span className="font-bold text-foreground">≈ $36M ARR</span>
             </div>
             <div className="flex items-center justify-between text-xs px-3 py-2 rounded-lg bg-muted/50 border">
-              <span className="text-foreground">Telemedicine — 10M consults × $2 share</span>
+              <span className="text-foreground">Telemedicine, 10M consults × $2 share</span>
               <span className="font-bold text-foreground">≈ $20M ARR</span>
             </div>
             <div className="flex items-center justify-between text-xs px-3 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30">
@@ -112,8 +111,7 @@ export function ExecRevenueStreamsSlide() {
           </div>
         </div>
 
-        {/* Year-3 mix */}
-        <div className="rounded-xl border bg-card p-4">
+        <div className="rounded-xl border bg-card p-4 flex flex-col">
           <h3 className="font-bold text-foreground text-sm mb-3">Year-3 revenue mix (target)</h3>
           <div className="space-y-2">
             {mix.map((m) => (
@@ -128,7 +126,10 @@ export function ExecRevenueStreamsSlide() {
               </div>
             ))}
           </div>
-          <p className="text-[10px] text-muted-foreground mt-3 leading-snug">Diversified mix — no single stream &gt;40%, low concentration risk.</p>
+          <div className="mt-auto pt-3 flex items-center gap-2 rounded-lg bg-emerald-500/10 border border-emerald-500/30 px-2.5 py-2">
+            <Repeat className="h-3.5 w-3.5 text-emerald-600 shrink-0" />
+            <span className="text-[10px] font-bold text-emerald-700">~85% recurring revenue by Year 3</span>
+          </div>
         </div>
       </div>
 

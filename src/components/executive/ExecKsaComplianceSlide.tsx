@@ -35,9 +35,9 @@ export function ExecKsaComplianceSlide() {
         <div>
           <p className="text-sm font-semibold mb-1" style={{ color: "#006C35" }}>🇸🇦 Saudi Arabia Market</p>
           <h2 className="text-3xl font-extrabold text-foreground">KSA Regulatory Compliance</h2>
-          <p className="text-sm text-muted-foreground mt-1">7 mandatory integrations — fully certified, sandbox-tested, production-ready</p>
+          <p className="text-sm text-muted-foreground mt-1">7 mandatory integrations, fully certified, sandbox-tested, production-ready</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">9 / 17</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">12 / 30</span>
       </div>
 
       {/* 7-Integration Grid (4 + 3 layout) */}
@@ -86,7 +86,7 @@ export function ExecKsaComplianceSlide() {
               <div key={std.label} className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg bg-muted/50 border">
                 <CheckCircle className="h-3 w-3 text-emerald-500" />
                 <span className="text-[10px] font-bold text-foreground">{std.label}</span>
-                <span className="text-[9px] text-muted-foreground">— {std.desc}</span>
+                <span className="text-[9px] text-muted-foreground">- {std.desc}</span>
               </div>
             ))}
           </div>
@@ -114,7 +114,7 @@ export function ExecKsaComplianceSlide() {
       {/* Sandbox indicator */}
       <div className="mt-4 px-4 py-2 rounded-lg bg-emerald-500/10 border border-emerald-500/20 text-center">
         <span className="text-xs font-semibold text-emerald-700">✓ Full Sandbox Environment</span>
-        <span className="text-[10px] text-muted-foreground ml-2">— Test all integrations safely before going live</span>
+        <span className="text-[10px] text-muted-foreground ml-2">- Test all integrations safely before going live</span>
       </div>
 
       {/* Footer */}

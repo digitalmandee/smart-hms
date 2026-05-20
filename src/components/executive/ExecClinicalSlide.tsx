@@ -76,10 +76,10 @@ export function ExecClinicalSlide() {
       <div className="flex items-center justify-between mb-5">
         <div>
           <p className="text-sm text-blue-600 font-semibold mb-1">Clinical Depth</p>
-          <h2 className="text-3xl font-extrabold text-foreground">Clinical Workflows — Every Department</h2>
-          <p className="text-sm text-muted-foreground mt-1">From walk-in to discharge — every clinical touchpoint is covered.</p>
+          <h2 className="text-3xl font-extrabold text-foreground">Clinical Workflows. Every Department</h2>
+          <p className="text-sm text-muted-foreground mt-1">From walk-in to discharge, every clinical touchpoint is covered.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">9 / 16</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">7 / 30</span>
       </div>
 
       <div className="grid grid-cols-5 gap-3 flex-1">
