@@ -18,9 +18,9 @@ export function ExecCompetitionSlide() {
 
       <div className="flex items-center justify-between mb-6">
         <div>
-          <p className="text-sm text-emerald-600 font-semibold mb-1">Competitive Landscape</p>
-          <h2 className="text-3xl font-extrabold text-foreground">An Empty Top-Right Quadrant</h2>
-          <p className="text-sm text-muted-foreground mt-1">Global incumbents are unaffordable & unlocalized. Local players lack depth. We sit alone.</p>
+          <p className="text-sm text-emerald-600 font-semibold mb-1">Competition</p>
+          <h2 className="text-3xl font-extrabold text-foreground">Why we win in Saudi Arabia</h2>
+          <p className="text-sm text-muted-foreground mt-1">Cerner and Epic are too expensive and too foreign. Local tools are too thin. We are the only platform built Saudi-first with real depth.</p>
         </div>
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">22 / 30</span>
       </div>

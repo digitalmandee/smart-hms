@@ -51,8 +51,8 @@ export function ExecROISlide() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <p className="text-sm text-emerald-600 font-semibold mb-1">Business Impact</p>
-          <h2 className="text-3xl font-extrabold text-foreground">Measurable Results</h2>
-          <p className="text-sm text-muted-foreground mt-1">Real impact from real deployments across 500+ facilities.</p>
+          <h2 className="text-3xl font-extrabold text-foreground">What customers can expect</h2>
+          <p className="text-sm text-muted-foreground mt-1">Modeled on our live deployments in KSA and Pakistan, plus published HMS industry benchmarks.</p>
         </div>
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">26 / 30</span>
       </div>

@@ -25,10 +25,11 @@ export function ExecCTASlide() {
 
       <div className="flex items-center justify-between mb-5 relative z-10">
         <div>
-          <p className="text-sm text-primary font-semibold mb-1">Why Us & Next Steps</p>
-          <h2 className="text-3xl font-extrabold text-foreground">Why HealthOS 24. Let's Get Started</h2>
+          <p className="text-sm text-primary font-semibold mb-1">The Ask, in one line</p>
+          <h2 className="text-3xl font-extrabold text-foreground">Let's win Saudi Arabia together</h2>
+          <p className="text-sm text-muted-foreground mt-1">Looking for 2 to 3 strategic investors. Lead check SAR 750K. Closing Q3 2026.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">30 / 30</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">32 / 32</span>
       </div>
 
       <div className="flex gap-6 flex-1 relative z-10">
