@@ -20,7 +20,7 @@ export function ExecTractionSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Built. Shipped. Live.</h2>
           <p className="text-sm text-muted-foreground mt-1">We're not pre-product. Real facilities are running on HealthOS 24 today.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">24 / 30</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">25 / 32</span>
       </div>
 
       <div className="grid grid-cols-3 gap-4 flex-1">

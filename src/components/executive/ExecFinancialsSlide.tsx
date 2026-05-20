@@ -26,7 +26,7 @@ export function ExecFinancialsSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">5-Year ARR Projection</h2>
           <p className="text-sm text-muted-foreground mt-1">Bottom-up: 200 paying facilities × $14K avg ACV → $2.8M by Y3, $28M ARR by Y5.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">27 / 30</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">28 / 32</span>
       </div>
 
       <div className="flex-1 grid grid-cols-5 gap-6">

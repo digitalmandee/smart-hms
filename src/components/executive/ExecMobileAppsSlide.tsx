@@ -44,7 +44,7 @@ export function ExecMobileAppsSlide() {
             iOS and Android in production. Clinicians, patients and staff carry the hospital in their pocket.
           </p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">16 / 30</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">17 / 32</span>
       </div>
 
       <div className="flex-1 grid grid-cols-5 gap-6 items-center">

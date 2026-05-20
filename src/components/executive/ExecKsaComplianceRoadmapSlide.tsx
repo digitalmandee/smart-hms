@@ -36,7 +36,7 @@ export function ExecKsaComplianceRoadmapSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Becoming KSA-Compliant</h2>
           <p className="text-sm text-muted-foreground mt-1">Already integrated. Now getting certified.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">14 / 30</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">15 / 32</span>
       </div>
 
       <div className="grid grid-cols-3 gap-4 flex-1">

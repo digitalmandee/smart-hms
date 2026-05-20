@@ -41,7 +41,7 @@ export function ExecMarketSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">A Multi-Billion Dollar Window</h2>
           <p className="text-sm text-muted-foreground mt-1">Top-down validation: MENA Healthcare IT is one of the fastest-growing verticals globally.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">21 / 30</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">22 / 32</span>
       </div>
 
       <div className="flex-1 flex flex-col gap-4 justify-center">
