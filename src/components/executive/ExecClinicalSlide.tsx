@@ -79,7 +79,7 @@ export function ExecClinicalSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Clinical Workflows. Every Department</h2>
           <p className="text-sm text-muted-foreground mt-1">From walk-in to discharge, every clinical touchpoint is covered.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">8 / 31</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">8 / 35</span>
       </div>
 
       <div className="grid grid-cols-5 gap-3 flex-1">

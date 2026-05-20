@@ -12,39 +12,42 @@ import jsPDF from "jspdf";
 import JSZip from "jszip";
 import { toPng } from "html-to-image";
 import { ExecTitleSlide } from "@/components/executive/ExecTitleSlide";
-
 import { ExecProblemSlide } from "@/components/executive/ExecProblemSlide";
 import { ExecWhyNowSlide } from "@/components/executive/ExecWhyNowSlide";
 import { ExecAllInOneSlide } from "@/components/executive/ExecAllInOneSlide";
-import { ExecModulesSlide } from "@/components/executive/ExecModulesSlide";
-import { ExecAIEverywhereSlide } from "@/components/executive/ExecAIEverywhereSlide";
 import { ExecTabeebiSlide } from "@/components/executive/ExecTabeebiSlide";
-import { ExecInsuranceSlide } from "@/components/executive/ExecInsuranceSlide";
-import { ExecKsaComplianceSlide } from "@/components/executive/ExecKsaComplianceSlide";
-import { ExecKsaIndustryGapSlide } from "@/components/executive/ExecKsaIndustryGapSlide";
-import { ExecKsaComplianceRoadmapSlide } from "@/components/executive/ExecKsaComplianceRoadmapSlide";
-import { ExecClinicOnWheelsSlide } from "@/components/executive/ExecClinicOnWheelsSlide";
-import { ExecMobileAppsSlide } from "@/components/executive/ExecMobileAppsSlide";
-import { ExecRevenueStreamsSlide } from "@/components/executive/ExecRevenueStreamsSlide";
+import { ExecCustomerStorySlide } from "@/components/executive/ExecCustomerStorySlide";
+import { ExecModulesSlide } from "@/components/executive/ExecModulesSlide";
 import { ExecClinicalSlide } from "@/components/executive/ExecClinicalSlide";
-import { ExecDiagnosticsSlide } from "@/components/executive/ExecDiagnosticsSlide";
-import { ExecAutomationSlide } from "@/components/executive/ExecAutomationSlide";
-import { ExecWorkflowSlide } from "@/components/executive/ExecWorkflowSlide";
-import { ExecFinanceOpsSlide } from "@/components/executive/ExecFinanceOpsSlide";
+import { ExecAIEverywhereSlide } from "@/components/executive/ExecAIEverywhereSlide";
+import { ExecMobileAppsSlide } from "@/components/executive/ExecMobileAppsSlide";
 import { ExecTechSlide } from "@/components/executive/ExecTechSlide";
+import { ExecKsaIndustryGapSlide } from "@/components/executive/ExecKsaIndustryGapSlide";
+import { ExecKsaComplianceSlide } from "@/components/executive/ExecKsaComplianceSlide";
+import { ExecKsaComplianceRoadmapSlide } from "@/components/executive/ExecKsaComplianceRoadmapSlide";
 import { ExecMarketSlide } from "@/components/executive/ExecMarketSlide";
 import { ExecCompetitionSlide } from "@/components/executive/ExecCompetitionSlide";
 import { ExecDifferentiatorsSlide } from "@/components/executive/ExecDifferentiatorsSlide";
 import { ExecTractionSlide } from "@/components/executive/ExecTractionSlide";
 import { ExecROISlide } from "@/components/executive/ExecROISlide";
+import { ExecRevenueStreamsSlide } from "@/components/executive/ExecRevenueStreamsSlide";
+import { ExecUnitEconomicsSlide } from "@/components/executive/ExecUnitEconomicsSlide";
 import { ExecFinancialsSlide } from "@/components/executive/ExecFinancialsSlide";
+import { ExecGoToMarketSlide } from "@/components/executive/ExecGoToMarketSlide";
+import { ExecRoadmapSlide } from "@/components/executive/ExecRoadmapSlide";
 import { ExecTeamSlide } from "@/components/executive/ExecTeamSlide";
+import { ExecRisksSlide } from "@/components/executive/ExecRisksSlide";
+import { ExecVisionSlide } from "@/components/executive/ExecVisionSlide";
 import { ExecAskSlide } from "@/components/executive/ExecAskSlide";
 import { ExecCTASlide } from "@/components/executive/ExecCTASlide";
-import { ExecCustomerStorySlide } from "@/components/executive/ExecCustomerStorySlide";
-import { ExecVisionSlide } from "@/components/executive/ExecVisionSlide";
+import { ExecDiagnosticsSlide } from "@/components/executive/ExecDiagnosticsSlide";
+import { ExecInsuranceSlide } from "@/components/executive/ExecInsuranceSlide";
+import { ExecWorkflowSlide } from "@/components/executive/ExecWorkflowSlide";
+import { ExecAutomationSlide } from "@/components/executive/ExecAutomationSlide";
+import { ExecFinanceOpsSlide } from "@/components/executive/ExecFinanceOpsSlide";
+import { ExecClinicOnWheelsSlide } from "@/components/executive/ExecClinicOnWheelsSlide";
 
-const TOTAL_SLIDES = 31;
+const TOTAL_SLIDES = 35;
 
 const ExecutivePresentation = () => {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -246,37 +249,53 @@ const ExecutivePresentation = () => {
 
       <div className="bg-muted/30 min-h-screen">
         <div ref={printContainerRef} className="py-8 px-4">
+          {/* Main investor deck (29 slides) */}
           <ExecTitleSlide />
           <ExecProblemSlide />
           <ExecWhyNowSlide />
           <ExecAllInOneSlide />
-          <ExecModulesSlide />
           <ExecTabeebiSlide />
           <ExecCustomerStorySlide />
+          <ExecModulesSlide />
           <ExecClinicalSlide />
-          <ExecDiagnosticsSlide />
           <ExecAIEverywhereSlide />
-          <ExecInsuranceSlide />
-          <ExecKsaComplianceSlide />
-          <ExecKsaIndustryGapSlide />
-          <ExecKsaComplianceRoadmapSlide />
-          <ExecClinicOnWheelsSlide />
           <ExecMobileAppsSlide />
-          <ExecAutomationSlide />
-          <ExecWorkflowSlide />
-          <ExecFinanceOpsSlide />
           <ExecTechSlide />
+          <ExecKsaIndustryGapSlide />
+          <ExecKsaComplianceSlide />
+          <ExecKsaComplianceRoadmapSlide />
           <ExecMarketSlide />
           <ExecCompetitionSlide />
           <ExecDifferentiatorsSlide />
           <ExecTractionSlide />
-          <ExecRevenueStreamsSlide />
           <ExecROISlide />
+          <ExecRevenueStreamsSlide />
+          <ExecUnitEconomicsSlide />
           <ExecFinancialsSlide />
+          <ExecGoToMarketSlide />
+          <ExecRoadmapSlide />
           <ExecTeamSlide />
-          <ExecAskSlide />
+          <ExecRisksSlide />
           <ExecVisionSlide />
+          <ExecAskSlide />
           <ExecCTASlide />
+
+          {/* Appendix divider */}
+          <div className="no-print max-w-[1200px] mx-auto my-12 flex items-center gap-4">
+            <div className="flex-1 h-px bg-border" />
+            <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
+              Appendix · Product Depth
+            </span>
+            <div className="flex-1 h-px bg-border" />
+          </div>
+
+          {/* Appendix (6 slides) */}
+          <ExecDiagnosticsSlide />
+          <ExecInsuranceSlide />
+          <ExecWorkflowSlide />
+          <ExecAutomationSlide />
+          <ExecFinanceOpsSlide />
+          <ExecClinicOnWheelsSlide />
         </div>
       </div>
     </>
