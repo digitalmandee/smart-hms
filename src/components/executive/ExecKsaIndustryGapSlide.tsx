@@ -22,7 +22,7 @@ const opportunities = [
   "NPHIES becoming mandatory for all payers",
   "SFDA Wasfaty enforcement on pharmacies",
   "Insurance penetration accelerating (CCHI)",
-  "GCC expansion corridor: UAE, Kuwait, Bahrain",
+  "KSA-first strategy: deep specialization over GCC sprawl",
 ];
 
 export function ExecKsaIndustryGapSlide() {

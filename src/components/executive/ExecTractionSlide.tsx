@@ -6,7 +6,7 @@ const stats = [
   { icon: Users, value: "150K+", unit: "patients", label: "Records processed", color: "bg-purple-500" },
   { icon: Activity, value: "2.4M+", unit: "transactions", label: "Billed via platform", color: "bg-amber-500" },
   { icon: Zap, value: "4 wks", unit: "go-live", label: "Avg deployment time", color: "bg-rose-500" },
-  { icon: Award, value: "3", unit: "geographies", label: "KSA, UAE pilots, Pakistan live", color: "bg-cyan-500" },
+  { icon: Award, value: "2", unit: "geographies", label: "KSA + Pakistan live", color: "bg-cyan-500" },
 ];
 
 export function ExecTractionSlide() {
@@ -41,7 +41,7 @@ export function ExecTractionSlide() {
       <div className="mt-4 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 p-4 flex items-center justify-between">
         <div>
           <div className="text-xs font-bold text-primary uppercase tracking-wider">Pipeline</div>
-          <div className="text-sm text-foreground font-medium">35+ facilities in active sales conversations across KSA, UAE, and Pakistan</div>
+          <div className="text-sm text-foreground font-medium">35+ facilities in active sales conversations across KSA and Pakistan</div>
         </div>
         <div className="text-2xl font-extrabold text-primary">$1.8M</div>
       </div>
