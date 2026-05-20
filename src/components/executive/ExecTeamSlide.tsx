@@ -28,7 +28,7 @@ export function ExecTeamSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Meet the Founders</h2>
           <p className="text-sm text-muted-foreground mt-1">Builders shipping clinical software for hospitals across MENA & South Asia.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">26 / 29</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">27 / 30</span>
       </div>
 
       <div className="grid grid-cols-2 gap-8 flex-1 items-center px-8">

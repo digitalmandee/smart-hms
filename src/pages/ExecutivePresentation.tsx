@@ -24,6 +24,7 @@ import { ExecKsaComplianceSlide } from "@/components/executive/ExecKsaCompliance
 import { ExecKsaIndustryGapSlide } from "@/components/executive/ExecKsaIndustryGapSlide";
 import { ExecKsaComplianceRoadmapSlide } from "@/components/executive/ExecKsaComplianceRoadmapSlide";
 import { ExecClinicOnWheelsSlide } from "@/components/executive/ExecClinicOnWheelsSlide";
+import { ExecMobileAppsSlide } from "@/components/executive/ExecMobileAppsSlide";
 import { ExecRevenueStreamsSlide } from "@/components/executive/ExecRevenueStreamsSlide";
 import { ExecClinicalSlide } from "@/components/executive/ExecClinicalSlide";
 import { ExecDiagnosticsSlide } from "@/components/executive/ExecDiagnosticsSlide";
@@ -41,7 +42,7 @@ import { ExecTeamSlide } from "@/components/executive/ExecTeamSlide";
 import { ExecAskSlide } from "@/components/executive/ExecAskSlide";
 import { ExecCTASlide } from "@/components/executive/ExecCTASlide";
 
-const TOTAL_SLIDES = 29;
+const TOTAL_SLIDES = 30;
 
 const ExecutivePresentation = () => {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -258,6 +259,7 @@ const ExecutivePresentation = () => {
           <ExecKsaIndustryGapSlide />
           <ExecKsaComplianceRoadmapSlide />
           <ExecClinicOnWheelsSlide />
+          <ExecMobileAppsSlide />
           <ExecAutomationSlide />
           <ExecWorkflowSlide />
           <ExecFinanceOpsSlide />

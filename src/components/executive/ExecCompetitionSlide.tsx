@@ -22,7 +22,7 @@ export function ExecCompetitionSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">An Empty Top-Right Quadrant</h2>
           <p className="text-sm text-muted-foreground mt-1">Global incumbents are unaffordable & unlocalized. Local players lack depth. We sit alone.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">20 / 29</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">21 / 30</span>
       </div>
 
       <div className="flex-1 flex gap-6">
