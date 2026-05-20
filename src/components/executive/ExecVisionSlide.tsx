@@ -32,7 +32,7 @@ export function ExecVisionSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Where HealthOS 24 is going</h2>
           <p className="text-sm text-muted-foreground mt-1">A five-year path from Riyadh to the rest of the region.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">31 / 32</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">30 / 31</span>
       </div>
 
       {/* North star */}

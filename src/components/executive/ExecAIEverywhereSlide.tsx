@@ -22,7 +22,7 @@ export function ExecAIEverywhereSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">AI Everywhere. Not Just a Chatbot</h2>
           <p className="text-sm text-muted-foreground mt-1">AI is woven into every department, clinical, operational, and financial.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">11 / 32</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">10 / 31</span>
       </div>
 
       <div className="flex-1 relative z-10 flex flex-col items-center">
