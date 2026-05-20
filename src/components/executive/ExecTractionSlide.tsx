@@ -38,15 +38,7 @@ export function ExecTractionSlide() {
         ))}
       </div>
 
-      <div className="mt-4 rounded-xl border-2 border-dashed border-primary/40 bg-primary/5 p-4 flex items-center justify-between">
-        <div>
-          <div className="text-xs font-bold text-primary uppercase tracking-wider">Pipeline</div>
-          <div className="text-sm text-foreground font-medium">35+ facilities in active sales conversations across KSA and Pakistan</div>
-        </div>
-        <div className="text-2xl font-extrabold text-primary">$1.8M</div>
-      </div>
-
-      <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
+      <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
         <span>Figures reflect cumulative platform activity as of Q2 2026</span>
         <span>healthos24.com | Confidential</span>
       </div>
