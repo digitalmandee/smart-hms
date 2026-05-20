@@ -47,7 +47,8 @@ import { ExecAutomationSlide } from "@/components/executive/ExecAutomationSlide"
 import { ExecFinanceOpsSlide } from "@/components/executive/ExecFinanceOpsSlide";
 import { ExecClinicOnWheelsSlide } from "@/components/executive/ExecClinicOnWheelsSlide";
 
-const TOTAL_SLIDES = 35;
+const TOTAL_SLIDES = 20;
+const APPENDIX_SLIDES = 14;
 
 const ExecutivePresentation = () => {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -205,8 +206,8 @@ const ExecutivePresentation = () => {
               </Button>
             </Link>
             <div>
-              <h1 className="font-semibold">HealthOS 24 — Product Pitch Deck</h1>
-              <p className="text-xs text-muted-foreground">{TOTAL_SLIDES} slides • Product Edition</p>
+              <h1 className="font-semibold">HealthOS 24 — Investor Pitch Deck</h1>
+              <p className="text-xs text-muted-foreground">{TOTAL_SLIDES} core slides + {APPENDIX_SLIDES} appendix</p>
             </div>
           </div>
           <div className="flex items-center gap-2">
@@ -249,53 +250,74 @@ const ExecutivePresentation = () => {
 
       <div className="bg-muted/30 min-h-screen">
         <div ref={printContainerRef} className="py-8 px-4">
-          {/* Main investor deck (29 slides) */}
+          {/* Core investor deck — 20 slides + thank-you */}
+          {/* 1. Title */}
           <ExecTitleSlide />
+          {/* 2. Problem */}
           <ExecProblemSlide />
+          {/* 3. Why Now */}
           <ExecWhyNowSlide />
+          {/* 4. Solution */}
           <ExecAllInOneSlide />
+          {/* 5. Tabeebi AI (hero AI slide) */}
           <ExecTabeebiSlide />
-          <ExecCustomerStorySlide />
-          <ExecModulesSlide />
+          {/* 6. Clinical workflow */}
           <ExecClinicalSlide />
-          <ExecAIEverywhereSlide />
-          <ExecMobileAppsSlide />
-          <ExecTechSlide />
+          {/* 7. KSA Industry Gap */}
           <ExecKsaIndustryGapSlide />
+          {/* 8. Saudi-Ready compliance */}
           <ExecKsaComplianceSlide />
-          <ExecKsaComplianceRoadmapSlide />
+          {/* 9. Market */}
           <ExecMarketSlide />
+          {/* 10. Competition */}
           <ExecCompetitionSlide />
+          {/* 11. Differentiators */}
           <ExecDifferentiatorsSlide />
+          {/* 12. Traction */}
           <ExecTractionSlide />
-          <ExecROISlide />
-          <ExecRevenueStreamsSlide />
-          <ExecUnitEconomicsSlide />
-          <ExecFinancialsSlide />
+          {/* 13. Go-to-Market */}
           <ExecGoToMarketSlide />
+          {/* 14. Business Model / Revenue Streams */}
+          <ExecRevenueStreamsSlide />
+          {/* 15. Unit Economics */}
+          <ExecUnitEconomicsSlide />
+          {/* 16. Financials */}
+          <ExecFinancialsSlide />
+          {/* 17. Roadmap */}
           <ExecRoadmapSlide />
+          {/* 18. Team */}
           <ExecTeamSlide />
+          {/* 19. Risks */}
           <ExecRisksSlide />
-          <ExecVisionSlide />
+          {/* 20. Ask */}
           <ExecAskSlide />
+          {/* Close */}
           <ExecCTASlide />
 
           {/* Appendix divider */}
           <div className="no-print max-w-[1200px] mx-auto my-12 flex items-center gap-4">
             <div className="flex-1 h-px bg-border" />
             <span className="text-sm font-bold text-muted-foreground uppercase tracking-widest">
-              Appendix · Product Depth
+              Appendix · Deep Dives ({APPENDIX_SLIDES})
             </span>
             <div className="flex-1 h-px bg-border" />
           </div>
 
-          {/* Appendix (6 slides) */}
-          <ExecDiagnosticsSlide />
-          <ExecInsuranceSlide />
-          <ExecWorkflowSlide />
-          <ExecAutomationSlide />
-          <ExecFinanceOpsSlide />
-          <ExecClinicOnWheelsSlide />
+          {/* Appendix — deep dives, shown only on request */}
+          <ExecModulesSlide />              {/* A1  full module catalog */}
+          <ExecAIEverywhereSlide />         {/* A2  AI across every module */}
+          <ExecKsaComplianceRoadmapSlide />{/* A3  KSA certification timeline */}
+          <ExecCustomerStorySlide />        {/* A4  before/after case study */}
+          <ExecROISlide />                  {/* A5  customer ROI metrics */}
+          <ExecVisionSlide />               {/* A6  long-term vision horizons */}
+          <ExecMobileAppsSlide />           {/* A7  mobile apps */}
+          <ExecTechSlide />                 {/* A8  tech architecture */}
+          <ExecDiagnosticsSlide />          {/* A9  lab/rad deep dive */}
+          <ExecInsuranceSlide />            {/* A10 insurance & RCM */}
+          <ExecWorkflowSlide />             {/* A11 workflow automation */}
+          <ExecAutomationSlide />           {/* A12 automations */}
+          <ExecFinanceOpsSlide />           {/* A13 finance ops */}
+          <ExecClinicOnWheelsSlide />       {/* A14 mobile clinics */}
         </div>
       </div>
     </>
