@@ -14,6 +14,7 @@ import { toPng } from "html-to-image";
 import { ExecTitleSlide } from "@/components/executive/ExecTitleSlide";
 import { ExecAboutUsSlide } from "@/components/executive/ExecAboutUsSlide";
 import { ExecProblemSlide } from "@/components/executive/ExecProblemSlide";
+import { ExecWhyNowSlide } from "@/components/executive/ExecWhyNowSlide";
 import { ExecAllInOneSlide } from "@/components/executive/ExecAllInOneSlide";
 import { ExecModulesSlide } from "@/components/executive/ExecModulesSlide";
 import { ExecAIEverywhereSlide } from "@/components/executive/ExecAIEverywhereSlide";
@@ -30,10 +31,17 @@ import { ExecAutomationSlide } from "@/components/executive/ExecAutomationSlide"
 import { ExecWorkflowSlide } from "@/components/executive/ExecWorkflowSlide";
 import { ExecFinanceOpsSlide } from "@/components/executive/ExecFinanceOpsSlide";
 import { ExecTechSlide } from "@/components/executive/ExecTechSlide";
+import { ExecMarketSlide } from "@/components/executive/ExecMarketSlide";
+import { ExecCompetitionSlide } from "@/components/executive/ExecCompetitionSlide";
+import { ExecDifferentiatorsSlide } from "@/components/executive/ExecDifferentiatorsSlide";
+import { ExecTractionSlide } from "@/components/executive/ExecTractionSlide";
 import { ExecROISlide } from "@/components/executive/ExecROISlide";
+import { ExecFinancialsSlide } from "@/components/executive/ExecFinancialsSlide";
+import { ExecTeamSlide } from "@/components/executive/ExecTeamSlide";
+import { ExecAskSlide } from "@/components/executive/ExecAskSlide";
 import { ExecCTASlide } from "@/components/executive/ExecCTASlide";
 
-const TOTAL_SLIDES = 21;
+const TOTAL_SLIDES = 29;
 
 const ExecutivePresentation = () => {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -238,8 +246,11 @@ const ExecutivePresentation = () => {
           <ExecTitleSlide />
           <ExecAboutUsSlide />
           <ExecProblemSlide />
+          <ExecWhyNowSlide />
           <ExecAllInOneSlide />
           <ExecModulesSlide />
+          <ExecClinicalSlide />
+          <ExecDiagnosticsSlide />
           <ExecAIEverywhereSlide />
           <ExecTabeebiSlide />
           <ExecInsuranceSlide />
@@ -247,14 +258,19 @@ const ExecutivePresentation = () => {
           <ExecKsaIndustryGapSlide />
           <ExecKsaComplianceRoadmapSlide />
           <ExecClinicOnWheelsSlide />
-          <ExecClinicalSlide />
-          <ExecDiagnosticsSlide />
           <ExecAutomationSlide />
           <ExecWorkflowSlide />
           <ExecFinanceOpsSlide />
           <ExecTechSlide />
-          <ExecROISlide />
+          <ExecMarketSlide />
+          <ExecCompetitionSlide />
+          <ExecDifferentiatorsSlide />
+          <ExecTractionSlide />
           <ExecRevenueStreamsSlide />
+          <ExecROISlide />
+          <ExecFinancialsSlide />
+          <ExecTeamSlide />
+          <ExecAskSlide />
           <ExecCTASlide />
         </div>
       </div>
