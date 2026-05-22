@@ -103,7 +103,7 @@ const ExecutivePresentationInner = () => {
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "HealthOS24-Product-Deck.pdf";
+      link.download = lang === "ar" ? "HealthOS24-Product-Deck-ar.pdf" : "HealthOS24-Product-Deck.pdf";
       link.style.display = "none";
       document.body.appendChild(link);
       link.click();
