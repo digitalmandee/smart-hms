@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { FileDown, Printer, ArrowLeft, Loader2, Image as ImageIcon, ChevronDown } from "lucide-react";
+import { FileDown, Printer, ArrowLeft, Loader2, Image as ImageIcon, ChevronDown, Languages } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +11,7 @@ import {
 import jsPDF from "jspdf";
 import JSZip from "jszip";
 import { toPng } from "html-to-image";
+import { ExecLangProvider, ExecLangBoundary, useExecLang } from "@/components/executive/i18n/ExecLangContext";
 import { ExecTitleSlide } from "@/components/executive/ExecTitleSlide";
 import { ExecProblemSlide } from "@/components/executive/ExecProblemSlide";
 import { ExecWhyNowSlide } from "@/components/executive/ExecWhyNowSlide";
@@ -50,8 +51,9 @@ import { ExecClinicOnWheelsSlide } from "@/components/executive/ExecClinicOnWhee
 const TOTAL_SLIDES = 20;
 const APPENDIX_SLIDES = 14;
 
-const ExecutivePresentation = () => {
+const ExecutivePresentationInner = () => {
   const [isDownloading, setIsDownloading] = useState(false);
+  const { lang, setLang } = useExecLang();
   const printContainerRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useCallback(() => {
@@ -101,7 +103,7 @@ const ExecutivePresentation = () => {
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "HealthOS24-Product-Deck.pdf";
+      link.download = lang === "ar" ? "HealthOS24-Product-Deck-ar.pdf" : "HealthOS24-Product-Deck.pdf";
       link.style.display = "none";
       document.body.appendChild(link);
       link.click();
@@ -113,7 +115,7 @@ const ExecutivePresentation = () => {
     } finally {
       setIsDownloading(false);
     }
-  }, []);
+  }, [lang]);
 
   const renderSlideToPng = useCallback(async (el: HTMLElement) => {
     const originalStyle = el.style.cssText;
@@ -159,7 +161,7 @@ const ExecutivePresentation = () => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "HealthOS24-Pitch-Deck-Images.zip";
+      link.download = lang === "ar" ? "HealthOS24-Pitch-Deck-Images-ar.zip" : "HealthOS24-Pitch-Deck-Images.zip";
       document.body.appendChild(link);
       link.click();
       setTimeout(() => { document.body.removeChild(link); URL.revokeObjectURL(url); }, 5000);
@@ -169,7 +171,7 @@ const ExecutivePresentation = () => {
     } finally {
       setIsDownloading(false);
     }
-  }, [renderSlideToPng]);
+  }, [renderSlideToPng, lang]);
 
   return (
     <>
@@ -196,7 +198,7 @@ const ExecutivePresentation = () => {
         }
       `}</style>
 
-      <div className="no-print sticky top-0 z-50 bg-background border-b border-border px-4 py-3">
+      <div className="no-print sticky top-0 z-50 bg-background border-b border-border px-4 py-3" dir="ltr">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link to="/">
@@ -210,7 +212,24 @@ const ExecutivePresentation = () => {
               <p className="text-xs text-muted-foreground">{TOTAL_SLIDES} core slides + {APPENDIX_SLIDES} appendix</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" dir="ltr">
+            <div className="flex items-center rounded-md border border-border overflow-hidden mr-1">
+              <button
+                onClick={() => setLang("en")}
+                className={`px-3 py-1.5 text-xs font-semibold transition-colors ${lang === "en" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"}`}
+                aria-pressed={lang === "en"}
+              >
+                <Languages className="inline h-3.5 w-3.5 mr-1" />EN
+              </button>
+              <button
+                onClick={() => setLang("ar")}
+                className={`px-3 py-1.5 text-xs font-bold transition-colors ${lang === "ar" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"}`}
+                aria-pressed={lang === "ar"}
+                style={{ fontFamily: '"Noto Naskh Arabic",system-ui,sans-serif' }}
+              >
+                عربي
+              </button>
+            </div>
             <Button variant="outline" size="sm" onClick={handlePrint} disabled={isDownloading}>
               <Printer className="h-4 w-4 mr-2" />
               Print
@@ -240,7 +259,7 @@ const ExecutivePresentation = () => {
         </div>
       </div>
 
-      <div className="no-print bg-muted/50 border-b border-border px-4 py-3">
+      <div className="no-print bg-muted/50 border-b border-border px-4 py-3" dir="ltr">
         <div className="container mx-auto text-center">
           <p className="text-sm text-muted-foreground">
             💡 Click <strong>"Download PDF"</strong> to save as a real PDF file, or <strong>"Print"</strong> to open your browser's print dialog.
@@ -324,4 +343,13 @@ const ExecutivePresentation = () => {
   );
 };
 
+const ExecutivePresentation = () => (
+  <ExecLangProvider>
+    <ExecLangBoundary>
+      <ExecutivePresentationInner />
+    </ExecLangBoundary>
+  </ExecLangProvider>
+);
+
 export default ExecutivePresentation;
+
