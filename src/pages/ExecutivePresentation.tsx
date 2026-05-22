@@ -51,8 +51,9 @@ import { ExecClinicOnWheelsSlide } from "@/components/executive/ExecClinicOnWhee
 const TOTAL_SLIDES = 20;
 const APPENDIX_SLIDES = 14;
 
-const ExecutivePresentation = () => {
+const ExecutivePresentationInner = () => {
   const [isDownloading, setIsDownloading] = useState(false);
+  const { lang, setLang } = useExecLang();
   const printContainerRef = useRef<HTMLDivElement>(null);
 
   const handlePrint = useCallback(() => {
