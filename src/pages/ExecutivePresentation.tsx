@@ -198,7 +198,7 @@ const ExecutivePresentationInner = () => {
         }
       `}</style>
 
-      <div className="no-print sticky top-0 z-50 bg-background border-b border-border px-4 py-3">
+      <div className="no-print sticky top-0 z-50 bg-background border-b border-border px-4 py-3" dir="ltr">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-4">
             <Link to="/">
