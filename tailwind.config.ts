@@ -23,6 +23,7 @@ export default {
     extend: {
       fontFamily: {
         sans: ["Inter", "system-ui", "sans-serif"],
+        arabic: ['"Noto Naskh Arabic"', '"Noto Sans Arabic"', "system-ui", "sans-serif"],
       },
       colors: {
         border: "hsl(var(--border))",
