@@ -259,7 +259,7 @@ const ExecutivePresentationInner = () => {
         </div>
       </div>
 
-      <div className="no-print bg-muted/50 border-b border-border px-4 py-3">
+      <div className="no-print bg-muted/50 border-b border-border px-4 py-3" dir="ltr">
         <div className="container mx-auto text-center">
           <p className="text-sm text-muted-foreground">
             💡 Click <strong>"Download PDF"</strong> to save as a real PDF file, or <strong>"Print"</strong> to open your browser's print dialog.
