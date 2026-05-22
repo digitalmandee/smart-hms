@@ -115,7 +115,7 @@ const ExecutivePresentationInner = () => {
     } finally {
       setIsDownloading(false);
     }
-  }, []);
+  }, [lang]);
 
   const renderSlideToPng = useCallback(async (el: HTMLElement) => {
     const originalStyle = el.style.cssText;
@@ -161,7 +161,7 @@ const ExecutivePresentationInner = () => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = "HealthOS24-Pitch-Deck-Images.zip";
+      link.download = lang === "ar" ? "HealthOS24-Pitch-Deck-Images-ar.zip" : "HealthOS24-Pitch-Deck-Images.zip";
       document.body.appendChild(link);
       link.click();
       setTimeout(() => { document.body.removeChild(link); URL.revokeObjectURL(url); }, 5000);
@@ -171,7 +171,7 @@ const ExecutivePresentationInner = () => {
     } finally {
       setIsDownloading(false);
     }
-  }, [renderSlideToPng]);
+  }, [renderSlideToPng, lang]);
 
   return (
     <>
@@ -212,7 +212,24 @@ const ExecutivePresentationInner = () => {
               <p className="text-xs text-muted-foreground">{TOTAL_SLIDES} core slides + {APPENDIX_SLIDES} appendix</p>
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2" dir="ltr">
+            <div className="flex items-center rounded-md border border-border overflow-hidden mr-1">
+              <button
+                onClick={() => setLang("en")}
+                className={`px-3 py-1.5 text-xs font-semibold transition-colors ${lang === "en" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"}`}
+                aria-pressed={lang === "en"}
+              >
+                <Languages className="inline h-3.5 w-3.5 mr-1" />EN
+              </button>
+              <button
+                onClick={() => setLang("ar")}
+                className={`px-3 py-1.5 text-xs font-bold transition-colors ${lang === "ar" ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"}`}
+                aria-pressed={lang === "ar"}
+                style={{ fontFamily: '"Noto Naskh Arabic",system-ui,sans-serif' }}
+              >
+                عربي
+              </button>
+            </div>
             <Button variant="outline" size="sm" onClick={handlePrint} disabled={isDownloading}>
               <Printer className="h-4 w-4 mr-2" />
               Print
@@ -326,4 +343,13 @@ const ExecutivePresentationInner = () => {
   );
 };
 
+const ExecutivePresentation = () => (
+  <ExecLangProvider>
+    <ExecLangBoundary>
+      <ExecutivePresentationInner />
+    </ExecLangBoundary>
+  </ExecLangProvider>
+);
+
 export default ExecutivePresentation;
+
