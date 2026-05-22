@@ -1,5 +1,5 @@
 import { useState, useRef, useCallback } from "react";
-import { FileDown, Printer, ArrowLeft, Loader2, Image as ImageIcon, ChevronDown } from "lucide-react";
+import { FileDown, Printer, ArrowLeft, Loader2, Image as ImageIcon, ChevronDown, Languages } from "lucide-react";
 import { Link } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import {
@@ -11,6 +11,7 @@ import {
 import jsPDF from "jspdf";
 import JSZip from "jszip";
 import { toPng } from "html-to-image";
+import { ExecLangProvider, ExecLangBoundary, useExecLang } from "@/components/executive/i18n/ExecLangContext";
 import { ExecTitleSlide } from "@/components/executive/ExecTitleSlide";
 import { ExecProblemSlide } from "@/components/executive/ExecProblemSlide";
 import { ExecWhyNowSlide } from "@/components/executive/ExecWhyNowSlide";
