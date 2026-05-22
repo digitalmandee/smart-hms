@@ -1,54 +1,75 @@
-# Arabic version of the Executive Investor Presentation
+# Create 3 Foundational Skills
 
-## Goal
-Make the investor deck fully available in Arabic with proper RTL layout, accessible from the same `/executive-presentation` route via a language toggle (EN ⇄ AR). Same content, same 20 + 14 appendix slides — just translated and mirrored.
+Build the top-3 highest-ROI skills as drafts under `.agents/skills/`, then activate them via `skills--apply_draft`. These codify the conventions I currently re-learn from memory each session.
 
-## Approach
+## Skill 1: `supabase-patterns`
 
-Rather than duplicating all 35 slide components (~3,700 lines), introduce a lightweight **deck-local language context** with inline translation dictionaries per slide. This keeps each slide self-contained and easy to edit, while avoiding a parallel `*SlideAr.tsx` tree.
+**Triggers on:** any Supabase query, mutation, or migration work.
 
-### 1. Deck language context
-- New `src/components/executive/ExecLangContext.tsx` exporting:
-  - `ExecLangProvider` (holds `lang: 'en' | 'ar'`, persists to `localStorage`)
-  - `useExecLang()` → `{ lang, setLang, dir, t }`
-  - `t(en, ar)` helper: returns the right string based on current `lang`
-- Scoped to the presentation only — does NOT touch the app-wide `useTranslation` / `CountryConfigContext` (those drive the live HMS product in en/ar/ur).
+**SKILL.md contents:**
+- The `.single()` → `.maybeSingle()` / `.select() + data?.[0]` rule with examples
+- Empty string UUID → `null` mapping (with the exact pattern that bit us)
+- Manual JS join strategy for tables without FKs — list the known tables (`pharmacy_pos_items`, `expenses`, `goods_received_notes`) and the join helper pattern
+- `fetchAllRows` recursive helper to bypass the 1000-row limit
+- Migration discipline: never edit `types.ts`, always use migrations for DDL
+- Trigger idempotency: `IF EXISTS` guard pattern for reference IDs
 
-### 2. Language toggle in the deck toolbar
-- Add an EN / ع pill toggle next to the existing Print / Download buttons in `ExecutivePresentation.tsx`.
-- Wrap the slides container in `<div dir={dir} className={lang==='ar' ? 'font-arabic' : ''}>` so RTL flips layout automatically.
-- Toolbar itself stays LTR for predictability.
+**references/**
+- `manual-joins.md` — full code examples
+- `query-limits.md` — pagination helper code
 
-### 3. Per-slide translation
-For each of the 35 slide components:
-- Import `useExecLang`.
-- Replace hard-coded English strings with `t('English text', 'النص العربي')` inline.
-- Numbers/SAR figures stay as-is. Labels, headings, body copy, bullet points, CTAs get translated.
-- For grid/flex layouts that have implicit direction (arrows, "→"), swap the icon or use logical CSS (`ms-`/`me-`, `start`/`end`) where needed. Most slides already use `gap` + `grid` so they flip cleanly under `dir="rtl"`.
+## Skill 2: `arabic-rtl-translation` (+ Urdu scaffold)
 
-### 4. Arabic typography
-- Add a webfont (Noto Naskh Arabic or IBM Plex Sans Arabic via Google Fonts `<link>` in `index.html`).
-- Tailwind utility `font-arabic` mapped in `tailwind.config.ts`:
-  ```ts
-  fontFamily: { arabic: ['"Noto Naskh Arabic"', 'system-ui', 'sans-serif'] }
-  ```
+**Triggers on:** adding/editing UI text, RTL layout work, executive presentation edits.
 
-### 5. PDF / PNG / PPTX export
-- Existing export logic in `ExecutivePresentation.tsx` captures the live DOM via `html-to-image` → it will pick up whatever language is currently active. So "Download PDF" in Arabic mode produces an Arabic deck automatically. No export-pipeline changes needed beyond ensuring the Arabic font is loaded before capture.
-- File names get a `-ar` suffix when `lang === 'ar'` (e.g. `Smart-HMS-Investor-Deck-ar.pdf`).
+**SKILL.md contents:**
+- Project rule: build everything in **3 languages** (English, Arabic, Urdu)
+- Executive deck translation system: `ExecLangContext` + `ar.json` MutationObserver pattern, how to add new strings
+- RTL Radix bypass: use `flex-row-reverse` + `text-end` instead of `dir` prop
+- Radix Select empty value: `__none__` placeholder mapped to `''`
+- Font usage: `font-arabic` (Noto Naskh / Noto Sans Arabic), Urdu uses Noto Nastaliq Urdu
+- App-wide i18n location (`src/lib/i18n/`) vs deck-local i18n (`src/components/executive/i18n/`) — when to use which
+- How to add an Urdu version (mirror the Arabic infra: `ur.json`, toggle option, `font-urdu`)
 
-## Out of scope
-- No changes to the live product UI translation system (`src/lib/i18n`).
-- No Urdu version of the deck (can be added later by extending `t()` to a 3-arg form).
-- No translation of charts/screenshots embedded as images.
+**references/**
+- `add-translation-string.md` — step-by-step for adding new copy
+- `rtl-layout-checklist.md` — common pitfalls (arrows, gradients, ms-/me-)
 
-## Technical notes
-- All translation strings live next to the JSX they describe — easy to proof-read with the user slide-by-slide.
-- Total touch surface: ~35 slide files + 1 new context + 1 toolbar edit + `tailwind.config.ts` + `index.html` font link.
-- Arabic translation will be done by me; I'll deliver in one pass and we iterate on copy slide-by-slide if the user wants polishing.
+## Skill 3: `finance-gl-posting`
 
-## Deliverable order
-1. Context + toolbar toggle + RTL wrapper + Arabic font (infra).
-2. Translate the 20 core slides.
-3. Translate the 14 appendix slides.
-4. User reviews; we refine copy where needed.
+**Triggers on:** any finance/accounting/invoice/journal/voucher work.
+
+**SKILL.md contents:**
+- **Golden rule:** never write manual journal entries in app code — rely on idempotent DB triggers
+- 4-level Chart of Accounts; journal posting allowed only at Level 4
+- `entry_number` must be empty string (DB generates)
+- `.toLowerCase()` on `account_types.category` in every query
+- Prefix-based revenue routing: `IPD-`, `LAB-`, `DLY-`, etc. → which ledger
+- Expense routing: `petty_cash`, `refund`, `staff_advance` route dynamically, else `5500`
+- Deposit lifecycle: `LIA-DEP-001` → `AR-001` on application
+- Vendor payment routing: DR `AP-001`, CR resolved asset
+- Pharmacy COGS: POS auto-posts to `EXP-COGS-001` / `INV-001`
+- IPD accrual lifecycle: off-ledger `ipd_charges` until discharge invoice
+- Trigger idempotency: `IF EXISTS (reference_id)` guard pattern
+- Daily closing blocked if any billing session open
+
+**references/**
+- `account-prefixes.md` — full routing table
+- `trigger-pattern.md` — canonical idempotent trigger template
+
+## Mechanics
+
+For each skill:
+1. Create `.agents/skills/<name>/SKILL.md` with proper YAML frontmatter (`name`, `description`)
+2. Create `references/*.md` files with concrete code/SQL examples pulled from existing memory entries and codebase
+3. Call `skills--apply_draft` with the directory path to activate
+
+Descriptions in frontmatter must be specific enough for retrieval to match — e.g., "Supabase query, mutation, and join conventions for this HMS project including the .single() ban and manual JS joins" rather than just "Supabase rules".
+
+## Out of scope (do later)
+
+- `clinical-workflow-conventions`, `ksa-compliance`, `investor-deck-editing`, `radix-ui-gotchas`, `pharmacy-pos-flow`, `hr-payroll-engine`, `security-rls-patterns` — author these in a follow-up once the top 3 are validated in use.
+
+## Deliverable
+
+3 active skills surfaced automatically when relevant tasks come up, reducing the need for me to re-derive conventions from `mem://` index every session.
