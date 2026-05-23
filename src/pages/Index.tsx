@@ -19,6 +19,38 @@ import { StickyCTA } from "@/components/landing/StickyCTA";
 import { AnimatedSection } from "@/components/landing/AnimatedSection";
 
 import { SEO } from "@/components/SEO";
+import { Helmet } from "react-helmet-async";
+
+const faqJsonLd = {
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  mainEntity: [
+    {
+      "@type": "Question",
+      name: "What is HealthOS 24?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "HealthOS 24 is a 24/7 hospital management system covering OPD, IPD, pharmacy, lab, radiology, billing, HR and finance in one platform.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Which workflows does HealthOS 24 support?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Patient registration, appointments, prescriptions, surgery, dialysis, dental, blood bank, immunization, telemedicine, home care, mobile units, insurance claims (NPHIES) and ZATCA e-invoicing.",
+      },
+    },
+    {
+      "@type": "Question",
+      name: "Is HealthOS 24 available in Arabic and Urdu?",
+      acceptedAnswer: {
+        "@type": "Answer",
+        text: "Yes. The interface fully supports English, Arabic (RTL) and Urdu with localized clinical and financial workflows.",
+      },
+    },
+  ],
+};
 
 const Index = () => {
   return (
@@ -28,6 +60,9 @@ const Index = () => {
         description="HealthOS 24 unifies OPD, IPD, pharmacy, lab, radiology, billing, HR and finance into one 24/7 hospital management platform."
         path="/"
       />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
+      </Helmet>
       <Navbar />
       <main>
         <HeroSection />
