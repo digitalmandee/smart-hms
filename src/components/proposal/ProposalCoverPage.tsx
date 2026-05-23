@@ -27,9 +27,9 @@ export const ProposalCoverPage = ({ clientName = "[Hospital Name]" }: ProposalCo
         <div className="w-32 h-1.5 bg-gradient-to-r from-primary via-blue-500 to-purple-500 rounded-full mb-8" />
         
         {/* Document Title */}
-        <h2 className="text-5xl font-bold text-foreground mb-4 tracking-tight">
+        <h1 className="text-5xl font-bold text-foreground mb-4 tracking-tight">
           HealthOS 24 Proposal
-        </h2>
+        </h1>
         <p className="text-xl text-muted-foreground mb-12">
           24/7 Smart Hospital Management System
         </p>
