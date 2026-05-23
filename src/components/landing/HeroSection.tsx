@@ -77,14 +77,17 @@ export const HeroSection = () => {
               </span>
             </div>
 
-            <h1 className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight">
+            <h1 className="sr-only">
+              AI-Powered Hospital System for Smart Clinics & Hospitals
+            </h1>
+            <div className="text-4xl md:text-5xl lg:text-6xl font-bold text-foreground leading-tight" aria-hidden="true">
               <span className="text-primary">{displayText}</span>
               <span className="animate-pulse">|</span>
               <br />
               <span className="text-muted-foreground text-3xl md:text-4xl lg:text-5xl">
                 for Smart Clinics & Hospitals
               </span>
-            </h1>
+            </div>
 
             <p className="text-lg md:text-xl text-muted-foreground max-w-xl leading-relaxed">
               The AI-powered hospital system with{" "}

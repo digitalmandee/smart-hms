@@ -101,6 +101,7 @@ const DocumentationHub = () => {
                 border: '1px solid rgba(255,255,255,0.1)',
                 color: '#e2e8f0',
               }}
+              aria-label="Search modules"
             />
           </div>
         </div>
