@@ -60,6 +60,9 @@ const Index = () => {
         description="HealthOS 24 unifies OPD, IPD, pharmacy, lab, radiology, billing, HR and finance into one 24/7 hospital management platform."
         path="/"
       />
+      <Helmet>
+        <script type="application/ld+json">{JSON.stringify(faqJsonLd)}</script>
+      </Helmet>
       <Navbar />
       <main>
         <HeroSection />
