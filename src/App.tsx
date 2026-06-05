@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import Presentation from "./pages/Presentation";
 import ExecutivePresentation from "./pages/ExecutivePresentation";
 import PharmacyWarehousePresentation from "./pages/PharmacyWarehousePresentation";
+import ThalassemiaPresentation from "./pages/ThalassemiaPresentation";
 import PricingProposal from "./pages/PricingProposal";
 import ContractPage from "./pages/ContractPage";
 import SocialMediaPosts from "./pages/SocialMediaPosts";
