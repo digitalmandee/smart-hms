@@ -37,6 +37,30 @@
     <priority>0.4</priority>
   </url>
   <url>
+    <loc>https://healthos24.com/privacy</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://healthos24.com/terms</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://healthos24.com/hipaa</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
+    <loc>https://healthos24.com/security</loc>
+    <lastmod>2026-06-07</lastmod>
+    <changefreq>yearly</changefreq>
+    <priority>0.4</priority>
+  </url>
+  <url>
     <loc>https://healthos24.com/social-media-posts</loc>
     <lastmod>2026-06-07</lastmod>
     <changefreq>monthly</changefreq>
