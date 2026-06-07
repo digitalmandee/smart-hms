@@ -24,10 +24,10 @@ const footerLinks = {
     { label: "Documentation Center", href: "/documentation" },
   ],
   Legal: [
-    { label: "Privacy Policy", href: "#" },
-    { label: "Terms of Service", href: "#" },
-    { label: "HIPAA Compliance", href: "#" },
-    { label: "Security", href: "#" },
+    { label: "Privacy Policy", href: "/privacy" },
+    { label: "Terms of Service", href: "/terms" },
+    { label: "HIPAA Compliance", href: "/hipaa" },
+    { label: "Security", href: "/security" },
   ],
 };
 

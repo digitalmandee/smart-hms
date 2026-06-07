@@ -59,6 +59,10 @@ import { ClientLoginPage } from "./pages/auth/ClientLoginPage";
 import { SignupPage } from "./pages/auth/SignupPage";
 import { DashboardPage } from "./pages/app/DashboardPage";
 const SyncDashboardPage = React.lazy(() => import("./pages/app/sync/SyncDashboardPage"));
+const PrivacyPolicyPage = React.lazy(() => import("./pages/legal/PrivacyPolicyPage"));
+const TermsOfServicePage = React.lazy(() => import("./pages/legal/TermsOfServicePage"));
+const HipaaCompliancePage = React.lazy(() => import("./pages/legal/HipaaCompliancePage"));
+const SecurityOverviewPage = React.lazy(() => import("./pages/legal/SecurityOverviewPage"));
 
 // Clinic pages
 import ClinicDashboard from "./pages/app/clinic/ClinicDashboard";
@@ -759,6 +763,10 @@ function App() {
               <Route path="/presentations/thalassemia" element={<><SEO title="ADF Thalassemia Patient Journey — HealthOS 24" description="End-to-end thalassemia patient journey for Aleem Dar Foundation: registration with Zakat intake, screening, blood bank, transfusion, chelation and family screening." path="/presentations/thalassemia" /><ThalassemiaPresentation /></>} />
               <Route path="/pricing-proposal" element={<><SEO title="HealthOS 24 Pricing Proposal" description="Transparent pricing and licensing options for HealthOS 24 hospital management deployments." path="/pricing-proposal" /><PricingProposal /></>} />
               <Route path="/contract" element={<><SEO title="HealthOS 24 Service Contract" description="Standard service contract terms for HealthOS 24 hospital management subscriptions." path="/contract" /><ContractPage /></>} />
+              <Route path="/privacy" element={<><SEO title="Privacy Policy — HealthOS 24" description="How HealthOS 24 collects, uses and protects personal data and PHI under HIPAA, KSA PDPL and GDPR." path="/privacy" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><PrivacyPolicyPage /></React.Suspense></>} />
+              <Route path="/terms" element={<><SEO title="Terms of Service — HealthOS 24" description="Terms governing use of the HealthOS 24 hospital management platform." path="/terms" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><TermsOfServicePage /></React.Suspense></>} />
+              <Route path="/hipaa" element={<><SEO title="HIPAA Compliance — HealthOS 24" description="How HealthOS 24 supports HIPAA Covered Entities with safeguards, BAA and breach response." path="/hipaa" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><HipaaCompliancePage /></React.Suspense></>} />
+              <Route path="/security" element={<><SEO title="Security Overview — HealthOS 24" description="Encryption, RLS, MFA, audit logging and operational security in HealthOS 24." path="/security" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><SecurityOverviewPage /></React.Suspense></>} />
               <Route path="/social-media-posts" element={<><SEO title="HealthOS 24 Social Media Kit" description="Brand-ready social media posts and assets for HealthOS 24." path="/social-media-posts" /><SocialMediaPosts /></>} />
               <Route path="/pharmacy-documentation" element={<><SEO title="Pharmacy Module Documentation — HealthOS 24" description="Functional documentation for the HealthOS 24 pharmacy module: inventory, POS, dispensing and returns." path="/pharmacy-documentation" /><PharmacyDocumentation /></>} />
               <Route path="/ksa-documentation" element={<><SEO title="Saudi Arabia (KSA) Compliance Documentation — HealthOS 24" description="NPHIES, ZATCA, Wasfaty, Nafath and Tatmeen compliance workflows in HealthOS 24." path="/ksa-documentation" /><KsaDocumentation /></>} />
