@@ -1602,6 +1602,7 @@ function App() {
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <CookieConsentBanner />
           </NativeRouteGuard>
         </AuthProvider>
       </BrowserRouter>
