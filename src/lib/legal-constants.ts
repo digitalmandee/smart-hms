@@ -13,4 +13,5 @@ export const LAST_UPDATED = {
   terms: "2026-06-07",
   hipaa: "2026-06-07",
   security: "2026-06-07",
+  cookies: "2026-06-08",
 };

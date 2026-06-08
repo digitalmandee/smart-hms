@@ -63,6 +63,8 @@ const PrivacyPolicyPage = React.lazy(() => import("./pages/legal/PrivacyPolicyPa
 const TermsOfServicePage = React.lazy(() => import("./pages/legal/TermsOfServicePage"));
 const HipaaCompliancePage = React.lazy(() => import("./pages/legal/HipaaCompliancePage"));
 const SecurityOverviewPage = React.lazy(() => import("./pages/legal/SecurityOverviewPage"));
+const CookiePolicyPage = React.lazy(() => import("./pages/legal/CookiePolicyPage"));
+import { CookieConsentBanner } from "@/components/legal/CookieConsentBanner";
 
 // Clinic pages
 import ClinicDashboard from "./pages/app/clinic/ClinicDashboard";
@@ -767,6 +769,7 @@ function App() {
               <Route path="/terms" element={<><SEO title="Terms of Service — HealthOS 24" description="Terms governing use of the HealthOS 24 hospital management platform." path="/terms" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><TermsOfServicePage /></React.Suspense></>} />
               <Route path="/hipaa" element={<><SEO title="HIPAA Compliance — HealthOS 24" description="How HealthOS 24 supports HIPAA Covered Entities with safeguards, BAA and breach response." path="/hipaa" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><HipaaCompliancePage /></React.Suspense></>} />
               <Route path="/security" element={<><SEO title="Security Overview — HealthOS 24" description="Encryption, RLS, MFA, audit logging and operational security in HealthOS 24." path="/security" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><SecurityOverviewPage /></React.Suspense></>} />
+              <Route path="/cookies" element={<><SEO title="Cookie Policy — HealthOS 24" description="How HealthOS 24 uses essential and optional cookies, and how to manage your choices." path="/cookies" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><CookiePolicyPage /></React.Suspense></>} />
               <Route path="/social-media-posts" element={<><SEO title="HealthOS 24 Social Media Kit" description="Brand-ready social media posts and assets for HealthOS 24." path="/social-media-posts" /><SocialMediaPosts /></>} />
               <Route path="/pharmacy-documentation" element={<><SEO title="Pharmacy Module Documentation — HealthOS 24" description="Functional documentation for the HealthOS 24 pharmacy module: inventory, POS, dispensing and returns." path="/pharmacy-documentation" /><PharmacyDocumentation /></>} />
               <Route path="/ksa-documentation" element={<><SEO title="Saudi Arabia (KSA) Compliance Documentation — HealthOS 24" description="NPHIES, ZATCA, Wasfaty, Nafath and Tatmeen compliance workflows in HealthOS 24." path="/ksa-documentation" /><KsaDocumentation /></>} />
@@ -1599,6 +1602,7 @@ function App() {
             {/* Catch-all */}
             <Route path="*" element={<NotFound />} />
           </Routes>
+          <CookieConsentBanner />
           </NativeRouteGuard>
         </AuthProvider>
       </BrowserRouter>

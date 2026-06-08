@@ -26,6 +26,7 @@ const footerLinks = {
   Legal: [
     { label: "Privacy Policy", href: "/privacy" },
     { label: "Terms of Service", href: "/terms" },
+    { label: "Cookie Policy", href: "/cookies" },
     { label: "HIPAA Compliance", href: "/hipaa" },
     { label: "Security", href: "/security" },
   ],
