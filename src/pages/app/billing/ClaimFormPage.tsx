@@ -97,9 +97,13 @@ export default function ClaimFormPage() {
           invoice_items(*)
         `)
         .eq('id', id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) {
+        setIsLoadingInvoice(false);
+        return;
+      }
 
       setInvoice(data);
       setPatient(data.patient);

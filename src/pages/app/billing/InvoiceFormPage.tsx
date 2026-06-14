@@ -157,7 +157,7 @@ export default function InvoiceFormPage() {
         .from("patients")
         .select("id, first_name, last_name, patient_number, phone, date_of_birth, gender")
         .eq("id", urlPatientId)
-        .single()
+        .maybeSingle()
         .then(({ data }) => {
           if (data) {
             setSelectedPatient({

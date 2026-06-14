@@ -36,9 +36,10 @@ function useDepositDetail(depositId: string) {
           created_by_profile:profiles!patient_deposits_created_by_fkey(full_name)
         `)
         .eq("id", depositId)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!deposit) throw new Error("Deposit not found");
 
       const { data: journalEntries } = await supabase
         .from("journal_entries")
