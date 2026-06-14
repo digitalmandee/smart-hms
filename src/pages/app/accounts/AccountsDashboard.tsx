@@ -227,6 +227,9 @@ export default function AccountsDashboard() {
         breadcrumbs={[{ label: "Accounts" }]}
       />
 
+      <AccountingIntegrityBanner />
+
+
       {/* Fiscal Year Info */}
       {currentFiscalYear ? (
         <Card className="bg-primary/5 border-primary/20">
