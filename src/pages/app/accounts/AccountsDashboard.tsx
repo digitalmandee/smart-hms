@@ -18,6 +18,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useTranslation } from "@/lib/i18n";
 import { Progress } from "@/components/ui/progress";
 import { IPDWorkInProgressWidget } from "@/components/finance/IPDWorkInProgressWidget";
+import { AccountingIntegrityBanner } from "@/components/finance/AccountingIntegrityBanner";
 import { CFOKPIWidget } from "@/components/finance/CFOKPIWidget";
 import {
   LineChart, Line, XAxis, YAxis, Tooltip, ResponsiveContainer,
