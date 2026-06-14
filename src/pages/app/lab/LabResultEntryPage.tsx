@@ -21,8 +21,9 @@ import { Input } from "@/components/ui/input";
 import { Separator } from "@/components/ui/separator";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
-import { ArrowLeft, Printer, CheckCircle, Loader2, User, Calendar, Stethoscope, FlaskConical, AlertTriangle, Globe, Copy, Mail, Barcode, CreditCard } from "lucide-react";
+import { ArrowLeft, Printer, CheckCircle, Loader2, User, Calendar, Stethoscope, FlaskConical, AlertTriangle, Globe, Copy, Mail, Barcode, CreditCard, PhoneCall } from "lucide-react";
 import { BarcodeStickerPrint } from "@/components/lab/BarcodeStickerPrint";
+import { LogCriticalCallbackDialog, FlaggedResult } from "@/components/lab/LogCriticalCallbackDialog";
 import { format, differenceInYears } from "date-fns";
 
 const priorityConfig = {
@@ -57,6 +58,7 @@ export default function LabResultEntryPage() {
   const [savingItemId, setSavingItemId] = useState<string | null>(null);
   const [resultNotes, setResultNotes] = useState("");
   const [sampleNumber, setSampleNumber] = useState("");
+  const [callbackFlagged, setCallbackFlagged] = useState<FlaggedResult | null>(null);
   const userEditedBarcode = useRef(false);
 
   // Auto-generate barcode on initial load only, don't override user edits
@@ -426,29 +428,70 @@ export default function LabResultEntryPage() {
             </Badge>
           )}
         </div>
-        {labOrder.items?.map((item) => (
-          <TestResultForm
-            key={item.id}
-            item={item}
-            onSave={isOrderCompleted ? handleUpdateTestResult : handleSaveTestResult}
-            isSaving={savingItemId === item.id}
-            isEditable={["collected", "processing", "completed"].includes(labOrder.status) || (labOrder.status === "ordered" && canProcessUnpaid)}
-            showUpdateLabel={isOrderCompleted && item.status === "completed"}
-            patientInfo={{
-              name: `${patient?.first_name || ""} ${patient?.last_name || ""}`.trim(),
-              patientNumber: patient?.patient_number || "",
-              age: patientAge,
-              gender: patient?.gender,
-            }}
-            orderInfo={{
-              orderNumber: labOrder.order_number,
-              orderDate: labOrder.created_at,
-              sampleNumber: (labOrder as unknown as { sample_number?: string }).sample_number,
-              doctorName: doctor?.profile?.full_name,
-            }}
-          />
-        ))}
+        {labOrder.items?.map((item) => {
+          const rv = (item as { result_values?: Record<string, unknown> }).result_values;
+          const resultPreview =
+            (item as { result?: string }).result ??
+            (rv && typeof rv === "object"
+              ? Object.values(rv).filter((v) => v != null && v !== "").join(", ")
+              : "");
+          return (
+            <div key={item.id} className="space-y-2">
+              <div className="flex justify-end">
+                <Button
+                  type="button"
+                  size="sm"
+                  variant="outline"
+                  className="border-destructive/40 text-destructive hover:bg-destructive/10"
+                  onClick={() =>
+                    setCallbackFlagged({
+                      testName: item.test_name,
+                      resultValue: resultPreview,
+                      unit: null,
+                      lowCritical: null,
+                      highCritical: null,
+                      labOrderId: labOrder.id,
+                      labOrderItemId: item.id,
+                      patientId: patient?.id ?? null,
+                    })
+                  }
+                >
+                  <PhoneCall className="mr-1 h-3.5 w-3.5" />
+                  Log critical callback
+                </Button>
+              </div>
+              <TestResultForm
+                item={item}
+                onSave={isOrderCompleted ? handleUpdateTestResult : handleSaveTestResult}
+                isSaving={savingItemId === item.id}
+                isEditable={["collected", "processing", "completed"].includes(labOrder.status) || (labOrder.status === "ordered" && canProcessUnpaid)}
+                showUpdateLabel={isOrderCompleted && item.status === "completed"}
+                patientInfo={{
+                  name: `${patient?.first_name || ""} ${patient?.last_name || ""}`.trim(),
+                  patientNumber: patient?.patient_number || "",
+                  age: patientAge,
+                  gender: patient?.gender,
+                }}
+                orderInfo={{
+                  orderNumber: labOrder.order_number,
+                  orderDate: labOrder.created_at,
+                  sampleNumber: (labOrder as unknown as { sample_number?: string }).sample_number,
+                  doctorName: doctor?.profile?.full_name,
+                }}
+              />
+            </div>
+          );
+        })}
       </div>
+
+      {callbackFlagged && (
+        <LogCriticalCallbackDialog
+          open={!!callbackFlagged}
+          onOpenChange={(o) => !o && setCallbackFlagged(null)}
+          flagged={callbackFlagged}
+        />
+      )}
+
 
       {/* Complete Order Section */}
       {!isOrderCompleted && allItemsCompleted && (
