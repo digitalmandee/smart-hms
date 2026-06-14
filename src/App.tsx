@@ -661,6 +661,7 @@ const VatReturnPage = React.lazy(() => import("./pages/app/accounts/VatReturnPag
 const PayrollCostAllocationPage = React.lazy(() => import("./pages/app/accounts/PayrollCostAllocationPage"));
 const FiscalPeriodManagementPage = React.lazy(() => import("./pages/app/accounts/FiscalPeriodManagementPage"));
 const FinancialAuditLogPage = React.lazy(() => import("./pages/app/accounts/FinancialAuditLogPage"));
+const AccountingIntegrityPage = React.lazy(() => import("./pages/app/accounts/AccountingIntegrityPage"));
 const CashToBankReportPage = React.lazy(() => import("./pages/app/accounts/CashToBankReportPage"));
 const DetailedPnLPage = React.lazy(() => import("./pages/app/accounts/DetailedPnLPage"));
 const DepartmentPnLPage = React.lazy(() => import("./pages/app/accounts/DepartmentPnLPage"));
