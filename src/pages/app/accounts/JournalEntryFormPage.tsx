@@ -336,7 +336,10 @@ const JournalEntryFormPage = () => {
             </div>
 
             <div>
-              <Label>{t("voucher.entry_date", "Entry Date")} *</Label>
+              <div className="flex items-center justify-between mb-1">
+                <Label>{t("voucher.entry_date", "Entry Date")} *</Label>
+                <PeriodLockBadge date={format(entryDate, "yyyy-MM-dd")} />
+              </div>
               <Popover>
                 <PopoverTrigger asChild>
                   <Button variant="outline" className={cn("w-full justify-start text-left font-normal")}>
