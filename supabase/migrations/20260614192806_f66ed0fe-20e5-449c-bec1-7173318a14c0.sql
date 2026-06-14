@@ -1,0 +1,1 @@
+ALTER VIEW public.blood_donor_recall_candidates SET (security_invoker = true);
