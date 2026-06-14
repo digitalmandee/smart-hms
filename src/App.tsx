@@ -661,6 +661,7 @@ const VatReturnPage = React.lazy(() => import("./pages/app/accounts/VatReturnPag
 const PayrollCostAllocationPage = React.lazy(() => import("./pages/app/accounts/PayrollCostAllocationPage"));
 const FiscalPeriodManagementPage = React.lazy(() => import("./pages/app/accounts/FiscalPeriodManagementPage"));
 const FinancialAuditLogPage = React.lazy(() => import("./pages/app/accounts/FinancialAuditLogPage"));
+const AccountingIntegrityPage = React.lazy(() => import("./pages/app/accounts/AccountingIntegrityPage"));
 const CashToBankReportPage = React.lazy(() => import("./pages/app/accounts/CashToBankReportPage"));
 const DetailedPnLPage = React.lazy(() => import("./pages/app/accounts/DetailedPnLPage"));
 const DepartmentPnLPage = React.lazy(() => import("./pages/app/accounts/DepartmentPnLPage"));
@@ -1370,7 +1371,8 @@ function App() {
                <Route path="accounts/bank-reconciliation" element={<BankReconciliationPage />} />
                <Route path="accounts/reports/payroll-cost" element={<PayrollCostAllocationPage />} />
                <Route path="accounts/period-management" element={<FiscalPeriodManagementPage />} />
-                <Route path="accounts/audit-log" element={<FinancialAuditLogPage />} />
+                 <Route path="accounts/audit-log" element={<FinancialAuditLogPage />} />
+                <Route path="accounts/integrity" element={<AccountingIntegrityPage />} />
                 <Route path="accounts/cash-to-bank-report" element={<CashToBankReportPage />} />
                 <Route path="accounts/reports/detailed-pnl" element={<DetailedPnLPage />} />
                 <Route path="accounts/reports/department-pnl" element={<DepartmentPnLPage />} />

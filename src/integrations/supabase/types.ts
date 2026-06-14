@@ -27305,6 +27305,35 @@ export type Database = {
       }
       get_user_branch_id: { Args: never; Returns: string }
       get_user_organization_id: { Args: never; Returns: string }
+      gl_coverage_report: {
+        Args: { _end_date?: string; _start_date?: string }
+        Returns: {
+          expected_count: number
+          orphan_count: number
+          posted_count: number
+          source_label: string
+          source_type: string
+        }[]
+      }
+      gl_period_lock_status: {
+        Args: { _check_date: string }
+        Returns: {
+          closed_at: string
+          fiscal_year: string
+          is_locked: boolean
+        }[]
+      }
+      gl_trial_balance_health: {
+        Args: { _end_date?: string; _start_date?: string }
+        Returns: {
+          difference: number
+          entries_count: number
+          is_balanced: boolean
+          period_month: string
+          total_credit: number
+          total_debit: number
+        }[]
+      }
       has_permission: { Args: { _permission_code: string }; Returns: boolean }
       has_role: {
         Args: {
