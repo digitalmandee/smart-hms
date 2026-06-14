@@ -12,6 +12,7 @@ import { POSQuickActions } from "@/components/pharmacy/POSQuickActions";
 import { POSRecentProducts } from "@/components/pharmacy/POSRecentProducts";
 import { POSMedicineAlternatives } from "@/components/pharmacy/POSMedicineAlternatives";
 import { POSCartCompanion } from "@/components/pharmacy/POSCartCompanion";
+import { DrugInteractionWarning } from "@/components/pharmacy/DrugInteractionWarning";
 import { POSTodaySummary } from "@/components/pharmacy/POSTodaySummary";
 import { POSSessionOpenDialog } from "@/components/pharmacy/POSSessionOpenDialog";
 import { POSSessionCloseDialog } from "@/components/pharmacy/POSSessionCloseDialog";
@@ -613,6 +614,9 @@ export default function POSTerminalPage() {
               />
             </div>
           </div>
+
+          {/* Drug interaction safety check */}
+          <DrugInteractionWarning medicineNames={cart.map((c) => c.medicine_name)} />
 
           {/* Smart Suggest Companion */}
           <POSCartCompanion cartItems={cart} onAddToCart={handleAddToCart} />
