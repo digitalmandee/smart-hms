@@ -36,8 +36,7 @@ export default function AccountingIntegrityPage() {
       <PageHeader
         title="Accounting Integrity"
         description="Verify trial balance health and journal-entry coverage across every revenue, expense and inventory source."
-        icon={ShieldCheck}
-        action={
+        actions={
           <Button variant="outline" size="sm" onClick={refresh}>
             <RefreshCw className="h-4 w-4 mr-2" /> Refresh
           </Button>
