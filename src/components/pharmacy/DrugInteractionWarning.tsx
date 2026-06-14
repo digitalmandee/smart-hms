@@ -1,4 +1,4 @@
-import { useTranslation } from "react-i18next";
+
 import { AlertTriangle, ShieldAlert } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
@@ -21,7 +21,6 @@ const severityVariant = (s: string): "destructive" | "default" => {
 };
 
 export function DrugInteractionWarning({ medicineNames }: Props) {
-  const { t } = useTranslation();
   const { data: interactions = [], isLoading } = useDrugInteractions(medicineNames);
 
   if (isLoading || interactions.length === 0) return null;
@@ -39,8 +38,8 @@ export function DrugInteractionWarning({ medicineNames }: Props) {
     <Alert variant={topVariant} className="mb-2">
       <Icon className="h-4 w-4" />
       <AlertTitle className="flex items-center gap-2">
-        {t("pharmacy.pos.interactionWarningTitle", "Drug interaction detected")}
-        <Badge variant="outline">{sorted.length}</Badge>
+        Drug interaction detected
+        <Badge variant="outline">{interactions.length}</Badge>
       </AlertTitle>
       <AlertDescription>
         <ul className="mt-1 space-y-1 text-xs">
@@ -62,9 +61,7 @@ export function DrugInteractionWarning({ medicineNames }: Props) {
           ))}
           {sorted.length > 4 && (
             <li className="text-muted-foreground">
-              {t("pharmacy.pos.interactionMore", "and {{n}} more", {
-                n: sorted.length - 4,
-              })}
+              and {sorted.length - 4} more
             </li>
           )}
         </ul>
