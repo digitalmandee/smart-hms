@@ -2503,6 +2503,13 @@ export type Database = {
             foreignKeyName: "blood_donations_donor_id_fkey"
             columns: ["donor_id"]
             isOneToOne: false
+            referencedRelation: "blood_donor_recall_candidates"
+            referencedColumns: ["donor_id"]
+          },
+          {
+            foreignKeyName: "blood_donations_donor_id_fkey"
+            columns: ["donor_id"]
+            isOneToOne: false
             referencedRelation: "blood_donors"
             referencedColumns: ["id"]
           },
@@ -15021,6 +15028,109 @@ export type Database = {
           },
         ]
       }
+      lab_critical_value_notifications: {
+        Row: {
+          acknowledged_at: string | null
+          acknowledged_by_name: string | null
+          branch_id: string | null
+          created_at: string
+          high_critical: number | null
+          id: string
+          lab_order_id: string | null
+          lab_order_item_id: string | null
+          low_critical: number | null
+          notes: string | null
+          notification_channel: string | null
+          notified_at: string
+          notified_by: string | null
+          notified_to_name: string | null
+          notified_to_phone: string | null
+          notified_to_role: string | null
+          organization_id: string | null
+          patient_id: string | null
+          result_value: string | null
+          severity: string
+          status: string
+          test_name: string
+          unit: string | null
+          updated_at: string
+        }
+        Insert: {
+          acknowledged_at?: string | null
+          acknowledged_by_name?: string | null
+          branch_id?: string | null
+          created_at?: string
+          high_critical?: number | null
+          id?: string
+          lab_order_id?: string | null
+          lab_order_item_id?: string | null
+          low_critical?: number | null
+          notes?: string | null
+          notification_channel?: string | null
+          notified_at?: string
+          notified_by?: string | null
+          notified_to_name?: string | null
+          notified_to_phone?: string | null
+          notified_to_role?: string | null
+          organization_id?: string | null
+          patient_id?: string | null
+          result_value?: string | null
+          severity?: string
+          status?: string
+          test_name: string
+          unit?: string | null
+          updated_at?: string
+        }
+        Update: {
+          acknowledged_at?: string | null
+          acknowledged_by_name?: string | null
+          branch_id?: string | null
+          created_at?: string
+          high_critical?: number | null
+          id?: string
+          lab_order_id?: string | null
+          lab_order_item_id?: string | null
+          low_critical?: number | null
+          notes?: string | null
+          notification_channel?: string | null
+          notified_at?: string
+          notified_by?: string | null
+          notified_to_name?: string | null
+          notified_to_phone?: string | null
+          notified_to_role?: string | null
+          organization_id?: string | null
+          patient_id?: string | null
+          result_value?: string | null
+          severity?: string
+          status?: string
+          test_name?: string
+          unit?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "lab_critical_value_notifications_lab_order_id_fkey"
+            columns: ["lab_order_id"]
+            isOneToOne: false
+            referencedRelation: "lab_orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_critical_value_notifications_lab_order_item_id_fkey"
+            columns: ["lab_order_item_id"]
+            isOneToOne: false
+            referencedRelation: "lab_order_items"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "lab_critical_value_notifications_patient_id_fkey"
+            columns: ["patient_id"]
+            isOneToOne: false
+            referencedRelation: "patients"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       lab_critical_values: {
         Row: {
           created_at: string
@@ -27215,7 +27325,42 @@ export type Database = {
       }
     }
     Views: {
-      [_ in never]: never
+      blood_donor_recall_candidates: {
+        Row: {
+          available_units: number | null
+          blood_group: Database["public"]["Enums"]["blood_group_type"] | null
+          branch_id: string | null
+          days_since_eligible: number | null
+          donor_id: string | null
+          donor_number: string | null
+          eligible_from: string | null
+          email: string | null
+          first_name: string | null
+          last_donation_date: string | null
+          last_name: string | null
+          low_stock: boolean | null
+          organization_id: string | null
+          phone: string | null
+          status: Database["public"]["Enums"]["donor_status"] | null
+          total_donations: number | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blood_donors_branch_id_fkey"
+            columns: ["branch_id"]
+            isOneToOne: false
+            referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_donors_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
     }
     Functions: {
       auto_post_due_recurring_templates: {

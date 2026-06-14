@@ -202,6 +202,7 @@ import CreateLabOrderPage from "./pages/app/lab/CreateLabOrderPage";
 import LabAnalyzersPage from "./pages/app/lab/LabAnalyzersPage";
 import LabAnalyzerFormPage from "./pages/app/lab/LabAnalyzerFormPage";
 import LabAnalyzerMappingPage from "./pages/app/lab/LabAnalyzerMappingPage";
+import LabCriticalCallbackPage from "./pages/app/lab/LabCriticalCallbackPage";
 // Pharmacy pages
 import PharmacyDashboard from "./pages/app/pharmacy/PharmacyDashboard";
 import PrescriptionQueuePage from "./pages/app/pharmacy/PrescriptionQueuePage";
@@ -457,6 +458,7 @@ import BloodRequestFormPage from "./pages/app/blood-bank/BloodRequestFormPage";
 import BloodRequestDetailPage from "./pages/app/blood-bank/BloodRequestDetailPage";
 import CrossMatchPage from "./pages/app/blood-bank/CrossMatchPage";
 import CrossMatchFormPage from "./pages/app/blood-bank/CrossMatchFormPage";
+import DonorRecallPage from "./pages/app/blood-bank/DonorRecallPage";
 import TransfusionsPage from "./pages/app/blood-bank/TransfusionsPage";
 import TransfusionDetailPage from "./pages/app/blood-bank/TransfusionDetailPage";
 import TransfusionFormPage from "./pages/app/blood-bank/TransfusionFormPage";
@@ -976,6 +978,7 @@ function App() {
               {/* Blood Bank routes */}
               <Route path="blood-bank" element={<BloodBankDashboard />} />
               <Route path="blood-bank/donors" element={<DonorsListPage />} />
+              <Route path="blood-bank/donor-recall" element={<DonorRecallPage />} />
               <Route path="blood-bank/donors/new" element={<DonorFormPage />} />
               <Route path="blood-bank/donors/:id" element={<DonorDetailPage />} />
               <Route path="blood-bank/donors/:id/edit" element={<DonorFormPage />} />
@@ -1172,6 +1175,7 @@ function App() {
               {/* Lab routes */}
               <Route path="lab" element={<LabDashboard />} />
               <Route path="lab/queue" element={<LabQueuePage />} />
+              <Route path="lab/critical-callbacks" element={<LabCriticalCallbackPage />} />
               <Route path="lab/create-order" element={<CreateLabOrderPage />} />
               <Route path="lab/orders/:orderId" element={<LabResultEntryPage />} />
               <Route path="lab/templates" element={<LabTestTemplatesListPage />} />
