@@ -256,6 +256,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Headphones,
   List,
   Percent,
+  PhoneCall,
   Award,
   GraduationCap,
   DoorOpen,
