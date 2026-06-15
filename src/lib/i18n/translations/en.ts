@@ -2975,6 +2975,15 @@ export const en = {
   "insurance.memberId": "Member ID",
   "insurance.eligibilityHistory": "Eligibility Verification History",
   "insurance.tab": "Insurance",
+  "insurance.postPaymentTitle": "Post Insurance Payment",
+  "insurance.postPaymentDesc": "Record the insurer remittance and clear the AR balance.",
+  "insurance.eraReference": "ERA / EFT / Cheque #",
+  "insurance.invalidPaymentRef": "Enter a real ERA / EFT / cheque reference (auto-generated values are not allowed).",
+  "insurance.paymentDate": "Payment Date",
+  "insurance.paidAmount": "Paid Amount",
+  "insurance.amountOutOfRange": "Paid amount must be greater than zero and at most the approved amount.",
+  "insurance.postPayment": "Post Payment",
+
 
   // Appointment Insurance Check
   "apptInsurance.patientInsurance": "Patient Insurance",
