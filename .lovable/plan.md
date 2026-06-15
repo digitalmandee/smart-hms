@@ -1,87 +1,68 @@
+## INS-02 — Insurance `.single()` cleanup + real ERA payment reference
 
-# System Audit — HealthOS 24
+Close out Sprint 1 P0 by fixing the insurance hooks and the synthetic payment-reference posting flow.
 
-## Goal
+### Problems today
 
-Deliver a single, structured markdown audit at `docs/SYSTEM_AUDIT_2026-06.md` that:
-- Maps the current state of every major module.
-- Calls out concrete UI/UX friction (with screen references).
-- Lists missing features vs. comparable HMS/ERP products (Oracle Cerner, Epic, BizPharma, Odoo Healthcare, Bahmni, ZOHO Books-style finance).
-- Flags data-integrity & reconciliation risks (trigger gaps, race conditions, audit-trail holes).
-- Identifies reporting/analytics gaps.
-- Prioritizes everything P0 / P1 / P2 with effort estimate (S/M/L) and ROI signal.
+1. **`.single()` everywhere in `useInsurance.ts`** (12 call sites) — any race condition, soft-delete, or RLS-filtered miss throws "JSON object requested, multiple (or no) rows returned" and the entire mutation rolls back with a cryptic error. Per project rule: never `.single()`, use `.maybeSingle()` for reads and `.select()` + `data?.[0]` for inserts/updates.
+2. **`usePaymentReconciliation.ts` → `usePostToAccounts`** has two real bugs:
+   - Fabricates a payment ref: `payment_reference: \`ERA-${Date.now()}\``. Operationally this means there's no link to the actual insurer remittance — reconciliation against bank statement and ERA file becomes impossible.
+   - Reads `approved_amount` with `.single()` inside another mutation, and updates with no `.select()`. If the claim was just modified concurrently, this swallows the conflict.
+3. **No payment row written** when posting an insurance settlement — only the claim row is stamped. The patient AR-Insurance balance never clears and the `payments` history doesn't show the insurer remittance, so the patient statement and outstanding-AR reports under-count receipts.
 
-No code, no UI changes in this pass. Output is a doc you can review and then approve specific items for implementation.
+### Changes
 
-## Method
+#### 1. `src/hooks/useInsurance.ts`
+Replace all 12 `.single()` calls:
+- Read queries (`useInsuranceCompany`, `useInsurancePlan`, `useInsuranceClaim`) → `.maybeSingle()` and null-guard before mapping `attachments`/`covered_services`.
+- Insert/update mutations (`useCreateInsuranceCompany`, `useUpdateInsuranceCompany`, `useCreateInsurancePlan`, `useUpdateInsurancePlan`, `useCreatePatientInsurance`, `useUpdatePatientInsurance`, `useCreateInsuranceClaim`, `useUpdateInsuranceClaim`, `useSubmitClaim`) → drop `.single()`, keep `.select()`, return `data?.[0]`.
+- `useCreateInsuranceClaim` also maps any empty-string UUIDs (`invoice_id`) to `null` before insert.
 
-For each module the audit will follow the same template so it's scannable:
-
+#### 2. `src/hooks/usePaymentReconciliation.ts` — rewrite `usePostToAccounts`
+New mutation signature:
+```ts
+usePostToAccounts.mutate({
+  claimId,
+  paymentReference,   // required, user-entered ERA/EFT/cheque #
+  paymentDate,        // required
+  paidAmount,         // defaults to approved_amount, but editable
+  paymentMethodId,    // FK to payment_methods, defaults to "Insurance Settlement"
+  notes,
+})
 ```
-### <Module>
-- Scope today: <one paragraph from code inspection>
-- UI/UX issues: <bulleted, with file/route ref>
-- Integrity / reconciliation risks: <bulleted, with trigger or hook ref>
-- Missing features (vs. market): <bulleted>
-- Reporting gaps: <bulleted>
-- Recommendations: P0 / P1 / P2 table
-```
+Behavior:
+- Validate `paymentReference` is non-empty (trim). Reject synthetic `ERA-<timestamp>` shaped strings.
+- Pre-read claim with `.maybeSingle()` to get `approved_amount`, `invoice_id`, `organization_id`.
+- Insert a row into `payments` linked to the underlying invoice (`invoice_id` from the claim) so the patient AR and the invoice's `paid_amount` get the standard trigger-driven updates. This is the path that posts the journal (`DR Cash/Bank, CR AR-Insurance`) via the existing payment trigger — no manual GL.
+- Update the `insurance_claims` row: `status='paid'`, `paid_amount`, `payment_date`, `payment_reference`, with `.select()` + `data?.[0]`.
+- Invalidate `["reconciliation-claims"]`, `["insurance-claims"]`, `["payments"]`, `["invoice", invoiceId]`, `["patient-balance"]`.
 
-I will inspect:
-- All `src/pages/app/**` routes and their hooks.
-- Finance: `useDailyClosings`, `useJournalEntries`, voucher pages, ZATCA function, `journal_entries` triggers.
-- Billing: `InvoiceTotals`, `usePatientStatement`, `usePendingCharges`, payment dialogs, billing sessions, credit notes.
-- Insurance: `usePaymentReconciliation`, NPHIES gateway, `insurance_claims`, eligibility hooks.
-- Clinical: OPD walk-in flow, IPD admit/discharge, Lab lifecycle, Radiology, Pharmacy POS, OT/Surgery, Dialysis, Blood Bank.
-- Ops: HR/Payroll, Inventory/Warehouse, Procurement, Assets.
+#### 3. `src/pages/app/billing/ClaimReconciliationPage.tsx` (the page that calls `usePostToAccounts`)
+Replace the one-click "Post to accounts" button with a small dialog `PostClaimPaymentDialog`:
+- ERA / EFT / Cheque reference (required text input)
+- Payment date (defaults to today)
+- Paid amount (defaults to `approved_amount`, editable, must be > 0 and ≤ approved_amount)
+- Payment method dropdown (uses existing `PaymentMethodSelector`)
+- Notes (optional)
+- Submit calls the new mutation; closes on success.
 
-I'll also run the Supabase linter and review the live `journal_entries` / `invoices` / `payments` / `billing_sessions` tables for trigger coverage gaps.
+Translation keys added to `en.ts`, `ar.ts`, `ur.ts`:
+- `insurance.postPaymentTitle`, `insurance.eraReference`, `insurance.eraReferenceRequired`, `insurance.paidAmount`, `insurance.invalidPaymentRef`, `insurance.paymentPostedSuccess`.
 
-## Sections of the audit doc
+### Out of scope (deferred to later sprints)
+- ERA file ingestion (INS-01, Sprint 3) — this is the manual posting path; the bulk ERA path will reuse the same mutation.
+- NPHIES auto-reconciliation webhook.
 
-1. Executive summary — top 10 fixes ranked by ROI.
-2. Cross-cutting issues (apply to many modules):
-   - Patient balance vs deposit display consistency
-   - Split-payment UX
-   - Mobile responsiveness of billing/IPD/POS
-   - Empty-state and error toasts
-   - Search / global command palette
-   - Notifications & in-app inbox
-   - Audit log surfacing in admin UI
-3. Module-by-module deep dive (template above):
-   - Accounting & GL (CoA, journals, vouchers, daily closing, fiscal year)
-   - Billing & Revenue (invoices, payments, deposits, sessions, credit notes, refunds)
-   - Insurance & Claims (NPHIES, eligibility, scrubbing, ERA reconciliation)
-   - OPD
-   - IPD
-   - Lab
-   - Radiology
-   - Pharmacy & POS
-   - OT / Surgery
-   - Dialysis
-   - Blood Bank
-   - Dental
-   - HR & Payroll
-   - Inventory / Warehouse / Procurement
-   - Fixed Assets
-   - Patient Portal & Mobile
-4. Reporting & Analytics — gaps (budget variance, departmental P&L, doctor productivity, AR aging by payer, IPD profitability, drug margin, etc.).
-5. Integrations — what's missing (bank statement import, e-payment gateways, WhatsApp templates approval, HL7/FHIR inbound, BI export).
-6. Compliance posture — ZATCA Phase 2, NPHIES, HIPAA, PDPL, GDPR — status & gaps.
-7. Prioritized backlog — flat table with `id | area | item | severity | effort | ROI`.
+### Files touched
+- `src/hooks/useInsurance.ts` (edit)
+- `src/hooks/usePaymentReconciliation.ts` (edit)
+- `src/pages/app/billing/ClaimReconciliationPage.tsx` (edit)
+- `src/components/billing/PostClaimPaymentDialog.tsx` (new)
+- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` (edit)
 
-## Deliverable
+### Verification
+- Trigger the post-payment dialog with empty / fake `ERA-12345` ref → blocked.
+- Post a real payment → `payments` row exists, invoice `paid_amount` updated by trigger, `journal_entries` shows DR Cash/Bank + CR AR-Insurance via the standard payment trigger, claim status flips to `paid`, settlement status returns `posted`.
+- Patient statement (`usePatientStatement`) shows the insurer payment line.
 
-- `docs/SYSTEM_AUDIT_2026-06.md` (single file, ~3–5k lines worst case, organized so you can jump by heading).
-- After you read it, you tell me which P0/P1 items to start on and I implement those in follow-up turns (UI/UX polish or feature builds — front-end only unless a fix requires a DB trigger or new table).
-
-## Out of scope (this pass)
-
-- No code changes, no migrations.
-- No new tables, no new edge functions.
-- No design directions / prototype renders — those come per-feature when we start implementing.
-- Tri-lingual UI is the existing standard and will continue to apply to any future implementation tasks, but is not re-audited per-string in this pass.
-
-## Open question I'll handle by assumption
-
-You didn't fill in the "what specifically went wrong" box, so I'll treat the accounting/billing setback as **general** and audit broadly. If you want me to weight the report toward a specific pain (e.g. trial balance not tying, deposit double-counting, session not closing, cashier UX), drop one line of context and I'll bias the analysis.
+After this lands, Sprint 1 P0 backlog is empty and we open Sprint 2 with BIL-02.
