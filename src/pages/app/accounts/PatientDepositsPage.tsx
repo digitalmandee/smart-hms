@@ -8,13 +8,15 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus, Wallet, ArrowUpCircle, ArrowDownCircle } from "lucide-react";
+import { Plus, Wallet, ArrowUpCircle, ArrowDownCircle, X } from "lucide-react";
 import { usePatientDeposits, useCreatePatientDeposit } from "@/hooks/usePatientDeposits";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 import { format } from "date-fns";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Textarea } from "@/components/ui/textarea";
 import { PatientSearch } from "@/components/appointments/PatientSearch";
+import { PatientDepositLedger } from "@/components/billing/PatientDepositLedger";
+import { useTranslation } from "@/lib/i18n";
 
 interface SelectedPatient {
   id: string;
@@ -27,11 +29,13 @@ interface SelectedPatient {
 }
 
 export default function PatientDepositsPage() {
+  const { t } = useTranslation();
   const { data: deposits, isLoading } = usePatientDeposits();
   const createMutation = useCreatePatientDeposit();
   const { formatCurrency } = useCurrencyFormatter();
   const [open, setOpen] = useState(false);
   const [selectedPatient, setSelectedPatient] = useState<SelectedPatient | null>(null);
+  const [viewPatient, setViewPatient] = useState<SelectedPatient | null>(null);
   const [form, setForm] = useState({ amount: "", type: "deposit", notes: "", reference_number: "" });
 
   const handleCreate = () => {
@@ -45,6 +49,10 @@ export default function PatientDepositsPage() {
     }, {
       onSuccess: () => {
         setOpen(false);
+        // If we recorded for the currently viewed patient, keep them in view; otherwise switch focus
+        if (!viewPatient || viewPatient.id !== selectedPatient.id) {
+          setViewPatient(selectedPatient);
+        }
         setSelectedPatient(null);
         setForm({ amount: "", type: "deposit", notes: "", reference_number: "" });
       },
@@ -68,10 +76,10 @@ export default function PatientDepositsPage() {
         actions={
           <Dialog open={open} onOpenChange={(v) => { setOpen(v); if (!v) { setSelectedPatient(null); setForm({ amount: "", type: "deposit", notes: "", reference_number: "" }); } }}>
             <DialogTrigger asChild>
-              <Button><Plus className="h-4 w-4 mr-2" />Record Deposit</Button>
+              <Button><Plus className="h-4 w-4 mr-2" />{t("deposits.recordDeposit")}</Button>
             </DialogTrigger>
             <DialogContent>
-              <DialogHeader><DialogTitle>Record Patient Deposit</DialogTitle></DialogHeader>
+              <DialogHeader><DialogTitle>{t("deposits.recordDeposit")}</DialogTitle></DialogHeader>
               <div className="space-y-4">
                 <div>
                   <Label>Patient</Label>
@@ -95,15 +103,15 @@ export default function PatientDepositsPage() {
                   <Input type="number" value={form.amount} onChange={e => setForm(p => ({ ...p, amount: e.target.value }))} placeholder="0.00" />
                 </div>
                 <div>
-                  <Label>Reference #</Label>
-                  <Input value={form.reference_number} onChange={e => setForm(p => ({ ...p, reference_number: e.target.value }))} placeholder="Receipt or reference number" />
+                  <Label>{t("deposits.referenceNumber")}</Label>
+                  <Input value={form.reference_number} onChange={e => setForm(p => ({ ...p, reference_number: e.target.value }))} placeholder={t("deposits.referencePlaceholder") as string} />
                 </div>
                 <div>
-                  <Label>Notes</Label>
+                  <Label>{t("common.notes")}</Label>
                   <Textarea value={form.notes} onChange={e => setForm(p => ({ ...p, notes: e.target.value }))} placeholder="Additional notes" />
                 </div>
                 <Button onClick={handleCreate} disabled={!selectedPatient || !form.amount || createMutation.isPending} className="w-full">
-                  {createMutation.isPending ? "Recording..." : "Record"}
+                  {createMutation.isPending ? t("common.loading") : t("common.save")}
                 </Button>
               </div>
             </DialogContent>
@@ -113,14 +121,45 @@ export default function PatientDepositsPage() {
 
       <div className="space-y-4">
         <div className="grid gap-4 md:grid-cols-4">
-          <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Total Deposits</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-green-600 flex items-center gap-2"><ArrowDownCircle className="h-5 w-5" />{formatCurrency(totalDeposits)}</div></CardContent></Card>
-          <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Total Refunds</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-red-600 flex items-center gap-2"><ArrowUpCircle className="h-5 w-5" />{formatCurrency(totalRefunds)}</div></CardContent></Card>
-          <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Applied to Invoices</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{formatCurrency(totalApplied)}</div></CardContent></Card>
+          <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">{t("deposits.totalDeposits")}</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-green-600 flex items-center gap-2"><ArrowDownCircle className="h-5 w-5" />{formatCurrency(totalDeposits)}</div></CardContent></Card>
+          <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">{t("deposits.totalRefunds")}</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-red-600 flex items-center gap-2"><ArrowUpCircle className="h-5 w-5" />{formatCurrency(totalRefunds)}</div></CardContent></Card>
+          <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">{t("deposits.totalApplied")}</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold">{formatCurrency(totalApplied)}</div></CardContent></Card>
           <Card><CardHeader className="pb-2"><CardTitle className="text-sm text-muted-foreground">Outstanding Balance</CardTitle></CardHeader><CardContent><div className="text-2xl font-bold text-blue-600 flex items-center gap-2"><Wallet className="h-5 w-5" />{formatCurrency(outstanding)}</div></CardContent></Card>
         </div>
 
+        {/* Patient selector for ledger view */}
         <Card>
-          <CardHeader><CardTitle className="flex items-center gap-2"><Wallet className="h-5 w-5" />Deposit Transactions</CardTitle></CardHeader>
+          <CardHeader className="flex flex-row items-center justify-between gap-4 pb-2">
+            <CardTitle className="text-base">{t("deposits.ledgerTitle")}</CardTitle>
+            <div className="flex items-center gap-2 min-w-[280px]">
+              <div className="flex-1">
+                <PatientSearch onSelect={(p) => setViewPatient(p)} selectedPatient={viewPatient} />
+              </div>
+              {viewPatient && (
+                <Button variant="ghost" size="icon" onClick={() => setViewPatient(null)} aria-label="Clear">
+                  <X className="h-4 w-4" />
+                </Button>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent>
+            {viewPatient ? (
+              <PatientDepositLedger
+                patientId={viewPatient.id}
+                patientName={`${viewPatient.first_name} ${viewPatient.last_name || ""}`.trim()}
+                onRecordDeposit={() => {
+                  setSelectedPatient(viewPatient);
+                  setOpen(true);
+                }}
+              />
+            ) : (
+              <p className="text-sm text-muted-foreground text-center py-6">{t("deposits.selectPatient")}</p>
+            )}
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader><CardTitle className="flex items-center gap-2"><Wallet className="h-5 w-5" />All Deposit Transactions</CardTitle></CardHeader>
           <CardContent>
             {isLoading ? (
               <div className="space-y-2">{[1,2,3].map(i => <Skeleton key={i} className="h-12 w-full" />)}</div>
@@ -139,9 +178,9 @@ export default function PatientDepositsPage() {
                 </TableHeader>
                 <TableBody>
                   {(deposits || []).map((dep: any) => (
-                    <TableRow key={dep.id}>
+                    <TableRow key={dep.id} className="cursor-pointer hover:bg-muted/50" onClick={() => dep.patients && setViewPatient({ id: dep.patient_id, first_name: dep.patients.first_name, last_name: dep.patients.last_name, patient_number: dep.patients.patient_number, phone: null, date_of_birth: null, gender: null })}>
                       <TableCell>{format(new Date(dep.created_at), "dd MMM yyyy")}</TableCell>
-                      <TableCell>{dep.patients ? `${dep.patients.first_name} ${dep.patients.last_name}` : dep.patient_id?.slice(0, 8)}</TableCell>
+                      <TableCell>{dep.patients ? `${dep.patients.first_name} ${dep.patients.last_name || ""}` : dep.patient_id?.slice(0, 8)}</TableCell>
                       <TableCell>
                         <Badge variant={dep.type === "deposit" ? "default" : dep.type === "refund" ? "destructive" : "secondary"}>
                           {dep.type}
