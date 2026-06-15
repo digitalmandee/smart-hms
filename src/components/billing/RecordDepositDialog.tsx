@@ -100,9 +100,11 @@ export function RecordDepositDialog({ open, onOpenChange, prefilledPatient, lock
                 <span className="text-sm font-medium">
                   {selectedPatient.first_name} {selectedPatient.last_name} ({selectedPatient.patient_number})
                 </span>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedPatient(null)}>
-                  ✕
-                </Button>
+                {!lockPatient && (
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedPatient(null)}>
+                    ✕
+                  </Button>
+                )}
               </div>
             ) : (
               <PatientSearch onSelect={(p) => setSelectedPatient(p)} />
