@@ -569,7 +569,7 @@ export function useCreateInsuranceClaim() {
         .insert({
           organization_id: profile?.organization_id,
           patient_insurance_id: data.patient_insurance_id,
-          invoice_id: data.invoice_id,
+          invoice_id: data.invoice_id || null,
           claim_number: claimNumber,
           claim_date: new Date().toISOString().split('T')[0],
           total_amount: data.total_amount,
