@@ -98,6 +98,7 @@ import {
   Headphones,
   List,
   Percent,
+  PhoneCall,
   Award,
   GraduationCap,
   DoorOpen,
