@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdmissionFinancials } from "@/hooks/useAdmissionFinancials";
 import { usePatientCreditBalance } from "@/hooks/usePharmacyCredits";
+import { useDepositBalance } from "@/hooks/usePatientDeposits";
+import { useAdmissions } from "@/hooks/useAdmissions";
 import { formatCurrency } from "@/lib/currency";
 import { 
   Wallet, 
