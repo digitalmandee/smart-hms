@@ -184,7 +184,7 @@ export function useInsuranceCompany(id: string | undefined) {
         .from("insurance_companies")
         .select("*")
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data as InsuranceCompany;
@@ -207,7 +207,7 @@ export function useCreateInsuranceCompany() {
           is_active: true,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return result;
@@ -233,7 +233,7 @@ export function useUpdateInsuranceCompany() {
         .update(data)
         .eq("id", id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return result;
@@ -298,9 +298,10 @@ export function useInsurancePlan(id: string | undefined) {
           insurance_company:insurance_companies(*)
         `)
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) return null;
       return {
         ...data,
         covered_services: (data.covered_services as unknown as string[]) || [],
@@ -323,7 +324,7 @@ export function useCreateInsurancePlan() {
           is_active: true,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return result;
@@ -349,7 +350,7 @@ export function useUpdateInsurancePlan() {
         .update(updateData)
         .eq("id", id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return result;
@@ -406,7 +407,7 @@ export function useCreatePatientInsurance() {
           is_active: true,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return result;
@@ -432,7 +433,7 @@ export function useUpdatePatientInsurance() {
         .update(updateData)
         .eq("id", id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return { ...result, patient_id };
@@ -516,9 +517,10 @@ export function useInsuranceClaim(id: string | undefined) {
           invoice:invoices(id, invoice_number, total_amount, status)
         `)
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
+      if (!data) return null;
       return {
         ...data,
         attachments: (data.attachments as unknown as string[]) || [],
@@ -567,7 +569,7 @@ export function useCreateInsuranceClaim() {
         .insert({
           organization_id: profile?.organization_id,
           patient_insurance_id: data.patient_insurance_id,
-          invoice_id: data.invoice_id,
+          invoice_id: data.invoice_id || null,
           claim_number: claimNumber,
           claim_date: new Date().toISOString().split('T')[0],
           total_amount: data.total_amount,
@@ -575,9 +577,10 @@ export function useCreateInsuranceClaim() {
           created_by: profile?.id,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (claimError) throw claimError;
+      if (!claim) throw new Error("Failed to create claim");
 
       // Insert claim items
       if (data.items.length > 0) {
@@ -619,7 +622,7 @@ export function useUpdateInsuranceClaim() {
         })
         .eq("id", id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return result;
@@ -651,7 +654,7 @@ export function useSubmitClaim() {
         })
         .eq("id", id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;

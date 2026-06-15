@@ -2911,6 +2911,14 @@ export const ur: Record<TranslationKey, string> = {
   "insurance.memberId": "ممبر آئی ڈی",
   "insurance.eligibilityHistory": "اہلیت کی تصدیق کی تاریخ",
   "insurance.tab": "انشورنس",
+  "insurance.postPaymentTitle": "انشورنس ادائیگی پوسٹ کریں",
+  "insurance.postPaymentDesc": "بیمہ کمپنی کی ادائیگی درج کریں اور AR بیلنس کلیئر کریں۔",
+  "insurance.eraReference": "ERA / EFT / چیک نمبر",
+  "insurance.invalidPaymentRef": "اصلی ERA / EFT / چیک ریفرنس درج کریں (خودکار قدریں قابل قبول نہیں)۔",
+  "insurance.paymentDate": "ادائیگی کی تاریخ",
+  "insurance.paidAmount": "ادا شدہ رقم",
+  "insurance.amountOutOfRange": "رقم صفر سے زیادہ اور منظور شدہ رقم سے کم یا برابر ہونی چاہیے۔",
+  "insurance.postPayment": "ادائیگی پوسٹ کریں",
 
   // Appointment Insurance Check
   "apptInsurance.patientInsurance": "مریض کی انشورنس",

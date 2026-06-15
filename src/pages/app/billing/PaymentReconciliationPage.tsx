@@ -13,11 +13,12 @@ import { format } from "date-fns";
 import { formatCurrency } from "@/lib/currency";
 import {
   useReconciliationClaims,
-  usePostToAccounts,
   getSettlementStatus,
   getAdjustmentAmount,
   type ReconciliationStatus,
+  type ReconciliationClaim,
 } from "@/hooks/usePaymentReconciliation";
+import { PostClaimPaymentDialog } from "@/components/billing/PostClaimPaymentDialog";
 
 const statusConfig: Record<ReconciliationStatus, { label: string; variant: string; icon: any }> = {
   unreconciled: { label: "Unreconciled", variant: "secondary", icon: Clock },
@@ -37,8 +38,7 @@ export default function PaymentReconciliationPage() {
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
   });
-
-  const postToAccounts = usePostToAccounts();
+  const [postClaim, setPostClaim] = useState<ReconciliationClaim | null>(null);
 
   const filteredClaims =
     claims?.filter(
@@ -181,8 +181,7 @@ export default function PaymentReconciliationPage() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => postToAccounts.mutate(claim.id)}
-                                disabled={postToAccounts.isPending}
+                                onClick={() => setPostClaim(claim)}
                               >
                                 <BookOpen className="h-3.5 w-3.5 me-1" />
                                 Post
@@ -199,6 +198,12 @@ export default function PaymentReconciliationPage() {
           </CardContent>
         </Card>
       </div>
+
+      <PostClaimPaymentDialog
+        claim={postClaim}
+        open={!!postClaim}
+        onOpenChange={(o) => !o && setPostClaim(null)}
+      />
     </div>
   );
 }

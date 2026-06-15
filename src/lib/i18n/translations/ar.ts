@@ -2911,6 +2911,14 @@ export const ar: Record<TranslationKey, string> = {
   "insurance.memberId": "رقم العضوية",
   "insurance.eligibilityHistory": "سجل التحقق من الأهلية",
   "insurance.tab": "التأمين",
+  "insurance.postPaymentTitle": "تسجيل دفعة التأمين",
+  "insurance.postPaymentDesc": "سجّل تحويل شركة التأمين وأغلق رصيد الذمم.",
+  "insurance.eraReference": "رقم الحوالة / الشيك / ERA",
+  "insurance.invalidPaymentRef": "أدخل رقم مرجعي حقيقي (لا يُسمح بالقيم التلقائية).",
+  "insurance.paymentDate": "تاريخ الدفع",
+  "insurance.paidAmount": "المبلغ المدفوع",
+  "insurance.amountOutOfRange": "يجب أن يكون المبلغ أكبر من صفر ولا يتجاوز المبلغ المعتمد.",
+  "insurance.postPayment": "تسجيل الدفعة",
 
   // Appointment Insurance Check
   "apptInsurance.patientInsurance": "تأمين المريض",
