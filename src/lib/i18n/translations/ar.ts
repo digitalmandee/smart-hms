@@ -318,6 +318,7 @@ export const ar: Record<TranslationKey, string> = {
   // Sub-items: Lab
   "nav.sampleQueue": "قائمة العينات",
   "nav.testTemplates": "قوالب الاختبارات",
+  "nav.criticalCallbacks": "سجل اتصالات القيم الحرجة",
 
   // Sub-items: Radiology
   "nav.worklist": "قائمة العمل",

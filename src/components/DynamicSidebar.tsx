@@ -98,6 +98,7 @@ import {
   Headphones,
   List,
   Percent,
+  PhoneCall,
   Award,
   GraduationCap,
   DoorOpen,
@@ -375,6 +376,7 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   // Sub-items: Lab
   "Sample Queue": "nav.sampleQueue",
   "Test Templates": "nav.testTemplates",
+  "Critical Callbacks": "nav.criticalCallbacks",
   // Sub-items: Radiology
   "Worklist": "nav.worklist",
   "Verification": "nav.verification",
@@ -754,6 +756,7 @@ const iconMap: Record<string, React.ComponentType<{ className?: string }>> = {
   Headphones,
   List,
   Percent,
+  PhoneCall,
   Award,
   GraduationCap,
   DoorOpen,
