@@ -181,8 +181,7 @@ export default function PaymentReconciliationPage() {
                               <Button
                                 size="sm"
                                 variant="outline"
-                                onClick={() => postToAccounts.mutate(claim.id)}
-                                disabled={postToAccounts.isPending}
+                                onClick={() => setPostClaim(claim)}
                               >
                                 <BookOpen className="h-3.5 w-3.5 me-1" />
                                 Post
@@ -199,6 +198,12 @@ export default function PaymentReconciliationPage() {
           </CardContent>
         </Card>
       </div>
+
+      <PostClaimPaymentDialog
+        claim={postClaim}
+        open={!!postClaim}
+        onOpenChange={(o) => !o && setPostClaim(null)}
+      />
     </div>
   );
 }
