@@ -315,6 +315,7 @@ export const en = {
   // Sub-items: Lab
   "nav.sampleQueue": "Sample Queue",
   "nav.testTemplates": "Test Templates",
+  "nav.criticalCallbacks": "Critical Callbacks",
 
   // Sub-items: Radiology
   "nav.worklist": "Worklist",
