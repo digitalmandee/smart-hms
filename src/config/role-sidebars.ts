@@ -193,6 +193,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "Receipt",
         children: [
+          { name: "Cashier Workspace", path: "/app/billing/cashier", icon: "Wallet" },
           { name: "Invoices", path: "/app/billing/invoices", icon: "FileText" },
           { name: "Payments", path: "/app/billing/payments", icon: "CreditCard" },
           { name: "Billing Sessions", path: "/app/billing/sessions", icon: "Monitor" },
@@ -526,6 +527,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "Receipt",
         children: [
+          { name: "Cashier Workspace", path: "/app/billing/cashier", icon: "Wallet" },
           { name: "Billing Sessions", path: "/app/billing/sessions", icon: "Monitor" },
           { name: "OPD Checkout", path: "/app/opd/checkout", icon: "Receipt" },
           { name: "New Invoice", path: "/app/billing/invoices/new", icon: "FilePlus" },
@@ -1190,6 +1192,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "Receipt",
         children: [
+          { name: "Cashier Workspace", path: "/app/billing/cashier", icon: "Wallet" },
           { name: "Invoices", path: "/app/billing/invoices", icon: "FileText" },
           { name: "Payments", path: "/app/billing/payments", icon: "CreditCard" },
           { name: "Billing Sessions", path: "/app/billing/sessions", icon: "Monitor" },
@@ -1317,6 +1320,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "", 
         icon: "Receipt",
         children: [
+          { name: "Cashier Workspace", path: "/app/billing/cashier", icon: "Wallet" },
           { name: "Invoices", path: "/app/billing/invoices", icon: "FileText" },
           { name: "Payments", path: "/app/billing/payments", icon: "CreditCard" },
           { name: "Billing Sessions", path: "/app/billing/sessions", icon: "Monitor" },
