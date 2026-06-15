@@ -38,8 +38,7 @@ export default function PaymentReconciliationPage() {
     dateFrom: dateFrom || undefined,
     dateTo: dateTo || undefined,
   });
-
-  const postToAccounts = usePostToAccounts();
+  const [postClaim, setPostClaim] = useState<ReconciliationClaim | null>(null);
 
   const filteredClaims =
     claims?.filter(
