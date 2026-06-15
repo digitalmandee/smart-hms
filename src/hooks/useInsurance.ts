@@ -301,6 +301,7 @@ export function useInsurancePlan(id: string | undefined) {
         .maybeSingle();
 
       if (error) throw error;
+      if (!data) return null;
       return {
         ...data,
         covered_services: (data.covered_services as unknown as string[]) || [],
