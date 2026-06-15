@@ -376,6 +376,7 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   // Sub-items: Lab
   "Sample Queue": "nav.sampleQueue",
   "Test Templates": "nav.testTemplates",
+  "Critical Callbacks": "nav.criticalCallbacks",
   // Sub-items: Radiology
   "Worklist": "nav.worklist",
   "Verification": "nav.verification",
