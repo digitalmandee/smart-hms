@@ -146,7 +146,7 @@ export default function CashierWorkspacePage() {
             </span>
           </div>
           <div className="text-muted-foreground">
-            {t("billing.cashier.openingFloat")}: {formatCurrency(Number(session?.opening_balance ?? 0))}
+            {t("billing.cashier.openingFloat")}: {formatCurrency(Number(session?.opening_cash ?? 0))}
           </div>
         </CardContent>
       </Card>
