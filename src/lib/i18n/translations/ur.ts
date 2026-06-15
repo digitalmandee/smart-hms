@@ -235,6 +235,7 @@ export const ur: Record<TranslationKey, string> = {
   // Sub-items: Lab
   "nav.sampleQueue": "نمونہ قطار",
   "nav.testTemplates": "ٹیسٹ ٹیمپلیٹ",
+  "nav.criticalCallbacks": "کریٹیکل ویلیو کال بیک لاگ",
 
   // Sub-items: Radiology
   "nav.worklist": "ورک لسٹ",
