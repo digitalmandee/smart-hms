@@ -242,7 +242,7 @@ export function AdmissionRunningBillPanel({ admissionId, patientName }: Props) {
                     </TableCell>
                     <TableCell>
                       <Badge variant="secondary" className={categoryColor[l.category] || categoryColor.other}>
-                        {t(`ipd.runningBill.category.${l.category}`) || l.category}
+                        {(t as any)(`ipd.runningBill.category.${l.category}`) || l.category}
                       </Badge>
                     </TableCell>
                     <TableCell className="max-w-xs truncate">{l.description}</TableCell>
