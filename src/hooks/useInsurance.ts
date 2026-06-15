@@ -520,6 +520,7 @@ export function useInsuranceClaim(id: string | undefined) {
         .maybeSingle();
 
       if (error) throw error;
+      if (!data) return null;
       return {
         ...data,
         attachments: (data.attachments as unknown as string[]) || [],
