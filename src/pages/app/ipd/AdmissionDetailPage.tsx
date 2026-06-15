@@ -22,6 +22,7 @@ import { CarePlansList } from "@/components/ipd/CarePlansList";
 import { DietChartCard } from "@/components/ipd/DietChartCard";
 import { TriageBadge } from "@/components/emergency/TriageBadge";
 import { AdmissionFinancialSummary } from "@/components/ipd/AdmissionFinancialSummary";
+import { AdmissionRunningBillPanel } from "@/components/ipd/AdmissionRunningBillPanel";
 import { AdmissionOTChargesCard } from "@/components/ipd/AdmissionOTChargesCard";
 import {
   User,
