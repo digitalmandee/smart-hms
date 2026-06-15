@@ -636,6 +636,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "FlaskConical",
         children: [
           { name: "Sample Queue", path: "/app/lab/queue", icon: "ListOrdered" },
+          { name: "Critical Callbacks", path: "/app/lab/critical-callbacks", icon: "PhoneCall" },
         ]
       },
       { 
