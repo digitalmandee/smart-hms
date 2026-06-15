@@ -31,8 +31,11 @@ export function AdmissionFinancialSummary({
 }: AdmissionFinancialSummaryProps) {
   const navigate = useNavigate();
   const { data: financials, isLoading, refetch } = useAdmissionFinancials(admissionId);
-
-  if (isLoading) {
+  const { data: admissions } = useAdmissions();
+  const admissionRow = admissions?.find((a: any) => a.id === admissionId);
+  const patientId = admissionRow?.patient?.id;
+  const { data: liveDeposit } = useDepositBalance(patientId);
+  const depositAvailable = liveDeposit?.balance ?? financials?.depositAmount ?? 0;
     return (
       <Card>
         <CardHeader>
