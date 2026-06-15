@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useAdmissionFinancials } from "@/hooks/useAdmissionFinancials";
 import { usePatientCreditBalance } from "@/hooks/usePharmacyCredits";
+import { useDepositBalance } from "@/hooks/usePatientDeposits";
+import { useAdmissions } from "@/hooks/useAdmissions";
 import { formatCurrency } from "@/lib/currency";
 import { 
   Wallet, 
@@ -29,6 +31,11 @@ export function AdmissionFinancialSummary({
 }: AdmissionFinancialSummaryProps) {
   const navigate = useNavigate();
   const { data: financials, isLoading, refetch } = useAdmissionFinancials(admissionId);
+  const { data: admissions } = useAdmissions();
+  const admissionRow = admissions?.find((a: any) => a.id === admissionId);
+  const patientId = admissionRow?.patient?.id;
+  const { data: liveDeposit } = useDepositBalance(patientId);
+  const depositAvailable = liveDeposit?.balance ?? financials?.depositAmount ?? 0;
 
   if (isLoading) {
     return (
@@ -48,11 +55,12 @@ export function AdmissionFinancialSummary({
     return null;
   }
 
-  const isCredit = financials.balance < 0;
-  const balanceColor = isCredit 
-    ? "text-green-600 dark:text-green-400" 
-    : financials.balance > 0 
-      ? "text-red-600 dark:text-red-400" 
+  const liveBalance = financials.totalCharges - depositAvailable;
+  const isCredit = liveBalance < 0;
+  const balanceColor = isCredit
+    ? "text-green-600 dark:text-green-400"
+    : liveBalance > 0
+      ? "text-red-600 dark:text-red-400"
       : "text-muted-foreground";
 
   if (compact) {
@@ -63,15 +71,15 @@ export function AdmissionFinancialSummary({
             <div>
               <p className="text-sm text-muted-foreground">Running Balance</p>
               <p className={`text-2xl font-bold ${balanceColor}`}>
-                {isCredit ? "Credit " : ""}{formatCurrency(Math.abs(financials.balance))}
+                {isCredit ? "Credit " : ""}{formatCurrency(Math.abs(liveBalance))}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 {financials.daysAdmitted} days @ {formatCurrency(financials.dailyRate)}/day
               </p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-muted-foreground">Deposit</p>
-              <p className="text-lg font-semibold">{formatCurrency(financials.depositAmount)}</p>
+              <p className="text-sm text-muted-foreground">Deposit Available</p>
+              <p className="text-lg font-semibold">{formatCurrency(depositAvailable)}</p>
             </div>
           </div>
         </CardContent>
@@ -104,11 +112,14 @@ export function AdmissionFinancialSummary({
           <div className="p-4 rounded-lg bg-primary/5 border">
             <div className="flex items-center gap-2 mb-1">
               <Wallet className="h-4 w-4 text-primary" />
-              <span className="text-sm text-muted-foreground">Deposit Collected</span>
+              <span className="text-sm text-muted-foreground">Deposit Available</span>
             </div>
-            <p className="text-2xl font-bold">{formatCurrency(financials.depositAmount)}</p>
+            <p className="text-2xl font-bold">{formatCurrency(depositAvailable)}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Admission snapshot: {formatCurrency(financials.depositAmount)}
+            </p>
           </div>
-          <div className={`p-4 rounded-lg border ${isCredit ? 'bg-green-500/5 border-green-200' : financials.balance > 0 ? 'bg-red-500/5 border-red-200' : 'bg-muted'}`}>
+          <div className={`p-4 rounded-lg border ${isCredit ? 'bg-green-500/5 border-green-200' : liveBalance > 0 ? 'bg-red-500/5 border-red-200' : 'bg-muted'}`}>
             <div className="flex items-center gap-2 mb-1">
               <Receipt className="h-4 w-4" />
               <span className="text-sm text-muted-foreground">
@@ -116,7 +127,7 @@ export function AdmissionFinancialSummary({
               </span>
             </div>
             <p className={`text-2xl font-bold ${balanceColor}`}>
-              {formatCurrency(Math.abs(financials.balance))}
+              {formatCurrency(Math.abs(liveBalance))}
             </p>
           </div>
         </div>

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   Dialog,
   DialogContent,
@@ -19,24 +19,37 @@ import { useTranslation } from "@/lib/i18n";
 import { Loader2, Wallet, AlertCircle } from "lucide-react";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 
+interface PrefilledPatient {
+  id: string;
+  first_name?: string | null;
+  last_name?: string | null;
+  patient_number?: string | null;
+}
+
 interface RecordDepositDialogProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
+  prefilledPatient?: PrefilledPatient | null;
+  lockPatient?: boolean;
 }
 
-export function RecordDepositDialog({ open, onOpenChange }: RecordDepositDialogProps) {
+export function RecordDepositDialog({ open, onOpenChange, prefilledPatient, lockPatient }: RecordDepositDialogProps) {
   const { t } = useTranslation();
   const createDeposit = useCreatePatientDeposit();
   const { hasActiveSession, sessionId } = useRequireSession();
 
-  const [selectedPatient, setSelectedPatient] = useState<any>(null);
+  const [selectedPatient, setSelectedPatient] = useState<any>(prefilledPatient ?? null);
   const [amount, setAmount] = useState("");
   const [paymentMethodId, setPaymentMethodId] = useState("");
   const [referenceNumber, setReferenceNumber] = useState("");
   const [notes, setNotes] = useState("");
 
+  useEffect(() => {
+    if (open && prefilledPatient) setSelectedPatient(prefilledPatient);
+  }, [open, prefilledPatient]);
+
   const resetForm = () => {
-    setSelectedPatient(null);
+    if (!lockPatient) setSelectedPatient(null);
     setAmount("");
     setPaymentMethodId("");
     setReferenceNumber("");
@@ -87,9 +100,11 @@ export function RecordDepositDialog({ open, onOpenChange }: RecordDepositDialogP
                 <span className="text-sm font-medium">
                   {selectedPatient.first_name} {selectedPatient.last_name} ({selectedPatient.patient_number})
                 </span>
-                <Button variant="ghost" size="sm" onClick={() => setSelectedPatient(null)}>
-                  ✕
-                </Button>
+                {!lockPatient && (
+                  <Button variant="ghost" size="sm" onClick={() => setSelectedPatient(null)}>
+                    ✕
+                  </Button>
+                )}
               </div>
             ) : (
               <PatientSearch onSelect={(p) => setSelectedPatient(p)} />

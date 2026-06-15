@@ -22,6 +22,7 @@ import { CarePlansList } from "@/components/ipd/CarePlansList";
 import { DietChartCard } from "@/components/ipd/DietChartCard";
 import { TriageBadge } from "@/components/emergency/TriageBadge";
 import { AdmissionFinancialSummary } from "@/components/ipd/AdmissionFinancialSummary";
+import { AdmissionRunningBillPanel } from "@/components/ipd/AdmissionRunningBillPanel";
 import { AdmissionOTChargesCard } from "@/components/ipd/AdmissionOTChargesCard";
 import {
   User,
@@ -384,6 +385,10 @@ export default function AdmissionDetailPage() {
 
         {canViewBilling && (
           <TabsContent value="billing" className="space-y-4">
+            <AdmissionRunningBillPanel
+              admissionId={id!}
+              patientName={`${patient?.first_name ?? ""} ${patient?.last_name ?? ""}`.trim()}
+            />
             <div className="grid gap-4 lg:grid-cols-3">
               <div className="lg:col-span-2">
                 <AdmissionFinancialSummary admissionId={id!} />
