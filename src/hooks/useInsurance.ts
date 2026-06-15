@@ -580,6 +580,7 @@ export function useCreateInsuranceClaim() {
         .maybeSingle();
 
       if (claimError) throw claimError;
+      if (!claim) throw new Error("Failed to create claim");
 
       // Insert claim items
       if (data.items.length > 0) {
