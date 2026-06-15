@@ -36,6 +36,8 @@ export function AdmissionFinancialSummary({
   const patientId = admissionRow?.patient?.id;
   const { data: liveDeposit } = useDepositBalance(patientId);
   const depositAvailable = liveDeposit?.balance ?? financials?.depositAmount ?? 0;
+
+  if (isLoading) {
     return (
       <Card>
         <CardHeader>
