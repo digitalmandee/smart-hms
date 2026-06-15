@@ -96,7 +96,7 @@ export function PatientDepositLedger({ patientId, patientName, onRecordDeposit }
                   <TableHead>{t("ledger.type.label")}</TableHead>
                   <TableHead>{t("deposits.referenceNumber")}</TableHead>
                   <TableHead>{t("billing.paymentMethod")}</TableHead>
-                  <TableHead className="text-right">{t("ledger.debit") === "ledger.debit" ? "Amount" : t("common.notes") && "Amount"}</TableHead>
+                  <TableHead className="text-right">{t("common.amount")}</TableHead>
                   <TableHead className="text-right">{t("deposits.runningBalance")}</TableHead>
                   <TableHead>{t("common.notes")}</TableHead>
                 </TableRow>
