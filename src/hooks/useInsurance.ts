@@ -184,7 +184,7 @@ export function useInsuranceCompany(id: string | undefined) {
         .from("insurance_companies")
         .select("*")
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data as InsuranceCompany;
@@ -207,7 +207,7 @@ export function useCreateInsuranceCompany() {
           is_active: true,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return result;
@@ -233,7 +233,7 @@ export function useUpdateInsuranceCompany() {
         .update(data)
         .eq("id", id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return result;
@@ -298,7 +298,7 @@ export function useInsurancePlan(id: string | undefined) {
           insurance_company:insurance_companies(*)
         `)
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return {
@@ -323,7 +323,7 @@ export function useCreateInsurancePlan() {
           is_active: true,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return result;
@@ -349,7 +349,7 @@ export function useUpdateInsurancePlan() {
         .update(updateData)
         .eq("id", id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return result;
@@ -406,7 +406,7 @@ export function useCreatePatientInsurance() {
           is_active: true,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return result;
@@ -432,7 +432,7 @@ export function useUpdatePatientInsurance() {
         .update(updateData)
         .eq("id", id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return { ...result, patient_id };
@@ -516,7 +516,7 @@ export function useInsuranceClaim(id: string | undefined) {
           invoice:invoices(id, invoice_number, total_amount, status)
         `)
         .eq("id", id)
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return {
@@ -575,7 +575,7 @@ export function useCreateInsuranceClaim() {
           created_by: profile?.id,
         })
         .select()
-        .single();
+        .maybeSingle();
 
       if (claimError) throw claimError;
 
@@ -619,7 +619,7 @@ export function useUpdateInsuranceClaim() {
         })
         .eq("id", id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return result;
@@ -651,7 +651,7 @@ export function useSubmitClaim() {
         })
         .eq("id", id)
         .select()
-        .single();
+        .maybeSingle();
 
       if (error) throw error;
       return data;
