@@ -1,68 +1,90 @@
-## INS-02 — Insurance `.single()` cleanup + real ERA payment reference
+# Sprint 2 kickoff — BIL-02: Patient Deposit & Refund Ledger
 
-Close out Sprint 1 P0 by fixing the insurance hooks and the synthetic payment-reference posting flow.
+Goal: a single per-patient ledger that shows every deposit, refund, and applied-to-invoice line with a **running balance**, plus a proper refund workflow. This unblocks IPD-01 (live running bill) and BIL-01 (Cashier Workspace), both of which need a trusted "available deposit" number.
 
-### Problems today
+## What exists today
+- `patient_deposits` table with `type` ∈ {`deposit`, `refund`, `applied`} and `status`.
+- `usePatientDeposits` / `useDepositBalance` (computes scalar balance only).
+- `RecordDepositDialog`, `DepositDetailDialog`, `PatientFinancialLedger`, `PatientDepositsPage`.
+- No refund flow, no running balance column, no GL link for refunds, no "apply to invoice" history view, and the page lists deposits in isolation per patient.
 
-1. **`.single()` everywhere in `useInsurance.ts`** (12 call sites) — any race condition, soft-delete, or RLS-filtered miss throws "JSON object requested, multiple (or no) rows returned" and the entire mutation rolls back with a cryptic error. Per project rule: never `.single()`, use `.maybeSingle()` for reads and `.select()` + `data?.[0]` for inserts/updates.
-2. **`usePaymentReconciliation.ts` → `usePostToAccounts`** has two real bugs:
-   - Fabricates a payment ref: `payment_reference: \`ERA-${Date.now()}\``. Operationally this means there's no link to the actual insurer remittance — reconciliation against bank statement and ERA file becomes impossible.
-   - Reads `approved_amount` with `.single()` inside another mutation, and updates with no `.select()`. If the claim was just modified concurrently, this swallows the conflict.
-3. **No payment row written** when posting an insurance settlement — only the claim row is stamped. The patient AR-Insurance balance never clears and the `payments` history doesn't show the insurer remittance, so the patient statement and outstanding-AR reports under-count receipts.
+## Problems
+1. **No refund mutation.** Refunds today require a manual DB insert. There's no dialog, no validation that refund ≤ available balance, no GL posting.
+2. **No running balance.** Each row is shown in isolation; cashiers can't tell at a glance what the balance was at any point.
+3. **Applied entries are invisible.** When a deposit is consumed by an invoice (`type='applied'`), the invoice link isn't shown in the ledger.
+4. **GL coupling.** Deposits today post DR Cash / CR LIA-DEP-001 via the existing trigger; refunds need the inverse (DR LIA-DEP-001 / CR Cash) — confirm trigger covers `type='refund'`, otherwise extend the trigger (DB-side, per project rule — no manual journals in app code).
+5. **No printable receipt** for deposits or refunds.
 
-### Changes
+## Scope (this ticket)
 
-#### 1. `src/hooks/useInsurance.ts`
-Replace all 12 `.single()` calls:
-- Read queries (`useInsuranceCompany`, `useInsurancePlan`, `useInsuranceClaim`) → `.maybeSingle()` and null-guard before mapping `attachments`/`covered_services`.
-- Insert/update mutations (`useCreateInsuranceCompany`, `useUpdateInsuranceCompany`, `useCreateInsurancePlan`, `useUpdateInsurancePlan`, `useCreatePatientInsurance`, `useUpdatePatientInsurance`, `useCreateInsuranceClaim`, `useUpdateInsuranceClaim`, `useSubmitClaim`) → drop `.single()`, keep `.select()`, return `data?.[0]`.
-- `useCreateInsuranceClaim` also maps any empty-string UUIDs (`invoice_id`) to `null` before insert.
-
-#### 2. `src/hooks/usePaymentReconciliation.ts` — rewrite `usePostToAccounts`
-New mutation signature:
+### 1. Hook: `usePatientLedger(patientId)`
+New hook in `src/hooks/usePatientDeposits.ts` that returns a chronologically sorted array with running balance:
 ```ts
-usePostToAccounts.mutate({
-  claimId,
-  paymentReference,   // required, user-entered ERA/EFT/cheque #
-  paymentDate,        // required
-  paidAmount,         // defaults to approved_amount, but editable
-  paymentMethodId,    // FK to payment_methods, defaults to "Insurance Settlement"
-  notes,
-})
+[{ id, date, type, amount, signed_amount, running_balance, reference, invoice_id, invoice_number, payment_method, created_by_name, notes, status }]
 ```
-Behavior:
-- Validate `paymentReference` is non-empty (trim). Reject synthetic `ERA-<timestamp>` shaped strings.
-- Pre-read claim with `.maybeSingle()` to get `approved_amount`, `invoice_id`, `organization_id`.
-- Insert a row into `payments` linked to the underlying invoice (`invoice_id` from the claim) so the patient AR and the invoice's `paid_amount` get the standard trigger-driven updates. This is the path that posts the journal (`DR Cash/Bank, CR AR-Insurance`) via the existing payment trigger — no manual GL.
-- Update the `insurance_claims` row: `status='paid'`, `paid_amount`, `payment_date`, `payment_reference`, with `.select()` + `data?.[0]`.
-- Invalidate `["reconciliation-claims"]`, `["insurance-claims"]`, `["payments"]`, `["invoice", invoiceId]`, `["patient-balance"]`.
+- Deposits add, refunds + applied subtract.
+- Pulls `invoices.invoice_number` for `applied` rows via a manual JS join (per project rule — `patient_deposits.invoice_id` is FK-less in some envs).
+- Reused everywhere a ledger is shown.
 
-#### 3. `src/pages/app/billing/ClaimReconciliationPage.tsx` (the page that calls `usePostToAccounts`)
-Replace the one-click "Post to accounts" button with a small dialog `PostClaimPaymentDialog`:
-- ERA / EFT / Cheque reference (required text input)
-- Payment date (defaults to today)
-- Paid amount (defaults to `approved_amount`, editable, must be > 0 and ≤ approved_amount)
-- Payment method dropdown (uses existing `PaymentMethodSelector`)
-- Notes (optional)
-- Submit calls the new mutation; closes on success.
+### 2. Refund mutation: `useRefundPatientDeposit`
+New mutation that:
+- Validates refund amount > 0 and ≤ current `useDepositBalance().balance`.
+- Requires `payment_method_id`, `reference_number` (cheque/EFT) for non-cash, and `reason` (free text, mandatory).
+- Inserts a `patient_deposits` row with `type='refund'`, `status='completed'`, linked to the originating deposit when provided (`parent_deposit_id` — add column via migration if missing; otherwise carry in `notes`).
+- Lets the existing DB trigger post the reversal journal. Add/extend the trigger only if it doesn't already handle `type='refund'`.
 
-Translation keys added to `en.ts`, `ar.ts`, `ur.ts`:
-- `insurance.postPaymentTitle`, `insurance.eraReference`, `insurance.eraReferenceRequired`, `insurance.paidAmount`, `insurance.invalidPaymentRef`, `insurance.paymentPostedSuccess`.
+### 3. UI: `RefundDepositDialog`
+New component `src/components/billing/RefundDepositDialog.tsx`:
+- Fields: amount (default = available balance, capped), payment method, reference #, reason, notes.
+- Shows current available balance and post-refund balance preview.
+- Blocks submit if `amount > balance` or reason empty.
 
-### Out of scope (deferred to later sprints)
-- ERA file ingestion (INS-01, Sprint 3) — this is the manual posting path; the bulk ERA path will reuse the same mutation.
-- NPHIES auto-reconciliation webhook.
+### 4. UI: `PatientDepositLedger` component
+New component `src/components/billing/PatientDepositLedger.tsx`:
+- Table with columns: Date | Type (badge: Deposit/Refund/Applied) | Reference | Method | Amount (signed, color-coded) | Running Balance | By | Actions.
+- Header strip: Total Deposits / Total Refunds / Applied to Invoices / **Available Balance** (matches `useDepositBalance`).
+- Actions: "Record Deposit" + "Refund" buttons (Refund disabled when balance ≤ 0).
+- Row click → opens `DepositDetailDialog` (for `applied` rows, also links to the invoice).
+- Print/export the ledger as a patient deposit statement (reuses existing PDF helper).
 
-### Files touched
-- `src/hooks/useInsurance.ts` (edit)
-- `src/hooks/usePaymentReconciliation.ts` (edit)
-- `src/pages/app/billing/ClaimReconciliationPage.tsx` (edit)
-- `src/components/billing/PostClaimPaymentDialog.tsx` (new)
-- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts` (edit)
+### 5. Page integration
+- `src/pages/app/accounts/PatientDepositsPage.tsx` → swap the existing list for `PatientDepositLedger` when a patient is selected.
+- `src/components/patients/PatientFinancialLedger.tsx` → embed `PatientDepositLedger` under a "Deposits & Refunds" tab.
+- Patient profile balance card (`PatientBalanceCard`) already shows Outstanding + Available Deposit per memory rule — confirm it still pulls from `useDepositBalance`.
 
-### Verification
-- Trigger the post-payment dialog with empty / fake `ERA-12345` ref → blocked.
-- Post a real payment → `payments` row exists, invoice `paid_amount` updated by trigger, `journal_entries` shows DR Cash/Bank + CR AR-Insurance via the standard payment trigger, claim status flips to `paid`, settlement status returns `posted`.
-- Patient statement (`usePatientStatement`) shows the insurer payment line.
+### 6. Migration (only if needed)
+Run the linter / read trigger to confirm:
+- `patient_deposits` has `parent_deposit_id uuid null` referencing `patient_deposits(id)`. Add column + index if missing.
+- The deposit-posting trigger handles `NEW.type = 'refund'` (DR LIA-DEP-001 / CR Cash-Bank resolved from `payment_method_id`). Extend trigger using the `IF EXISTS` idempotency guard pattern (per `mem://finance/trigger-hardening-and-idempotency`) if missing.
+- `GRANT`s already in place for `patient_deposits` (existing table, no changes to roles).
 
-After this lands, Sprint 1 P0 backlog is empty and we open Sprint 2 with BIL-02.
+### 7. i18n
+Add keys to `en.ts`, `ar.ts`, `ur.ts`:
+- `deposits.refund`, `deposits.refundTitle`, `deposits.refundReason`, `deposits.refundReasonRequired`, `deposits.amountExceedsBalance`, `deposits.runningBalance`, `deposits.availableBalance`, `deposits.ledgerTitle`, `deposits.printStatement`, `deposits.appliedToInvoice`.
+
+## Out of scope (Sprint 2 follow-ups)
+- **IPD-01** Live running bill panel (next ticket, leans on `usePatientLedger`).
+- **BIL-01** Unified Cashier Workspace (after IPD-01).
+- **BIL-04** 80mm thermal receipt template (will reuse the print helper added here).
+
+## Files
+
+**New**
+- `src/components/billing/PatientDepositLedger.tsx`
+- `src/components/billing/RefundDepositDialog.tsx`
+- `supabase/migrations/<ts>_patient_deposits_refund.sql` *(only if trigger/column gap confirmed)*
+
+**Edited**
+- `src/hooks/usePatientDeposits.ts` (add `usePatientLedger`, `useRefundPatientDeposit`)
+- `src/pages/app/accounts/PatientDepositsPage.tsx`
+- `src/components/patients/PatientFinancialLedger.tsx`
+- `src/lib/i18n/translations/en.ts`, `ar.ts`, `ur.ts`
+
+## Verification
+- Record deposit → ledger row appears, running balance increases, GL shows DR Cash / CR LIA-DEP-001.
+- Apply deposit to invoice → ledger row (`applied`) with invoice link, running balance decreases.
+- Refund: balance = 500, refund 600 → blocked. Refund 200 → ledger row appears, balance drops to 300, GL shows DR LIA-DEP-001 / CR Cash.
+- Toggle org language to `ar` and `ur` → all new labels render correctly (RTL on ar).
+- Print statement → PDF shows the full ledger with running balance column.
+
+After this lands, IPD-01 can begin immediately.
