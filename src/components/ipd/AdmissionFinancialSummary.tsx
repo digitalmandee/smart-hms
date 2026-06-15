@@ -112,11 +112,14 @@ export function AdmissionFinancialSummary({
           <div className="p-4 rounded-lg bg-primary/5 border">
             <div className="flex items-center gap-2 mb-1">
               <Wallet className="h-4 w-4 text-primary" />
-              <span className="text-sm text-muted-foreground">Deposit Collected</span>
+              <span className="text-sm text-muted-foreground">Deposit Available</span>
             </div>
-            <p className="text-2xl font-bold">{formatCurrency(financials.depositAmount)}</p>
+            <p className="text-2xl font-bold">{formatCurrency(depositAvailable)}</p>
+            <p className="text-xs text-muted-foreground mt-1">
+              Admission snapshot: {formatCurrency(financials.depositAmount)}
+            </p>
           </div>
-          <div className={`p-4 rounded-lg border ${isCredit ? 'bg-green-500/5 border-green-200' : financials.balance > 0 ? 'bg-red-500/5 border-red-200' : 'bg-muted'}`}>
+          <div className={`p-4 rounded-lg border ${isCredit ? 'bg-green-500/5 border-green-200' : liveBalance > 0 ? 'bg-red-500/5 border-red-200' : 'bg-muted'}`}>
             <div className="flex items-center gap-2 mb-1">
               <Receipt className="h-4 w-4" />
               <span className="text-sm text-muted-foreground">
@@ -124,7 +127,7 @@ export function AdmissionFinancialSummary({
               </span>
             </div>
             <p className={`text-2xl font-bold ${balanceColor}`}>
-              {formatCurrency(Math.abs(financials.balance))}
+              {formatCurrency(Math.abs(liveBalance))}
             </p>
           </div>
         </div>
