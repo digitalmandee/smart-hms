@@ -71,15 +71,15 @@ export function AdmissionFinancialSummary({
             <div>
               <p className="text-sm text-muted-foreground">Running Balance</p>
               <p className={`text-2xl font-bold ${balanceColor}`}>
-                {isCredit ? "Credit " : ""}{formatCurrency(Math.abs(financials.balance))}
+                {isCredit ? "Credit " : ""}{formatCurrency(Math.abs(liveBalance))}
               </p>
               <p className="text-xs text-muted-foreground mt-1">
                 {financials.daysAdmitted} days @ {formatCurrency(financials.dailyRate)}/day
               </p>
             </div>
             <div className="text-right">
-              <p className="text-sm text-muted-foreground">Deposit</p>
-              <p className="text-lg font-semibold">{formatCurrency(financials.depositAmount)}</p>
+              <p className="text-sm text-muted-foreground">Deposit Available</p>
+              <p className="text-lg font-semibold">{formatCurrency(depositAvailable)}</p>
             </div>
           </div>
         </CardContent>
