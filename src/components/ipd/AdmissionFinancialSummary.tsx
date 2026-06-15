@@ -55,11 +55,12 @@ export function AdmissionFinancialSummary({
     return null;
   }
 
-  const isCredit = financials.balance < 0;
-  const balanceColor = isCredit 
-    ? "text-green-600 dark:text-green-400" 
-    : financials.balance > 0 
-      ? "text-red-600 dark:text-red-400" 
+  const liveBalance = financials.totalCharges - depositAvailable;
+  const isCredit = liveBalance < 0;
+  const balanceColor = isCredit
+    ? "text-green-600 dark:text-green-400"
+    : liveBalance > 0
+      ? "text-red-600 dark:text-red-400"
       : "text-muted-foreground";
 
   if (compact) {
