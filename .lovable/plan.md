@@ -1,98 +1,49 @@
-# Sprint 2 / BIL-01 — Unified Cashier Workspace
+## ROI Projection PDF — HealthOS24 Investor Document
 
-Goal: a single page where a cashier handles every patient money interaction — OPD bill, IPD deposit/balance, pharmacy credits, outstanding lab/imaging invoices, refunds — without hopping between Invoices, Patient Deposits, Pharmacy POS, and IPD pages.
+Standalone PDF artifact (not slides in the app). Will be written to `/mnt/documents/HealthOS24_ROI_Projection.pdf` and delivered via `<presentation-artifact>`.
 
-## What exists today
-- **Invoices page** — creates invoices, applies deposit, records payment.
-- **Patient Deposits page** (BIL-02) — `usePatientLedger`, `useDepositBalance`, `RecordDepositDialog`, `RefundDepositDialog`, `PatientDepositLedger` component.
-- **IPD Running Bill panel** (IPD-01) — `useAdmissionRunningBill` with realtime, in-context deposit/refund.
-- **Pharmacy patient credits** — `usePharmacyCredits`, settled at pharmacy POS.
-- **Outstanding lab/imaging invoices** — `useOutstandingInvoices`.
-- **Billing sessions** — `useRequireSession` gates every cash action.
+### Inputs (confirmed)
+- **Raise:** 2.0M – 2.25M SAR (24-month runway)
+- **Pricing (SAR/month):** Clinic 2,500 | Polyclinic 6,000 | Hospital 25,000
+- **Customer ramp (base case, cumulative end-of-year):**
+  - Y1: 40 clinics, 8 polyclinics, 5 hospitals
+  - Y2: 150 clinics, 25 polyclinics, 15 hospitals
+  - Y3: 400 clinics, 60 polyclinics, 40 hospitals
+- **OPEX (monthly recurring):** Team 55k + Server/GPU 40k + Marketing 20k + G&A 10k ≈ 125k SAR/mo (~1.5M/yr)
+- **One-time (from raise):** HIPAA/NPHIES compliance & audits 300k + Initial marketing push 250k + Product/integrations 200k + Working capital buffer ~500k
 
-Everything works in isolation but cashiers context-switch constantly.
+### PDF Structure (10–11 pages, A4 landscape)
+1. **Cover** — HealthOS24, "ROI Projection & Path to Profitability", 2026–2028, dark navy hero
+2. **Executive Summary** — raise ask, break-even month, 3-yr ARR, IRR snapshot (KPI tiles)
+3. **Use of Funds (2.25M SAR)** — donut chart + table (Compliance, Infra reserve, Team runway, Marketing, Product, Buffer)
+4. **Monthly OPEX Breakdown** — stacked bar / pie (Team, Server+GPU, Marketing, G&A)
+5. **Pricing & Unit Economics** — per-segment ARPU, gross margin assumption (~75%), CAC payback table
+6. **Customer Acquisition Ramp** — stacked area chart, monthly cumulative customers by segment over 36 months (linear interpolation between yearly targets)
+7. **Revenue Projection (MRR/ARR)** — line chart MRR month-by-month + ARR table per year
+8. **Cumulative Cash Flow & Break-even** — line chart of cumulative cash position; mark break-even month (~M14–M18) and cash-flow positive milestone
+9. **3-Year P&L Summary** — table: Revenue, COGS, Gross Profit, OPEX, EBITDA per year
+10. **ROI for Investor** — investment recovery timeline, multiple on invested capital at Y3, valuation scenarios (5x/8x ARR)
+11. **Risks & Mitigation + Closing** — short bullets, contact
 
-## Scope
+### Charts (matplotlib)
+- Donut: Use of funds
+- Pie: Monthly OPEX
+- Stacked area: Customer ramp
+- Line: MRR/ARR trajectory
+- Line + shaded: Cumulative cash flow with break-even marker
+- Bar: 3-year revenue vs. OPEX vs. EBITDA
 
-### 1. Page: `/app/billing/cashier`
-New `src/pages/app/billing/CashierWorkspacePage.tsx`. Three-pane layout:
+### Tech approach
+- Python: `reportlab` (Platypus) for layout + `matplotlib` for charts (saved as PNG, embedded)
+- Brand palette: deep navy `#0F1F3D`, accent teal `#14B8A6`, neutral grays — matches HealthOS24 deck
+- Fonts: Helvetica family (reportlab built-in, reliable)
+- After generation: convert each page to JPG with `pdftoppm`, visually inspect every page for overflow/overlap, iterate until clean
+- All numbers in SAR with thousands separators
 
-```text
-┌─────────────────────────────────────────────────────────────┐
-│ Session strip: counter, cashier, opened-at, drawer total   │
-├──────────────┬──────────────────────────────────────────────┤
-│ Patient      │ Tabs: [Summary] [Charges] [Deposits] [Pay]  │
-│ search +     │                                              │
-│ recent (10)  │  Active tab content                          │
-│              │                                              │
-│ Selected     │                                              │
-│ patient card │  Action bar (sticky bottom):                 │
-│  - balance   │  Collect Deposit | Refund | Pay Invoice |   │
-│  - deposit   │  Settle Pharmacy Credit | Print Receipt     │
-│  - active    │                                              │
-│    admission │                                              │
-└──────────────┴──────────────────────────────────────────────┘
-```
+### Out of scope
+- No app code changes, no slides added to the executive presentation in-app
+- English only (can add AR/UR versions in a follow-up if needed)
+- Not editable in-browser — static PDF deliverable
 
-### 2. Hook: `useCashierPatientSnapshot(patientId)`
-New in `src/hooks/useCashierWorkspace.ts`. Composes existing hooks (no new queries where avoidable):
-- `useDepositBalance(patientId)` — deposit.available
-- `usePatientLedger(patientId)` — recent deposit/refund/apply rows
-- `useOutstandingInvoices(patientId)` — unpaid invoice list
-- `usePharmacyCredits(patientId)` — open credit lines
-- Live admission lookup (`admissions` where `patient_id` + status `admitted`) → if found, surface `useAdmissionRunningBill(admissionId)`.
-
-Returns `{ deposit, ledger, outstandingInvoices, pharmacyCredits, activeAdmission, totals: { totalOutstanding, depositAvailable, netDue } }`.
-
-Realtime: subscribe to `invoices`, `patient_deposits`, `pharmacy_patient_credits` filtered by `patient_id`, invalidate the composed keys.
-
-### 3. Tab content
-- **Summary** — KPI tiles (Net Due, Deposit Available, Outstanding Invoices count, Pharmacy Credit), plus the active admission's `AdmissionRunningBillPanel` if admitted (reused, not forked).
-- **Charges** — flat list merging unbilled IPD charges + outstanding lab/imaging + pharmacy credits; each row has a "Settle" inline action.
-- **Deposits** — embed `PatientDepositLedger` (already built).
-- **Pay** — invoice picker → existing payment form (extract from `InvoicePaymentDialog` or open dialog inline). Allows applying deposit toward invoice.
-
-### 4. Reused dialogs (no rewrites)
-- `RecordDepositDialog` (lockPatient, prefilledPatient — added in IPD-01).
-- `RefundDepositDialog` — accept same `prefilledPatient` / `lockPatient` props (small edit if missing).
-- `InvoicePaymentDialog` — open with selected invoice.
-
-### 5. Navigation
-- Add sidebar entry under **Billing → Cashier Workspace** (route guarded by `useRequireSession`, redirects to Open Session prompt if no active session).
-- Add a small "Open in Cashier Workspace" link from the IPD Running Bill panel and Patient Deposits page (deep link `?patientId=…`).
-
-### 6. Receipt
-Single "Print Receipt" button on the action bar → calls existing receipt printer for the most recent payment/deposit in this session for the selected patient. (Full 80mm thermal layout = BIL-04, out of scope.)
-
-### 7. i18n
-Add `billing.cashier.*` keys to `en.ts`, `ar.ts`, `ur.ts` (title, tabs, KPIs, actions, empty states, deep-link CTA). RTL verified for `ar`.
-
-## Out of scope
-- BIL-04 thermal receipt layout.
-- Editing posted invoices.
-- Multi-patient batch operations.
-
-## Files
-
-**New**
-- `src/pages/app/billing/CashierWorkspacePage.tsx`
-- `src/hooks/useCashierWorkspace.ts`
-- `src/components/billing/CashierPatientPane.tsx` (search + selected patient card)
-- `src/components/billing/CashierChargesTab.tsx`
-- `src/components/billing/CashierPayTab.tsx`
-
-**Edited**
-- `src/App.tsx` (or routes file) — add `/app/billing/cashier` route.
-- Sidebar config — add entry.
-- `src/components/billing/RefundDepositDialog.tsx` — add `prefilledPatient` / `lockPatient` (parity with RecordDepositDialog).
-- `src/components/ipd/AdmissionRunningBillPanel.tsx` — add "Open in Cashier Workspace" deep link.
-- `src/pages/app/accounts/PatientDepositsPage.tsx` — same deep link.
-- `src/lib/i18n/translations/{en,ar,ur}.ts`.
-
-## Verification
-- Open workspace without active session → blocked with "Open billing session" CTA.
-- Search a patient with admission + outstanding lab → Summary shows running bill, Net Due correct, Charges tab lists both IPD and lab lines.
-- Collect deposit from action bar → ledger row appears live, deposit.available updates, GL DR Cash / CR LIA-DEP-001.
-- Refund 100 when available 500 → drops to 400, button disables at 0.
-- Pay an outstanding invoice applying deposit → invoice marked paid, deposit.applied increases, balance recalculates.
-- Switch language to `ar`/`ur` → all labels translated, RTL layout intact.
+### Deliverable
+`<presentation-artifact path="HealthOS24_ROI_Projection.pdf" mime_type="application/pdf"></presentation-artifact>`
