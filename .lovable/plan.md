@@ -1,57 +1,67 @@
+# ROI Projection PDF v5 — Investor-Grade Redesign
 
-# ROI PDF v4 — Realistic Ramp + Remove Equity %
+## Problems with v4
+- Charts render stretched / oversized vs. surrounding type — page rhythm feels off
+- Chart titles show raw HTML (`P&amp;L` instead of `P&L`)
+- Tables span full page width with thin rows; columns float far from labels
+- Light on clinical depth (modules, workflows) and missing real Saudi market research to justify the ramp
+- Page-to-page visual hierarchy is flat (everything looks like the same slide)
 
-## What changes
+## Goals for v5
+1. **Tighter, designed layout** — magazine-style pages, not stretched dashboards
+2. **More substance** — clinical modules, hospital workflows, Saudi growth data with citations
+3. **No regressions** — keep v4 numbers (commercial start M19, break-even M28, recovery M41, no equity %)
 
-### 1. Push customer acquisition later (key fix)
-Current v3 starts clinics at M6, which contradicts "12–18 months on compliance first, then marketing." New timing:
+## Page plan (≈ 22 pages)
 
-```text
-M1–M18   Compliance + HIPAA + product hardening  (no commercial activity)
-M15–M18  First 2 lighthouse pilots (paid, but not GTM)
-M19      Marketing + sales engine starts
-M19–M24  Initial commercial ramp (clinics first)
-Y3       Polyclinic + hospital deals close, full ramp
-```
+1. **Cover** — HealthOS24, ROI Projection v5, SAR 2.25M raise, confidential
+2. **Executive Summary** — 4 KPI cards (raise, runway, break-even, Y3 ARR) + 3-sentence thesis
+3. **The Problem** — KSA HIS fragmentation, Vision 2030 privatization, ZATCA/NPHIES/Wasfaty mandates creating forced replacement cycle
+4. **Market Opportunity (KSA)** — researched figures with sources:
+   - KSA healthcare spend, # hospitals (MOH + private), # polyclinics, # pharmacies
+   - Vision 2030 privatization target (290 hospitals → private operators by 2030)
+   - Digital health CAGR, HIS/EMR addressable spend
+   - Sources cited inline (MOH Statistical Yearbook, Vision 2030, Mordor/Statista where applicable)
+5. **Regulatory Tailwind** — ZATCA Phase 2, NPHIES, Wasfaty, PDPL, Nafath, Tatmeen — each as a card with what it forces hospitals to buy
+6. **Product Overview** — single page, module matrix (24 modules grouped: Clinical / Pharmacy / Finance / HR / Compliance / Patient)
+7. **Clinical Depth — OPD & IPD** — workflows, token queue, IPD admission, ward management, discharge billing
+8. **Clinical Depth — Lab, Radiology, Surgery** — order lifecycle, specimen workflow, OT scheduling, consumable deduction
+9. **Clinical Depth — Pharmacy, Blood Bank, Dialysis, Dental** — module-specific capabilities
+10. **Finance & ERP** — 4-level COA, auto-posting triggers, daily closing, ZATCA-compliant invoices, multi-branch consolidation
+11. **HR & Payroll** — Saudi labor law gratuity, two-pass payroll engine, exit/clearance automation
+12. **Compliance Scorecard** — table: requirement → status (done / in progress / planned with month)
+13. **Competitive Landscape** — HealthOS24 vs. Cerner/Epic/local players on: KSA compliance out-of-box, price, deploy time, Arabic-first
+14. **24-Month Roadmap (Gantt)** — redrawn with cleaner spacing
+15. **Use of Funds** — donut chart + table (team / infra / compliance / sales-mktg / buffer)
+16. **Revenue Model** — pricing tiers (clinic / polyclinic / hospital), setup + monthly SaaS + per-bed/per-user
+17. **Customer Ramp** — M19–M36 by segment, redrawn legend
+18. **3-Year P&L** — fixed chart title (`P&L`), tighter chart, narrower table aligned under chart
+19. **Cash Flow 42M** — trough, break-even M28, recovery M41 — annotated
+20. **Valuation Reference** — Y3 ARR × multiples (4×/6×/8×/10×), no equity %, comparables note
+21. **Risks & Mitigations** — table
+22. **Closing / Contact**
 
-Updated curve (base case):
-- Clinics: 0 until M18, then 5/mo new logos → ~30 by M24
-- Polyclinics: 0 until M22, then trickle → ~3 by M24
-- Hospitals: pilots only in funded period; commercial hospital sales in Y3
-- M24 MRR ≈ SAR 100–130K (vs v3's 892K)
-- M24 ARR ≈ SAR 1.2–1.6M
+## Design system
+- **Type scale**: cover 48pt, page title 22pt, section 14pt, body 10.5pt, caption 8.5pt (DejaVu Sans + DejaVu Sans Bold)
+- **Palette**: navy `#0B2545`, teal `#1F8E8D`, sand `#E8DDCB`, ink `#1A1A1A`, muted `#6B7280`, success `#1F8E5A`, alert `#C0392B`
+- **Page frame**: 18mm side margins, persistent header (HealthOS24 · ROI Projection v5) + footer (page n/N · Confidential)
+- **Charts**: rendered at fixed 150 DPI, capped to 150mm × 75mm, sans-serif, no HTML entities in titles
+- **Tables**: zebra rows, navy header, `Paragraph`-wrapped cells, column widths sized to content not page
+- **Cards/KPIs**: rounded rects via reportlab `Drawing`, 2-up or 4-up grids on summary pages
 
-### 2. Recalculate break-even + recovery honestly
-With revenue arriving only in the last 6 months of the raise:
-- **EBITDA break-even**: ~Month 28–30 (post-raise, into Year 3)
-- **Capital recovery**: ~Month 36–42 (mid-to-late Year 3)
-- Cumulative cash dips close to zero around M22–24 (raise nearly spent), then recovers from Year-3 revenue
-
-I'll **extend the cash chart to 42 months** so investors can see the full path from raise → trough → break-even → recovery, with clear annotations.
-
-### 3. Remove all "18% equity" references
-- Drop the equity assumption from the Executive Summary, Investor Returns page, and Closing slide.
-- Investor Returns page becomes a **valuation table only** — Year-3 ARR × multiple = implied company valuation. No proceeds column, no MOIC tied to a stake %.
-- Closing slide says "SAR 2.25M raise" with no equity figure (terms to be discussed separately).
-
-### 4. Honest framing in copy
-- Executive Summary: "Compliance-first 24 months · commercial ramp begins Month 19 · break-even in Year 3"
-- Roadmap: emphasise that Phase 4 (Commercial) is only M19–24, not M13–24
-- Cash chart subtitle: "Raise funds full 24-month compliance + early commercial ramp; capital recovered from Year-3 revenue"
-
-### 5. Other adjustments
-- Year-1 revenue ≈ 0 (no customers in Y1)
-- Year-2 revenue = only M19–24 commercial revenue (~SAR 500K)
-- Year-3 revenue = full year of ramped commercial activity (~SAR 8–10M projected)
-- 3-Year P&L table updated accordingly; Year-1 EBITDA strongly negative, Year-3 strongly positive
+## Technical implementation
+- New script `/tmp/roi5/make_pdf.py` using `reportlab` Platypus + `matplotlib`
+- Fix `P&amp;L` by using plain string titles in matplotlib (no XML escaping pre-applied)
+- Force matplotlib `figsize` aspect ratios that match final placement (no scaling stretch)
+- All chart text rendered at the same DPI as final embed to prevent blurring
+- `KeepTogether` flowables for chart + caption + table groups
+- Web research step: pull current MOH hospital counts, Vision 2030 privatization numbers, KSA digital-health market size from public sources; cite inline
 
 ## Out of scope
-No app/code changes. English investor PDF only. Same layout quality bar as v3 (single Platypus pipeline, KeepTogether for tables, visual QA loop).
+- No app/code changes
+- English only (existing artifact convention)
+- Output: `/mnt/documents/HealthOS24_ROI_Projection_v5.pdf`
 
-## Deliverable
-`HealthOS24_ROI_Projection_v4.pdf`. v3 kept for reference.
-
-## Quick confirms before I build
-1. **Commercial start month** — M19 (right after 18-month compliance phase ends) ✓ default. Say if you want M18 or M20.
-2. **Investor Returns page** — keep it as a valuation-only table (Year-3 ARR × 4×/6×/8×/10× → implied valuation), or drop the page entirely? Default: keep as valuation-only.
-3. **Cash chart horizon** — extend to **42 months** so capital-recovery point is visible. Default: yes.
+## QA checklist before delivery
+- Render every page to JPEG at 150 DPI, view each one
+- Verify: no stretched charts, no `&amp;`, no overflowing tables, no orphaned headings, consistent margins, page numbers correct, all citations present on the market page
