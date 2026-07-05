@@ -1,79 +1,196 @@
+# Self-Host HealthOS 24 — Migrate Supabase → NestJS + Prisma + PostgreSQL on VPS
+
 ## Goal
 
-A polished **~2 minute bilingual (English + Arabic)** demo video of HealthOS 24, auto-recorded from the live preview, that briefly walks through **every major module + every key user role**, and closes with **target use-case segments** (clinics, NGOs, small OPDs, accounting/COA, billing).
+Move HealthOS off Supabase (managed) onto a self-hosted stack you fully own:
+- **API**: NestJS (TypeScript, modular)
+- **ORM**: Prisma
+- **DB**: PostgreSQL 15 (self-hosted) with RLS policies preserved
+- **Auth**: Custom JWT + bcrypt (access + refresh tokens, MFA-ready)
+- **Authorization**: Postgres RLS (kept) + NestJS Guards (defense-in-depth)
+- **Hosting**: Single VPS (Hetzner CX32 or DO 4GB minimum), Docker Compose
+- **Frontend**: same React/Vite app, only the data layer swapped
 
-## Deliverables (in `/mnt/documents/`)
+No frontend features change. No database data is lost. Migration is done in a parallel repo so the live Lovable app keeps running until cutover.
 
-- `HealthOS24_Demo_EN.mp4` (~2:00, 1920×1080, 30fps, H.264 + AAC)
-- `HealthOS24_Demo_AR.mp4` (~2:00, RTL captions, Arabic VO)
-- `HealthOS24_Demo_EN.srt`, `HealthOS24_Demo_AR.srt`
+---
 
-> Urdu pass not included (only EN + AR were selected). Say the word and I'll add it.
+## Scope reality check
 
-## Storyboard (~120s total)
+HealthOS today has:
+- **300+ tables**, ~700 RLS policies, ~100+ DB functions/triggers, ~40 edge functions
+- **Frontend**: ~500 hooks/components using `supabase.from(...)`, `supabase.auth`, `supabase.functions.invoke`, `supabase.storage`, `supabase.channel` (Realtime)
+- **Integrations**: NPHIES, ZATCA, HESN, Tatmeen, Nafath, Sehhaty, Wasfaty, WhatsApp, SMS, push, PACS, biometric devices
 
-Tight 6–9s scenes. Each scene = short cursor glide + 1 click + lower-third caption + 1 VO line. Two-tier structure: **Modules** first, **Roles** as a fast montage, **Use-cases** as the closer.
+This is a **3–6 month migration for one engineer**, or **6–10 weeks with a small team**. The plan below is the roadmap, not something one AI turn can produce.
 
-| #  | ~sec | Block          | Module / Role / Use-case                              | What viewer sees                                              |
-|----|------|----------------|-------------------------------------------------------|---------------------------------------------------------------|
-| 0  | 0–4  | Intro          | Logo + "HealthOS 24 — AI-Powered Hospital OS"         | Brand title card (ffmpeg)                                     |
-| 1  | 4–10 | Patient Journey| Landing `WorkflowDiagram`                             | Scroll through Register → Token → AI → Consult → Bill         |
-| 2  | 10–17| OPD            | `/app/opd/walk-in` wizard → tokens                    | 4-step wizard, queue board                                    |
-| 3  | 17–24| IPD            | `/app/ipd/admissions` → admission detail              | Bed selection, vitals/medication tab                          |
-| 4  | 24–31| Surgery / OT   | `/app/ot/schedule` → surgery detail                   | OT calendar, consumables, anesthesia notes                    |
-| 5  | 31–37| Lab            | `/app/lab/orders` → result entry                      | Order → specimen → result lifecycle                           |
-| 6  | 37–43| Radiology / PACS| `/app/radiology/*`                                   | Order → report → verify                                       |
-| 7  | 43–49| Pharmacy / POS | `/app/pharmacy/pos`                                   | Cart, dispense, session close                                 |
-| 8  | 49–55| Warehouse / GRN| `/app/warehouse/*`                                    | GRN verification → stock                                      |
-| 9  | 55–61| Tabeebi AI     | `/app/ai/chat`                                        | Pre-typed symptom → AI reply summary                          |
-| 10 | 61–67| Insurance / NPHIES| `/app/insurance/claims`                            | Claim scrubbing + submit                                      |
-| 11 | 67–73| HR & Payroll   | `/app/hr/employees` → `/app/hr/payroll-runs`          | Employee list → payroll run → approval                        |
-| 12 | 73–79| Finance / COA  | `/app/finance/chart-of-accounts` → journal entries    | 4-level COA tree → auto-posted JV                             |
-| 13 | 79–85| Billing & ZATCA| `/app/billing` → invoice → payment                    | Invoice, split payment, e-invoice QR                          |
-| 14 | 85–100| **Role montage** (fast cuts, ~1.5s each) | Doctor • Nurse • IPD Nurse • **Anesthetist** • Lab Tech • Radiologist • Pharmacist • Receptionist • Cashier • HR Officer • Accountant • Admin | Each role logs in (demo password `1212`), lands on its dashboard for ~1.5s with a name chip overlay |
-| 15 | 100–115| **Use-cases** (text + icon cards, 3s each) | Single-doctor clinic • Multi-branch polyclinic • NGO / charity hospital • Small OPD center • Accounting-only deployment (COA + Billing) • Full hospital with IPD/OT | Animated cards over a dim screenshot loop                     |
-| 16 | 115–120| Outro          | `healthos24.com` + tagline                            | Brand outro                                                   |
+---
 
-Role montage uses the existing demo quick-login buttons on `/auth/login` (`tests/e2e/utils/demoLogin.ts` pattern). Anesthetist isn't a named quick-login button today — I'll log in as Doctor and label the chip "Anesthetist — OT View" while landing on the OT/surgery page, which is how that persona uses the system in the current build. I'll flag this honestly on screen rather than fake a non-existent role.
+## Architecture (target state)
 
-## Pipeline
-
-No app source changes. Everything in `/tmp/demo-video/`.
-
-```
-/tmp/demo-video/
-  scripts/
-    scenes.py         # Scene defs: route, actions, VO line (EN+AR), caption
-    record.py         # Playwright recorder, 1 scene per process
-    narrate.py        # Lovable AI Gateway TTS -> mp3 per (scene, lang)
-    assemble.sh       # ffmpeg concat + audio mux + subtitle burn per lang
-  raw/                # Playwright .webm
-  mp4/                # Normalized 1920x1080@30 H.264
-  audio/{en,ar}/scene_N.mp3
-  intro.mp4 outro.mp4 # ffmpeg drawtext on brand gradient
-  out/HealthOS24_Demo_{EN,AR}.mp4
+```text
+                ┌─────────────────────────────┐
+Browser ──────► │  Nginx (TLS, gzip, rate)    │
+                └──────────────┬──────────────┘
+                               │
+                  ┌────────────┴────────────┐
+                  │                         │
+          ┌───────▼────────┐        ┌──────▼──────┐
+          │ NestJS API     │        │ Static SPA  │
+          │ (Node 20)      │        │ (Vite build)│
+          └───────┬────────┘        └─────────────┘
+                  │
+        ┌─────────┼──────────┬──────────────┐
+        │         │          │              │
+    ┌───▼───┐ ┌──▼───┐  ┌───▼────┐   ┌─────▼─────┐
+    │ Postgres│ Redis│  │ MinIO  │   │ BullMQ    │
+    │  + RLS  │(cache│  │(S3 API │   │ workers   │
+    │         │/sess)│  │ files) │   │(cron/jobs)│
+    └─────────┘└──────┘  └────────┘   └───────────┘
 ```
 
-- **Recorder**: `browser.new_context(record_video_dir=…, viewport={width:1920,height:1080})`, demo-login helper, eased `page.mouse.move` for cinematic cursor, CSS-injected lower-third caption per scene baked into the recording.
-- **Voiceover**: Lovable AI Gateway `/v1/audio/speech`, `openai/gpt-4o-mini-tts`, voice `alloy` (EN) / `nova` (AR), `response_format: mp3`. ~32 short clips cached on disk.
-- **Captions**: SRT generated from the same VO strings; AR burned with `Noto Sans Arabic`, RTL-aligned via libass.
-- **Music**: light royalty-free bed, ducked to −22 LUFS under VO via `ffmpeg amix`.
-- **Final mux**: `ffmpeg -f concat … -c:v libx264 -crf 20 -pix_fmt yuv420p -c:a aac -b:a 192k -vf subtitles=…`.
+All of this runs on **one VPS via `docker-compose.yml`** initially. Split later if load demands.
 
-## QA
+---
 
-After each MP4 renders, sample 10 thumbnails (`ffmpeg -vf fps=1/12`) and inspect every frame for: leaked auth screens, unreadable captions, Arabic shaping issues, scene-cut audio drift, missing role chips. Re-render any broken scene.
+## Migration phases
 
-## Honest constraints
+### Phase 0 — Prep (1 week)
+- Provision VPS (Ubuntu 22.04, Docker, ufw, fail2ban, automated backups to S3/B2).
+- Freeze schema changes on Supabase for the migration window.
+- Full `pg_dump` of Supabase DB (schema + data + policies + functions + triggers).
+- Set up new Git repo `healthos-api` (NestJS monorepo: `apps/api`, `apps/worker`, `packages/db`).
 
-- **Demo data only.** Footage shows whatever the preview seed exposes; flows requiring multi-step setup (e.g. a fully completed surgery with consumables) will show the closest visible state while the VO describes the outcome.
-- **No real handcrafted cursor.** Playwright-synthesized motion — clean but not human.
-- **Anesthetist** persona is shown via the OT/Surgery views under a Doctor login (no dedicated quick-login button exists today).
-- **Render budget.** ~8–12 min compute per language, run sequentially. ~32 short TTS calls — negligible cost on Lovable AI Gateway.
-- **2-minute target** is tight for 14 modules + 12 roles + 6 use-cases — pacing will feel brisk by design. If you'd rather breathe, bump to ~2:45 and I'll re-time.
+### Phase 1 — Database port (1–2 weeks)
+- Restore `pg_dump` into self-hosted Postgres. Verify all 300+ tables, 700 policies, 100+ functions land intact.
+- Replace Supabase-specific bits:
+  - `auth.users` → `public.users` table (id, email, password_hash, mfa_secret, created_at…). Rewrite FKs from `auth.users(id)` to `public.users(id)`.
+  - `auth.uid()` → custom `public.current_user_id()` returning `current_setting('app.current_user_id')::uuid`.
+  - `auth.jwt()` → `public.current_jwt_claims()` returning `current_setting('app.jwt_claims')::jsonb`.
+  - Storage buckets → MinIO (S3-compatible), keep same bucket names.
+- Introspect with `prisma db pull` → get `schema.prisma` for all 300+ tables. Do NOT let Prisma manage migrations of existing tables; use `prisma migrate resolve` to baseline.
+- Keep future schema changes in raw SQL migrations (matches current Supabase workflow); Prisma re-pulls after.
 
-## Out of scope
+### Phase 2 — NestJS API skeleton (1 week)
+- Modules mirror frontend domains: `auth`, `patients`, `opd`, `ipd`, `ot`, `lab`, `radiology`, `pharmacy`, `warehouse`, `hr`, `finance`, `billing`, `insurance`, `admin`, `portal`, `kiosk`.
+- Global middleware: JWT verify → set `app.current_user_id` and `app.jwt_claims` on the DB session via a Prisma extension (`$use` middleware) so **RLS policies keep working unchanged**.
+- Guards: `JwtAuthGuard`, `RolesGuard` (reads `user_roles` table, mirrors `has_role()` SECURITY DEFINER function), `OrgScopeGuard`.
+- DTOs + `class-validator` for input validation (mirrors current Zod usage in edge functions).
+- OpenAPI/Swagger auto-generated at `/api/docs`.
 
-- No app source, routing, seed-data, or styling changes.
-- No marketing landing-page embed; just the MP4 + SRT files.
-- No Urdu version unless you ask.
+### Phase 3 — Auth module (1 week)
+- `POST /auth/signup`, `/login`, `/refresh`, `/logout`, `/forgot-password`, `/reset-password`.
+- Access token (15 min JWT) + refresh token (30 days, httpOnly cookie, rotated on use, stored hashed in `refresh_tokens` table).
+- bcrypt (cost 12) for passwords.
+- MFA: TOTP via `otplib`, recovery codes reuse existing `user_mfa_recovery_codes` table.
+- Password reset via signed token emailed through existing SMTP config.
+- **Password migration**: Supabase uses bcrypt too — export `auth.users.encrypted_password` and copy directly into `public.users.password_hash`. Users keep their existing passwords.
+
+### Phase 4 — Port edge functions → NestJS controllers/services (2–3 weeks)
+Each of the ~40 edge functions becomes a service method + controller route. Same input/output shape so frontend `supabase.functions.invoke('x', {body})` becomes `apiClient.post('/x', body)` with a single adapter.
+
+Priority order: `payment-*`, `zatca-einvoice`, `nphies-*`, `hesn-gateway`, `nafath-gateway`, `tatmeen-gateway`, `sehhaty-gateway`, `wasfaty-gateway`, `whatsapp-dispatch`, `send-sms`, `send-push-notification`, `mfa-*`, `pacs-settings`, `test-email-config`, `data-retention-purge`, `cow-sync`, `health`, `heygen-token`.
+
+Cron jobs (data-retention-purge, cow-sync, IPD daily charges) → BullMQ + Redis with `@nestjs/schedule`.
+
+### Phase 5 — Realtime replacement (3–4 days)
+Supabase Realtime (Postgres logical replication → WebSocket) is used in ~15 places (lab orders, IPD beds, notifications, queue displays, etc.).
+
+Options in NestJS:
+- **Socket.io gateway** + Postgres `LISTEN/NOTIFY` triggers on the same tables → emit to rooms scoped by `organization_id`.
+- Keep the frontend `supabase.channel(...)` API surface via a thin `realtimeClient` wrapper so hooks don't change.
+
+### Phase 6 — Storage (2 days)
+- Deploy MinIO in the compose stack. Same bucket layout as Supabase Storage.
+- Migrate objects with `rclone` (Supabase Storage → MinIO).
+- Replace `supabase.storage.from(...).upload/download/createSignedUrl` with a `storageClient` wrapper hitting NestJS `/storage/*` (which proxies to MinIO with signed URLs).
+
+### Phase 7 — Frontend adapter (1–2 weeks)
+Do NOT rewrite 500 hooks. Instead, replace `src/integrations/supabase/client.ts` with a **compat shim** exposing the same API:
+
+```ts
+// Same import path, same signatures — hooks don't change
+export const supabase = {
+  from: (table) => new QueryBuilder(table, apiClient),   // maps .select/.eq/.insert/.update → REST
+  auth:   authAdapter,                                   // login/signup/session
+  functions: { invoke: (name, opts) => apiClient.post(`/fn/${name}`, opts.body) },
+  storage: storageAdapter,
+  channel: realtimeAdapter,                              // socket.io under the hood
+};
+```
+
+The shim covers ~95% of usage. Remaining 5% (edge cases like `.rpc()`, `.throwOnError()`, PostgREST embeds) get migrated file-by-file. `types.ts` is regenerated from Prisma.
+
+### Phase 8 — Cutover (1 week)
+1. Final `pg_dump` from Supabase during a maintenance window (est. 2–4 h).
+2. Restore into self-hosted Postgres.
+3. Sync MinIO one last time (`rclone sync`).
+4. Point DNS (`healthos24.com`) to the VPS Nginx.
+5. Monitor for 72 h; keep Supabase project read-only as rollback for 30 days.
+
+### Phase 9 — Observability & ops (ongoing)
+- Logs: Pino → Loki or plain files rotated by logrotate.
+- Metrics: Prometheus + Grafana (Node exporter, Postgres exporter, NestJS custom metrics).
+- Errors: Self-hosted Sentry or GlitchTip.
+- Backups: `pg_dump` nightly + WAL archiving to B2/S3; MinIO versioning on.
+- Uptime: UptimeKuma.
+
+---
+
+## Technical details
+
+**Prisma + RLS interaction**: Prisma opens pooled connections. RLS needs per-request `SET app.current_user_id`. Use a Prisma client extension that runs `SET LOCAL` inside a transaction wrapper for every request, OR use `pg` directly and pass Prisma the same connection via `$transaction`. Alternative: use `@nestjs-cls/transactional` + `pg-boss` pattern. This is the single trickiest technical piece — must be nailed in Phase 2.
+
+**Connection pooling**: PgBouncer in transaction mode in front of Postgres. Prisma configured with `pgbouncer=true`.
+
+**Compose services**: `nginx`, `api` (NestJS), `worker` (NestJS worker mode for cron/queues), `postgres`, `pgbouncer`, `redis`, `minio`, `backup` (cron container running `pg_dump` + `rclone`).
+
+**Environment**: `.env` for local, Docker secrets or SOPS-encrypted files for VPS.
+
+**CI/CD**: GitHub Actions → build image → push to GHCR → SSH deploy → `docker compose pull && up -d --no-deps api worker`.
+
+**KSA data residency**: pick a VPS region compliant with your regulator requirement (Hetzner has no KSA region; consider AWS Bahrain `me-south-1` or STC Cloud if HESN/NPHIES requires in-kingdom hosting).
+
+---
+
+## What I can deliver in this project (Lovable app)
+
+Lovable's sandbox is React/Vite frontend + Supabase — it **cannot host or run** the NestJS backend. What I *can* do here, once you approve:
+
+1. **Generate a starter `healthos-api` scaffold** as a downloadable folder under `/mnt/documents/healthos-api/`:
+   - NestJS project with the module structure above
+   - `docker-compose.yml`, `Dockerfile`, `nginx.conf`
+   - `schema.prisma` introspected from your current DB
+   - Auth module (JWT + bcrypt + MFA) fully implemented
+   - RLS middleware wired up
+   - One example domain module end-to-end (patients) as the template
+   - README with step-by-step VPS setup
+2. **Build the frontend compat shim** (`src/integrations/supabase/client.ts` replacement) inside *this* Lovable project, gated behind an env flag so it only activates when you set `VITE_API_MODE=self-hosted`. Supabase stays default until you're ready.
+3. **Port edge functions**: I'll translate them one by one into NestJS controllers you drop into the new repo. Deliverables per function: controller, service, DTO, unit tests.
+
+What you'll do outside Lovable:
+- Provision the VPS
+- Run `pg_dump` / `pg_restore` for data migration
+- Run `rclone` for storage migration
+- Point DNS
+- Own the ops from there
+
+---
+
+## Out of scope for this migration
+
+- No feature rewrites — behavior stays identical.
+- No move to microservices — monolith NestJS is right for this size.
+- No mobile app changes (Capacitor build already points at the same API).
+- Urdu/Arabic/English UI already exists; no i18n work needed.
+
+---
+
+## Deliverable of the FIRST approval
+
+If you say "go", I'll produce in the next turn:
+1. `/mnt/documents/healthos-api/` starter scaffold (Phases 0–3 skeleton, ~40 files)
+2. A `MIGRATION.md` runbook with the exact commands for VPS setup, `pg_dump`, Prisma introspection, first deploy
+3. A compat-shim proposal PR in this project (behind `VITE_API_MODE` flag, no breaking change)
+
+Then we iterate phase by phase. Confirm to proceed, or tell me which phase to tackle first if you want a different order.
