@@ -14,13 +14,17 @@ You have full read/write access to the repository. Work autonomously. Do not ask
 
 ## INPUT FILES (read these FIRST, in order, before writing any code)
 
-1. `BRAIN.md` — full architecture, data model (~300 tables), RLS→GUC migration strategy, edge-function → NestJS service map.
-2. `HEALTHOS.md` — product encyclopedia: every module, workflow, route, KSA regulatory rule (ZATCA, NPHIES, Wasfaty, Nafath).
-3. `SELFHOST_RUNBOOK.md` — deployment runbook (VPS hardening, Docker, Certbot, data migration, smoke tests).
-4. `deploy.sh` — one-shot provisioning script.
-5. `healthos-api/` — existing NestJS scaffold (unzip `healthos-api.zip` if not already extracted).
+All self-host documentation lives in **`docs/selfhost/`** at the repository root. Use these exact paths:
+
+1. `docs/selfhost/BRAIN.md` — full architecture, data model (~300 tables), RLS→GUC migration strategy, edge-function → NestJS service map.
+2. `docs/selfhost/HEALTHOS.md` — product encyclopedia: every module, workflow, route, KSA regulatory rule (ZATCA, NPHIES, Wasfaty, Nafath).
+3. `docs/selfhost/SELFHOST_RUNBOOK.md` — deployment runbook (VPS hardening, Docker, Certbot, data migration, smoke tests).
+4. `docs/selfhost/deploy.sh` — one-shot provisioning script. Copy to repo root or run in place with `sudo bash docs/selfhost/deploy.sh`.
+5. `healthos-api/` — existing NestJS scaffold at repo root (unzip `healthos-api.zip` if not already extracted).
 6. `src/` — the current React frontend. Study `src/integrations/supabase/`, `src/hooks/`, and `supabase/functions/` to enumerate every RPC, table access, edge function, and realtime channel the frontend depends on.
 7. `supabase/migrations/` — every SQL migration. This is the source of truth for schema, triggers, RLS policies, and stored procedures.
+
+> If any of the four docs above is missing from `docs/selfhost/`, stop and report — do not proceed with guesses.
 
 After reading, produce a file `MIGRATION_STATE.md` at repo root containing:
 - inventory of tables, triggers, functions, RLS policies, edge functions, storage buckets, realtime channels
