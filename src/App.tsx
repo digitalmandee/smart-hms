@@ -39,6 +39,7 @@ const FinanceDocumentation = React.lazy(() => import("./pages/FinanceDocumentati
 const HrDocumentation = React.lazy(() => import("./pages/HrDocumentation"));
 const DialysisDocumentation = React.lazy(() => import("./pages/DialysisDocumentation"));
 const DentalDocumentation = React.lazy(() => import("./pages/DentalDocumentation"));
+const CoverageReport = React.lazy(() => import("./pages/CoverageReport"));
 const BlogIndex = React.lazy(() => import("./pages/BlogIndex"));
 const BlogPost = React.lazy(() => import("./pages/BlogPost"));
 const PortalLayout = React.lazy(() => import("./layouts/PortalLayout").then(m => ({ default: m.PortalLayout })));
@@ -780,6 +781,7 @@ function App() {
               <Route path="/demo-faq-documentation" element={<><SEO title="Demo & FAQ Documentation — HealthOS 24" description="Demo guide and frequently asked questions for HealthOS 24 evaluations." path="/demo-faq-documentation" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><DemoFaqDocumentation /></React.Suspense></>} />
               <Route path="/system-overview" element={<><SEO title="System Overview — HealthOS 24" description="High-level architecture and module map of the HealthOS 24 platform." path="/system-overview" /><SystemOverview /></>} />
               <Route path="/documentation" element={<><SEO title="Documentation Hub — HealthOS 24" description="Browse documentation for every HealthOS 24 module: OPD, IPD, lab, pharmacy, finance and more." path="/documentation" /><DocumentationHub /></>} />
+              <Route path="/coverage-report" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><CoverageReport /></React.Suspense>} />
               <Route path="/finance-demo-guide" element={<><SEO title="Finance Demo Guide — HealthOS 24" description="Step-by-step finance module demo guide for HealthOS 24." path="/finance-demo-guide" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><FinanceDemoGuide /></React.Suspense></>} />
               <Route path="/opd-documentation" element={<><SEO title="OPD Module Documentation — HealthOS 24" description="OPD workflows in HealthOS 24: registration, tokens, consultation and billing." path="/opd-documentation" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><OpdDocumentation /></React.Suspense></>} />
               <Route path="/ipd-documentation" element={<><SEO title="IPD Module Documentation — HealthOS 24" description="IPD admission, ward management, charges and discharge in HealthOS 24." path="/ipd-documentation" /><React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><IpdDocumentation /></React.Suspense></>} />
