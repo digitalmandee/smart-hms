@@ -39,6 +39,7 @@ const FinanceDocumentation = React.lazy(() => import("./pages/FinanceDocumentati
 const HrDocumentation = React.lazy(() => import("./pages/HrDocumentation"));
 const DialysisDocumentation = React.lazy(() => import("./pages/DialysisDocumentation"));
 const DentalDocumentation = React.lazy(() => import("./pages/DentalDocumentation"));
+const CoverageReport = React.lazy(() => import("./pages/CoverageReport"));
 const BlogIndex = React.lazy(() => import("./pages/BlogIndex"));
 const BlogPost = React.lazy(() => import("./pages/BlogPost"));
 const PortalLayout = React.lazy(() => import("./layouts/PortalLayout").then(m => ({ default: m.PortalLayout })));
