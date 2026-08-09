@@ -3,7 +3,6 @@ import { SEO } from "@/components/SEO";
 import { Card } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Slider } from "@/components/ui/slider";
 import {
   Table, TableBody, TableCell, TableHead, TableHeader, TableRow,
 } from "@/components/ui/table";
@@ -18,11 +17,11 @@ type Lang = "en" | "ur" | "ar";
 const T: Record<Lang, Record<string, string>> = {
   en: {
     title: "Funding Requirement — SAR 3.0M over 24 Months",
-    subtitle: "Year 1 is the first tranche, not the final ask. Model the Year-1 requirement below.",
+    subtitle: "Year 1 is the first tranche of SAR 1.55M, not the final ask. Year 2 funds commercial launch.",
     totalAsk: "Total requirement (24 months)",
     year1: "Year 1 tranche",
     year2: "Year 2 tranche",
-    slider: "Year-1 immediate requirement",
+    slider: "Year-1 immediate requirement — fixed base case",
     lean: "Lean",
     base: "Base",
     full: "Full",
@@ -36,7 +35,7 @@ const T: Record<Lang, Record<string, string>> = {
     month: "Month",
     total: "Total",
     y2plan: "Year 2 — what the remaining tranche funds",
-    note: "Year-1 blocks scale with the slider. Engineering stays at 50% of the Year-1 tranche in every scenario.",
+    note: "Base case: SAR 1.55M for Year 1, of which 50% is engineering. Lean 1.40M and full 1.70M scenarios keep the same 50% engineering share.",
     print: "Print",
     eng: "Engineering team",
     hipaa: "HIPAA audit & certification",
@@ -75,7 +74,7 @@ const T: Record<Lang, Record<string, string>> = {
     month: "ماہ",
     total: "کل",
     y2plan: "سال 2 — باقی قسط کہاں لگے گی",
-    note: "سال 1 کے حصے سلائیڈر کے ساتھ تبدیل ہوتے ہیں۔ انجینئرنگ ہر صورت میں 50% رہتی ہے۔",
+    note: "بنیادی کیس: سال 1 کے لیے SAR 1.55M، جس میں 50% انجینئرنگ ہے۔ کم 1.40M اور مکمل 1.70M منظرناموں میں بھی انجینئرنگ کا حصہ 50% رہتا ہے۔",
     print: "پرنٹ",
     eng: "انجینئرنگ ٹیم",
     hipaa: "HIPAA آڈٹ اور سرٹیفیکیشن",
@@ -114,7 +113,7 @@ const T: Record<Lang, Record<string, string>> = {
     month: "الشهر",
     total: "الإجمالي",
     y2plan: "السنة الثانية — ما تموّله الدفعة المتبقية",
-    note: "بنود السنة الأولى تتغير مع المؤشر. الهندسة تبقى 50٪ من دفعة السنة الأولى في كل السيناريوهات.",
+    note: "الحالة الأساسية: 1.55 مليون ريال للسنة الأولى، منها 50٪ للهندسة. سيناريو الحد الأدنى 1.40 مليون والكامل 1.70 مليون يحافظان على نسبة الهندسة 50٪.",
     print: "طباعة",
     eng: "فريق الهندسة",
     hipaa: "تدقيق واعتماد HIPAA",
@@ -159,7 +158,7 @@ const RAMPS: Record<string, number[]> = {
 
 export default function Year1Budget() {
   const [lang, setLang] = useState<Lang>("en");
-  const [y1, setY1] = useState<number>(1_550_000);
+  const y1 = 1_550_000;
   const t = T[lang];
   const dir = lang === "en" ? "ltr" : "rtl";
 
@@ -244,24 +243,10 @@ export default function Year1Budget() {
           </Card>
         </div>
 
-        <Card className="p-6 space-y-4">
+        <Card className="p-6 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg font-semibold text-foreground">{t.slider}</h2>
-            <Badge variant="secondary">
-              {y1 <= 1_450_000 ? t.lean : y1 >= 1_650_000 ? t.full : t.base}
-            </Badge>
-          </div>
-          <Slider
-            min={1_400_000}
-            max={1_700_000}
-            step={10_000}
-            value={[y1]}
-            onValueChange={(v) => setY1(v[0])}
-          />
-          <div className="flex justify-between text-xs text-muted-foreground">
-            <span>SAR 1.40M · {t.lean}</span>
-            <span>SAR 1.55M · {t.base}</span>
-            <span>SAR 1.70M · {t.full}</span>
+            <Badge variant="secondary">{t.base} · SAR 1.55M</Badge>
           </div>
           <p className="text-sm text-muted-foreground">{t.note}</p>
         </Card>
