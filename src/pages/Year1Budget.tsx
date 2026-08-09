@@ -150,7 +150,7 @@ const BLOCKS = [
 // Monthly ramp weights per block (12 months), normalized inside the component
 const RAMPS: Record<string, number[]> = {
   eng: [3, 4, 5, 7, 8, 9, 9, 9, 9, 9, 9, 9],
-  ksa: [1, 2, 4, 8, 10, 12, 12, 12, 10, able => 0, 0, 0] as unknown as number[],
+  ksa: [1, 2, 4, 8, 10, 12, 12, 12, 10, 8, 6, 5],
   ai: [16, 16, 8, 6, 6, 6, 6, 6, 6, 8, 8, 8],
   hipaa: [4, 6, 6, 8, 10, 12, 12, 10, 10, 8, 7, 7],
   infra: [12, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8, 8],
