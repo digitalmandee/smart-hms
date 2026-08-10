@@ -17,7 +17,7 @@ type Lang = "en" | "ur" | "ar";
 const T: Record<Lang, Record<string, string>> = {
   en: {
     title: "Funding Requirement — SAR 3.0M over 24 Months",
-    subtitle: "Year 1 is the first tranche of SAR 1.55M, not the final ask. Year 2 funds commercial launch.",
+    subtitle: "Year 1 is the first tranche of SAR 1.75M, not the final ask. Year 2 funds commercial launch.",
     totalAsk: "Total requirement (24 months)",
     year1: "Year 1 tranche",
     year2: "Year 2 tranche",
@@ -31,7 +31,7 @@ const T: Record<Lang, Record<string, string>> = {
     cumulative: "Cumulative spend",
     total: "Total",
     y2plan: "Year 2 — what the remaining tranche funds",
-    note: "Base case: SAR 1,550,000 for Year 1, of which SAR 1,094,000 (71%) is engineering payroll for a team that reaches 14 people by Month 12. Hiring is hard-staggered so the tranche is not exceeded; full-strength burn is SAR 329,000 per month.",
+    note: "Base case: SAR 1,750,000 for Year 1, of which SAR 1,094,000 (63%) is engineering payroll for a team that reaches 14 people by Month 12. Hiring is hard-staggered so the tranche is not exceeded; full-strength burn is SAR 329,000 per month.",
     print: "Print",
     team: "Engineering team and hiring ramp",
     role: "Role",
@@ -71,7 +71,7 @@ const T: Record<Lang, Record<string, string>> = {
   },
   ur: {
     title: "فنڈنگ ضرورت — 24 ماہ میں SAR 3.0M",
-    subtitle: "سال 1 پہلی قسط (SAR 1.55M) ہے، حتمی مطالبہ نہیں۔ سال 2 کمرشل لانچ کے لیے ہے۔",
+    subtitle: "سال 1 پہلی قسط (SAR 1.75M) ہے، حتمی مطالبہ نہیں۔ سال 2 کمرشل لانچ کے لیے ہے۔",
     totalAsk: "کل ضرورت (24 ماہ)",
     year1: "سال 1 قسط",
     year2: "سال 2 قسط",
@@ -85,7 +85,7 @@ const T: Record<Lang, Record<string, string>> = {
     cumulative: "مجموعی اخراجات",
     total: "کل",
     y2plan: "سال 2 — باقی قسط کہاں لگے گی",
-    note: "بنیادی کیس: سال 1 کے لیے SAR 1,550,000، جس میں SAR 1,094,000 (71%) انجینئرنگ تنخواہیں ہیں — ٹیم مہینہ 12 تک 14 افراد تک پہنچتی ہے۔ بھرتی مرحلہ وار ہے تاکہ قسط سے تجاوز نہ ہو؛ مکمل ٹیم کا ماہانہ خرچ SAR 329,000 ہے۔",
+    note: "بنیادی کیس: سال 1 کے لیے SAR 1,750,000، جس میں SAR 1,094,000 (63%) انجینئرنگ تنخواہیں ہیں — ٹیم مہینہ 12 تک 14 افراد تک پہنچتی ہے۔ بھرتی مرحلہ وار ہے تاکہ قسط سے تجاوز نہ ہو؛ مکمل ٹیم کا ماہانہ خرچ SAR 329,000 ہے۔",
     print: "پرنٹ",
     team: "انجینئرنگ ٹیم اور بھرتی کا مرحلہ",
     role: "کردار",
@@ -125,7 +125,7 @@ const T: Record<Lang, Record<string, string>> = {
   },
   ar: {
     title: "متطلبات التمويل — 3.0 مليون ريال على 24 شهراً",
-    subtitle: "السنة الأولى هي الدفعة الأولى (1.55 مليون ريال) وليست الطلب النهائي. السنة الثانية تموّل الانطلاق التجاري.",
+    subtitle: "السنة الأولى هي الدفعة الأولى (1.75 مليون ريال) وليست الطلب النهائي. السنة الثانية تموّل الانطلاق التجاري.",
     totalAsk: "إجمالي المتطلبات (24 شهراً)",
     year1: "دفعة السنة الأولى",
     year2: "دفعة السنة الثانية",
@@ -139,7 +139,7 @@ const T: Record<Lang, Record<string, string>> = {
     cumulative: "الإنفاق التراكمي",
     total: "الإجمالي",
     y2plan: "السنة الثانية — ما تموّله الدفعة المتبقية",
-    note: "الحالة الأساسية: 1,550,000 ريال للسنة الأولى، منها 1,094,000 ريال (71٪) رواتب هندسية لفريق يصل إلى 14 شخصاً بحلول الشهر 12. التوظيف تدريجي صارم لعدم تجاوز الدفعة؛ التكلفة الشهرية بكامل الفريق 329,000 ريال.",
+    note: "الحالة الأساسية: 1,750,000 ريال للسنة الأولى، منها 1,094,000 ريال (63٪) رواتب هندسية لفريق يصل إلى 14 شخصاً بحلول الشهر 12. التوظيف تدريجي صارم لعدم تجاوز الدفعة؛ التكلفة الشهرية بكامل الفريق 329,000 ريال.",
     print: "طباعة",
     team: "فريق الهندسة ومسار التوظيف",
     role: "الدور",
@@ -180,7 +180,7 @@ const T: Record<Lang, Record<string, string>> = {
 };
 
 const TOTAL_ASK = 3_000_000;
-const Y1 = 1_550_000;
+const Y1 = 1_750_000;
 
 // (rate, start month) — 14 heads, hard-staggered
 const ROLES: [number, number][] = [
@@ -210,10 +210,10 @@ const FULL_BURN = payroll[11]; // 329,000
 const BLOCKS = [
   { key: "eng", desc: "engD", amount: ENG_TOTAL, color: "hsl(178 85% 22%)" },
   { key: "ksa", desc: "ksaD", amount: 150_000, color: "hsl(200 70% 39%)" },
-  { key: "ai", desc: "aiD", amount: 120_000, color: "hsl(262 36% 47%)" },
-  { key: "audit", desc: "auditD", amount: 70_000, color: "hsl(38 79% 47%)" },
-  { key: "cert", desc: "certD", amount: 45_000, color: "hsl(26 82% 39%)" },
-  { key: "infra", desc: "infraD", amount: 45_000, color: "hsl(150 50% 36%)" },
+  { key: "ai", desc: "aiD", amount: 135_000, color: "hsl(262 36% 47%)" },
+  { key: "audit", desc: "auditD", amount: 130_000, color: "hsl(38 79% 47%)" },
+  { key: "cert", desc: "certD", amount: 95_000, color: "hsl(26 82% 39%)" },
+  { key: "infra", desc: "infraD", amount: 120_000, color: "hsl(150 50% 36%)" },
   { key: "legal", desc: "legalD", amount: 26_000, color: "hsl(2 47% 53%)" },
 ] as const;
 
@@ -275,7 +275,7 @@ export default function Year1Budget() {
     <div className="min-h-screen bg-background" dir={dir}>
       <SEO
         title="Funding Requirement — SAR 3.0M over 24 Months | HealthOS24"
-        description="HealthOS24 funding requirement: SAR 3.0M across 24 months. Year-1 tranche of SAR 1.55M covers a 14-person engineering ramp, HIPAA audit and certification, KSA integrations and AI infrastructure."
+        description="HealthOS24 funding requirement: SAR 3.0M across 24 months. Year-1 tranche of SAR 1.75M covers a 14-person engineering ramp, HIPAA audit and certification, KSA integrations and AI infrastructure."
       />
       <div className="container mx-auto max-w-6xl px-4 py-10 space-y-8">
         <div className="flex flex-wrap items-center justify-between gap-3">
@@ -315,7 +315,7 @@ export default function Year1Budget() {
         <Card className="p-6 space-y-3">
           <div className="flex flex-wrap items-center justify-between gap-2">
             <h2 className="text-lg font-semibold text-foreground">{t.slider}</h2>
-            <Badge variant="secondary">{t.base} · SAR 1.55M</Badge>
+            <Badge variant="secondary">{t.base} · SAR 1.75M</Badge>
           </div>
           <p className="text-sm text-muted-foreground">{t.note}</p>
         </Card>
