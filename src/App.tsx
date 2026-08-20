@@ -833,6 +833,10 @@ function App() {
             <Route path="/warehouse-test-cases" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><WarehouseTestCasesPage /></React.Suspense>} />
             {/* Authenticated kiosk routes - separate login for kiosk devices */}
             <Route path="/kiosk/login" element={<KioskLoginPage />} />
+
+            {/* Aleem Dar Foundation branded staff login */}
+            <Route path="/adf/login" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><AdfLoginPage /></React.Suspense>} />
+            <Route path="/adf" element={<Navigate to="/adf/login" replace />} />
             <Route path="/kiosk/terminal" element={<KioskTerminalPage />} />
             
             {/* Auth routes */}
