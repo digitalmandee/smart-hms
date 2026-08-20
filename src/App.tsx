@@ -170,6 +170,7 @@ import QueueDisplayFormPage from "./pages/app/settings/QueueDisplayFormPage";
 
 // Kiosk authentication pages
 import KioskLoginPage from "./pages/kiosk/KioskLoginPage";
+const AdfLoginPage = React.lazy(() => import("./pages/adf/AdfLoginPage"));
 import KioskTerminalPage from "./pages/kiosk/KioskTerminalPage";
 
 // Filtered queue display page
@@ -833,6 +834,10 @@ function App() {
             <Route path="/warehouse-test-cases" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><WarehouseTestCasesPage /></React.Suspense>} />
             {/* Authenticated kiosk routes - separate login for kiosk devices */}
             <Route path="/kiosk/login" element={<KioskLoginPage />} />
+
+            {/* Aleem Dar Foundation branded staff login */}
+            <Route path="/adf/login" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><AdfLoginPage /></React.Suspense>} />
+            <Route path="/adf" element={<Navigate to="/adf/login" replace />} />
             <Route path="/kiosk/terminal" element={<KioskTerminalPage />} />
             
             {/* Auth routes */}
