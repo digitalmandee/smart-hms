@@ -24,6 +24,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateOrganization } from "@/hooks/useOrganizations";
+import { useBulkUpdateModules } from "@/hooks/useOrganizationModules";
+import { getFacilityModulePreset } from "@/lib/facility-module-presets";
 import { Loader2 } from "lucide-react";
 
 const organizationSchema = z.object({
