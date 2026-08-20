@@ -74,7 +74,7 @@ export function CreateOrganizationPage() {
 
   const onSubmit = async (data: OrganizationFormData) => {
     try {
-      await createOrg.mutateAsync({
+      const org = await createOrg.mutateAsync({
         name: data.name,
         slug: data.slug,
         email: data.email || null,
@@ -90,11 +90,25 @@ export function CreateOrganizationPage() {
           ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() 
           : null,
       });
+
+      // Apply the default module preset for facility types that have one
+      const preset = getFacilityModulePreset(data.facility_type);
+      if (preset && org?.id) {
+        await bulkUpdateModules.mutateAsync({
+          organizationId: org.id,
+          modules: [
+            ...preset.enabled.map((code) => ({ code, enabled: true })),
+            ...preset.disabled.map((code) => ({ code, enabled: false })),
+          ],
+        });
+      }
+
       navigate("/super-admin/organizations");
     } catch (error) {
       // Error is handled by the hook
     }
   };
+
 
   return (
     <div>
