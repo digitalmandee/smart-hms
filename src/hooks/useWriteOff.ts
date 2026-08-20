@@ -22,31 +22,31 @@ export function useWriteOff() {
       if (!profile?.organization_id) throw new Error("No organization");
 
       // 1. Find the bad debt expense account
-      const { data: badDebtAcct } = await supabase
+      const { data: badDebtAccts } = await supabase
         .from("accounts")
         .select("id, account_number")
         .eq("organization_id", profile.organization_id)
         .ilike("account_number", "BAD-DEBT%")
         .eq("is_active", true)
-        .limit(1)
-        .single();
+        .limit(1);
+      const badDebtAcct = badDebtAccts?.[0];
 
       // 2. Find the AR account
-      const { data: arAcct } = await supabase
+      const { data: arAccts } = await supabase
         .from("accounts")
         .select("id, account_number")
         .eq("organization_id", profile.organization_id)
         .ilike("account_number", "AR-%")
         .eq("is_active", true)
-        .limit(1)
-        .single();
+        .limit(1);
+      const arAcct = arAccts?.[0];
 
       if (!badDebtAcct) throw new Error("Bad Debt Expense account (BAD-DEBT-*) not found. Please create it first.");
       if (!arAcct) throw new Error("Accounts Receivable account (AR-*) not found.");
 
       // 3. Create journal entry
       const entryNumber = `WO-${Date.now()}`;
-      const { data: je, error: jeErr } = await supabase
+      const { data: jeRows, error: jeErr } = await supabase
         .from("journal_entries")
         .insert({
           organization_id: profile.organization_id,
@@ -59,10 +59,12 @@ export function useWriteOff() {
           is_posted: true,
           created_by: profile.id,
         })
-        .select("id")
-        .single();
+        .select("id");
 
       if (jeErr) throw jeErr;
+      const je = jeRows?.[0];
+      if (!je) throw new Error("Failed to create write-off journal entry");
+
 
       // 4. Create journal lines: DR Bad Debt Expense, CR AR
       const { error: lineErr } = await supabase
