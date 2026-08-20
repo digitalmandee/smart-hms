@@ -119,6 +119,7 @@ function filterItems(items: SidebarMenuItem[], blockedPrefixes: string[], labelO
  * Filters sidebar items based on the organization's facility_type.
  * - For 'warehouse': hides all clinical + pharmacy paths
  * - For 'pharmacy': hides all clinical paths (keeps pharmacy paths)
+ * - For 'thalassemia_center': hides OT, Emergency, Radiology, Dialysis, Dental (keeps procurement/warehouse)
  * - For 'hospital', 'clinic', 'diagnostic_center': no filtering (full access)
  */
 export function filterSidebarByFacilityType(
