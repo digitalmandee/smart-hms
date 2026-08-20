@@ -39,10 +39,22 @@ const CLINICAL_HR_PATH_PREFIXES = [
   "/app/hr/emergency-roster",
 ];
 
+// Paths a thalassemia center does not use (procurement, warehouse and inventory stay visible)
+const THALASSEMIA_BLOCKED_PREFIXES = [
+  "/app/ot",
+  "/app/emergency",
+  "/app/radiology",
+  "/app/dialysis",
+  "/app/dental",
+  "/app/hr/ot-roster",
+  "/app/hr/emergency-roster",
+];
+
 // Paths blocked per facility type
 const BLOCKED_PREFIXES: Record<string, string[]> = {
   warehouse: [...CLINICAL_PATH_PREFIXES, ...PHARMACY_PATH_PREFIXES, ...BILLING_PATH_PREFIXES, ...CLINICAL_HR_PATH_PREFIXES],
   pharmacy: [...CLINICAL_PATH_PREFIXES], // pharmacy keeps its own paths
+  thalassemia_center: THALASSEMIA_BLOCKED_PREFIXES,
 };
 
 // Label overrides per facility type (code -> new name)
@@ -59,7 +71,11 @@ const HIDDEN_ITEM_NAMES: Record<string, string[]> = {
     "doctor compensation", "doctor earnings", "visiting doctors",
     "ot roster", "emergency roster",
   ],
+  thalassemia_center: [
+    "ot roster", "emergency roster",
+  ],
 };
+
 
 function isPathBlocked(path: string | null, blockedPrefixes: string[]): boolean {
   if (!path) return false;
