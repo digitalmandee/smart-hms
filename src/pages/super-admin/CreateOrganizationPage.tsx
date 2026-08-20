@@ -47,6 +47,7 @@ type OrganizationFormData = z.infer<typeof organizationSchema>;
 export function CreateOrganizationPage() {
   const navigate = useNavigate();
   const createOrg = useCreateOrganization();
+  const bulkUpdateModules = useBulkUpdateModules();
 
   const form = useForm<OrganizationFormData>({
     resolver: zodResolver(organizationSchema),
