@@ -72,9 +72,14 @@ export function useGenerateRecurringEntries() {
 
       const today = new Date().toISOString().slice(0, 10);
 
-      // Create journal entry as draft
+      // Validate the template is balanced before creating the draft entry
       const totalDebit = lines.reduce((s: number, l: any) => s + Number(l.debit_amount || 0), 0);
       const totalCredit = lines.reduce((s: number, l: any) => s + Number(l.credit_amount || 0), 0);
+      if (Math.round(totalDebit * 100) !== Math.round(totalCredit * 100) || totalDebit === 0) {
+        throw new Error("Template is unbalanced — debits must equal credits");
+      }
+
+
 
       const { data: je, error: jeErr } = await supabase
         .from("journal_entries")
@@ -85,8 +90,6 @@ export function useGenerateRecurringEntries() {
           entry_number: "",
           reference_type: "manual",
           description: `Recurring: ${tmpl.template_name}`,
-          total_debit: totalDebit,
-          total_credit: totalCredit,
           is_posted: false,
           created_by: profile!.id,
         })
