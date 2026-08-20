@@ -24,6 +24,8 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { useCreateOrganization } from "@/hooks/useOrganizations";
+import { useBulkUpdateModules } from "@/hooks/useOrganizationModules";
+import { getFacilityModulePreset } from "@/lib/facility-module-presets";
 import { Loader2 } from "lucide-react";
 
 const organizationSchema = z.object({
@@ -34,7 +36,7 @@ const organizationSchema = z.object({
   address: z.string().optional(),
   city: z.string().optional(),
   country: z.string().optional(),
-  facility_type: z.enum(["hospital", "clinic", "diagnostic_center", "pharmacy", "warehouse"]),
+  facility_type: z.enum(["hospital", "clinic", "diagnostic_center", "pharmacy", "warehouse", "thalassemia_center"]),
   billing_workflow: z.enum(["post_visit", "pre_visit"]),
   subscription_plan: z.enum(["basic", "professional", "enterprise"]),
   subscription_status: z.enum(["trial", "active", "suspended", "cancelled"]),
@@ -45,6 +47,7 @@ type OrganizationFormData = z.infer<typeof organizationSchema>;
 export function CreateOrganizationPage() {
   const navigate = useNavigate();
   const createOrg = useCreateOrganization();
+  const bulkUpdateModules = useBulkUpdateModules();
 
   const form = useForm<OrganizationFormData>({
     resolver: zodResolver(organizationSchema),
@@ -74,7 +77,7 @@ export function CreateOrganizationPage() {
 
   const onSubmit = async (data: OrganizationFormData) => {
     try {
-      await createOrg.mutateAsync({
+      const org = await createOrg.mutateAsync({
         name: data.name,
         slug: data.slug,
         email: data.email || null,
@@ -90,11 +93,25 @@ export function CreateOrganizationPage() {
           ? new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString() 
           : null,
       });
+
+      // Apply the default module preset for facility types that have one
+      const preset = getFacilityModulePreset(data.facility_type);
+      if (preset && org?.id) {
+        await bulkUpdateModules.mutateAsync({
+          organizationId: org.id,
+          modules: [
+            ...preset.enabled.map((code) => ({ code, enabled: true })),
+            ...preset.disabled.map((code) => ({ code, enabled: false })),
+          ],
+        });
+      }
+
       navigate("/super-admin/organizations");
     } catch (error) {
       // Error is handled by the hook
     }
   };
+
 
   return (
     <div>
@@ -252,6 +269,7 @@ export function CreateOrganizationPage() {
                           <SelectItem value="diagnostic_center">Diagnostic Center</SelectItem>
                           <SelectItem value="pharmacy">Pharmacy</SelectItem>
                           <SelectItem value="warehouse">Warehouse</SelectItem>
+                          <SelectItem value="thalassemia_center">Thalassemia Center</SelectItem>
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground">

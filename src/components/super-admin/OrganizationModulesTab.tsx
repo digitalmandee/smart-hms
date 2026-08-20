@@ -87,6 +87,9 @@ export function OrganizationModulesTab({ organizationId, facilityType }: Organiz
           {facilityType === "clinic" && (
             <span className="text-warning"> Hospital-only modules are recommended to be disabled for clinics.</span>
           )}
+          {facilityType === "thalassemia_center" && (
+            <span className="text-warning"> Surgery/OT, Emergency, Radiology and Dialysis are not recommended for a thalassemia center. Procurement, Warehouse and Donation Management should stay enabled.</span>
+          )}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-6">

@@ -342,6 +342,7 @@ export function OrganizationSettingsPage() {
                     : (org as any).facility_type === "pharmacy" ? "Pharmacy & Retail Modules"
                     : (org as any).facility_type === "clinic" ? "Clinic Modules"
                     : (org as any).facility_type === "diagnostic_center" ? "Diagnostic Modules"
+                    : (org as any).facility_type === "thalassemia_center" ? "Thalassemia Care Modules"
                     : "Limited Modules"}
                 </Badge>
               </div>
