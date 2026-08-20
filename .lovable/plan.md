@@ -68,10 +68,12 @@ Keep IPD **available but off by default**. Most centers run transfusion as a day
 ## Implementation
 
 1. Add `thalassemia_center` to the facility-type enum in `CreateOrganizationPage.tsx` and `OrganizationDetailPage.tsx` (label: Thalassemia Center / تخصصي الثلاسيميا / تھیلیسیمیا سینٹر), plus the label line in `OrganizationSettingsPage.tsx`.
-2. Add a blocked-prefix set in `src/lib/facility-type-filter.ts` for `thalassemia_center`: `/app/ot`, `/app/emergency`, `/app/radiology`, `/app/dialysis`, `/app/dental`, warehouse-only inventory paths, and the OT/Emergency roster HR sub-paths.
-3. Add a default-module preset so a newly created thalassemia org gets the "Offer" list enabled via the existing bulk module update path, using `available_modules` codes.
+2. Add a blocked-prefix set in `src/lib/facility-type-filter.ts` for `thalassemia_center`: `/app/ot`, `/app/emergency`, `/app/radiology`, `/app/dialysis`, `/app/dental`, and the OT/Emergency roster HR sub-paths. Warehouse, procurement and inventory paths stay fully visible.
+3. Add a default-module preset so a newly created thalassemia org gets the "Offer" list enabled via the existing bulk module update path, using `available_modules` codes (includes `warehouse`, `inventory`, `donations`).
 4. Surface the recommendation note in `OrganizationModulesTab.tsx` (same pattern as the existing clinic hint) so a super-admin sees which modules are not recommended.
-5. Keep all new labels trilingual (EN / UR / AR) with RTL-safe layout, per project convention.
+5. Verify donation revenue reaches the P&L revenue section; if it currently lands outside revenue, correct the donation account mapping so it reports as revenue (trigger-side, no app journals).
+6. Keep all new labels trilingual (EN / UR / AR) with RTL-safe layout, per project convention.
+
 
 No schema changes are required — `available_modules` / `organization_modules` already cover every module in the list above.
 
