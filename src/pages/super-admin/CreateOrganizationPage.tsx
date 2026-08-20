@@ -34,7 +34,7 @@ const organizationSchema = z.object({
   address: z.string().optional(),
   city: z.string().optional(),
   country: z.string().optional(),
-  facility_type: z.enum(["hospital", "clinic", "diagnostic_center", "pharmacy", "warehouse"]),
+  facility_type: z.enum(["hospital", "clinic", "diagnostic_center", "pharmacy", "warehouse", "thalassemia_center"]),
   billing_workflow: z.enum(["post_visit", "pre_visit"]),
   subscription_plan: z.enum(["basic", "professional", "enterprise"]),
   subscription_status: z.enum(["trial", "active", "suspended", "cancelled"]),
@@ -252,6 +252,7 @@ export function CreateOrganizationPage() {
                           <SelectItem value="diagnostic_center">Diagnostic Center</SelectItem>
                           <SelectItem value="pharmacy">Pharmacy</SelectItem>
                           <SelectItem value="warehouse">Warehouse</SelectItem>
+                          <SelectItem value="thalassemia_center">Thalassemia Center</SelectItem>
                         </SelectContent>
                       </Select>
                       <p className="text-xs text-muted-foreground">
