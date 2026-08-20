@@ -14391,6 +14391,7 @@ export type Database = {
           posted_by: string | null
           posting_date: string | null
           reference_id: string | null
+          reference_number: string | null
           reference_type: string | null
           reversal_entry_id: string | null
           reversed_at: string | null
@@ -14427,6 +14428,7 @@ export type Database = {
           posted_by?: string | null
           posting_date?: string | null
           reference_id?: string | null
+          reference_number?: string | null
           reference_type?: string | null
           reversal_entry_id?: string | null
           reversed_at?: string | null
@@ -14463,6 +14465,7 @@ export type Database = {
           posted_by?: string | null
           posting_date?: string | null
           reference_id?: string | null
+          reference_number?: string | null
           reference_type?: string | null
           reversal_entry_id?: string | null
           reversed_at?: string | null
