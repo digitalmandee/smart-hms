@@ -170,6 +170,7 @@ import QueueDisplayFormPage from "./pages/app/settings/QueueDisplayFormPage";
 
 // Kiosk authentication pages
 import KioskLoginPage from "./pages/kiosk/KioskLoginPage";
+const AdfLoginPage = React.lazy(() => import("./pages/adf/AdfLoginPage"));
 import KioskTerminalPage from "./pages/kiosk/KioskTerminalPage";
 
 // Filtered queue display page
