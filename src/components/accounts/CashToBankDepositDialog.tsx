@@ -67,7 +67,7 @@ export function CashToBankDepositDialog({ open, onOpenChange, bankAccount }: Cas
         .select("id, current_balance, name")
         .eq("organization_id", bankAccount.organization_id)
         .eq("account_number", "CASH-001")
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },
@@ -94,37 +94,11 @@ export function CashToBankDepositDialog({ open, onOpenChange, bankAccount }: Cas
 
       const narration = `Cash deposit to ${bankAccount.bank_name} (${bankAccount.account_number})${reference ? ` - Ref: ${reference}` : ""}`;
 
-      // 1. Insert bank transaction
-      const { error: txnError } = await supabase.from("bank_transactions").insert({
-        bank_account_id: bankAccount.id,
-        transaction_date: depositDate,
-        description: narration,
-        credit_amount: depositAmount,
-        debit_amount: 0,
-        reference_number: reference || null,
-        transaction_type: "cash_deposit",
-        created_by: profile?.id,
-      });
-      if (txnError) throw txnError;
-
-      // 2. Update bank account balance
-      const { data: currentAccount } = await supabase
-        .from("bank_accounts")
-        .select("current_balance")
-        .eq("id", bankAccount.id)
-        .single();
-
-      if (currentAccount) {
-        await supabase
-          .from("bank_accounts")
-          .update({ current_balance: (currentAccount.current_balance || 0) + depositAmount })
-          .eq("id", bankAccount.id);
-      }
-
-      // 3. Create journal entry (DR Bank GL, CR Cash GL)
+      // 1. Create journal entry FIRST (DR Bank GL, CR Cash GL) so no balance
+      //    moves without a matching ledger entry.
       if (bankAccount.account_id && cashAccount) {
         const tempEntryNum = `JE-DEP-${format(new Date(), "yyMMdd")}-${Math.floor(Math.random() * 10000).toString().padStart(4, "0")}`;
-        const { data: journalEntry, error: jeError } = await supabase
+        const { data: jeRows, error: jeError } = await supabase
           .from("journal_entries")
           .insert({
             organization_id: bankAccount.organization_id,
@@ -133,11 +107,12 @@ export function CashToBankDepositDialog({ open, onOpenChange, bankAccount }: Cas
             description: narration,
             reference_type: "bank_deposit",
             is_posted: true,
+            created_by: profile?.id,
           })
-          .select()
-          .single();
+          .select("id");
 
         if (jeError) throw jeError;
+        const journalEntry = jeRows?.[0];
 
         if (journalEntry) {
           const { error: lineError } = await supabase.from("journal_entry_lines").insert([
@@ -159,6 +134,34 @@ export function CashToBankDepositDialog({ open, onOpenChange, bankAccount }: Cas
           if (lineError) throw lineError;
         }
       }
+
+      // 2. Insert bank transaction
+      const { error: txnError } = await supabase.from("bank_transactions").insert({
+        bank_account_id: bankAccount.id,
+        transaction_date: depositDate,
+        description: narration,
+        credit_amount: depositAmount,
+        debit_amount: 0,
+        reference_number: reference || null,
+        transaction_type: "cash_deposit",
+        created_by: profile?.id,
+      });
+      if (txnError) throw txnError;
+
+      // 3. Update bank account balance
+      const { data: currentAccount } = await supabase
+        .from("bank_accounts")
+        .select("current_balance")
+        .eq("id", bankAccount.id)
+        .maybeSingle();
+
+      if (currentAccount) {
+        await supabase
+          .from("bank_accounts")
+          .update({ current_balance: (currentAccount.current_balance || 0) + depositAmount })
+          .eq("id", bankAccount.id);
+      }
+
     },
     onSuccess: () => {
       toast({ title: l("success") });

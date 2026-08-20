@@ -85,8 +85,6 @@ export function useGenerateRecurringEntries() {
           entry_number: "",
           reference_type: "manual",
           description: `Recurring: ${tmpl.template_name}`,
-          total_debit: totalDebit,
-          total_credit: totalCredit,
           is_posted: false,
           created_by: profile!.id,
         })

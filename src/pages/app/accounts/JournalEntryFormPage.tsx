@@ -232,13 +232,15 @@ const JournalEntryFormPage = () => {
         entryPayload.posted_by = profile.id;
       }
 
-      const { data: entry, error: entryError } = await supabase
+      const { data: entryRows, error: entryError } = await supabase
         .from("journal_entries")
         .insert(entryPayload)
-        .select("id")
-        .single();
+        .select("id");
 
       if (entryError) throw entryError;
+      const entry = entryRows?.[0];
+      if (!entry) throw new Error("Failed to create journal entry");
+
 
       // Build line payloads
       const validLines = lines.filter(l => l.account_id && (l.debit_amount > 0 || l.credit_amount > 0));
