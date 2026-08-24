@@ -33,10 +33,8 @@ import { ExecTractionSlide } from "@/components/executive/ExecTractionSlide";
 import { ExecROISlide } from "@/components/executive/ExecROISlide";
 import { ExecRevenueStreamsSlide } from "@/components/executive/ExecRevenueStreamsSlide";
 import { ExecUnitEconomicsSlide } from "@/components/executive/ExecUnitEconomicsSlide";
-import { ExecFinancialsSlide } from "@/components/executive/ExecFinancialsSlide";
 import { ExecGoToMarketSlide } from "@/components/executive/ExecGoToMarketSlide";
 import { ExecRoadmapSlide } from "@/components/executive/ExecRoadmapSlide";
-import { ExecTeamSlide } from "@/components/executive/ExecTeamSlide";
 import { ExecRisksSlide } from "@/components/executive/ExecRisksSlide";
 import { ExecVisionSlide } from "@/components/executive/ExecVisionSlide";
 import { ExecSpecialtyCareSlide } from "@/components/executive/ExecSpecialtyCareSlide";
@@ -48,8 +46,11 @@ import { ExecWorkflowSlide } from "@/components/executive/ExecWorkflowSlide";
 import { ExecAutomationSlide } from "@/components/executive/ExecAutomationSlide";
 import { ExecFinanceOpsSlide } from "@/components/executive/ExecFinanceOpsSlide";
 import { ExecClinicOnWheelsSlide } from "@/components/executive/ExecClinicOnWheelsSlide";
+import { ExecPharmacySupplySlide } from "@/components/executive/ExecPharmacySupplySlide";
+import { ExecIpdOperationsSlide } from "@/components/executive/ExecIpdOperationsSlide";
+import { ExecPatientExperienceSlide } from "@/components/executive/ExecPatientExperienceSlide";
 
-const TOTAL_SLIDES = 19;
+const TOTAL_SLIDES = 20;
 const APPENDIX_SLIDES = 16;
 
 const ExecutivePresentationInner = () => {
@@ -283,6 +284,12 @@ const ExecutivePresentationInner = () => {
           <ExecTabeebiSlide />
           {/* 6. Clinical workflow */}
           <ExecClinicalSlide />
+          {/* 7. Inpatient & ward operations */}
+          <ExecIpdOperationsSlide />
+          {/* 8. Pharmacy & supply chain */}
+          <ExecPharmacySupplySlide />
+          {/* 9. Patient experience */}
+          <ExecPatientExperienceSlide />
           {/* 7. KSA Industry Gap */}
           <ExecKsaIndustryGapSlide />
           {/* 8. Saudi-Ready compliance */}
@@ -301,12 +308,8 @@ const ExecutivePresentationInner = () => {
           <ExecRevenueStreamsSlide />
           {/* 15. Unit Economics */}
           <ExecUnitEconomicsSlide />
-          {/* 16. Financials */}
-          <ExecFinancialsSlide />
           {/* 17. Roadmap */}
           <ExecRoadmapSlide />
-          {/* 18. Team */}
-          <ExecTeamSlide />
           {/* 19. Risks */}
           <ExecRisksSlide />
           {/* Close */}
