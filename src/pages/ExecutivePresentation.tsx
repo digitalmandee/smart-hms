@@ -49,8 +49,9 @@ import { ExecClinicOnWheelsSlide } from "@/components/executive/ExecClinicOnWhee
 import { ExecPharmacySupplySlide } from "@/components/executive/ExecPharmacySupplySlide";
 import { ExecIpdOperationsSlide } from "@/components/executive/ExecIpdOperationsSlide";
 import { ExecPatientExperienceSlide } from "@/components/executive/ExecPatientExperienceSlide";
+import { ExecAccessControlSlide } from "@/components/executive/ExecAccessControlSlide";
 
-const TOTAL_SLIDES = 20;
+const TOTAL_SLIDES = 21;
 const APPENDIX_SLIDES = 16;
 
 const ExecutivePresentationInner = () => {
@@ -290,6 +291,9 @@ const ExecutivePresentationInner = () => {
           <ExecPharmacySupplySlide />
           {/* 9. Patient experience */}
           <ExecPatientExperienceSlide />
+          {/* 10. Roles, permissions & audit trail */}
+          <ExecAccessControlSlide />
+
           {/* 7. KSA Industry Gap */}
           <ExecKsaIndustryGapSlide />
           {/* 8. Saudi-Ready compliance */}
