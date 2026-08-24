@@ -1,5 +1,3 @@
-import { Linkedin, Mail } from "lucide-react";
-
 const founders = [
   {
     initials: "SM",
@@ -42,10 +40,6 @@ export function ExecTeamSlide() {
               {f.role}
             </div>
             <div className="text-sm text-muted-foreground mt-4 leading-relaxed max-w-xs">{f.bio}</div>
-            <div className="flex items-center gap-3 mt-4 text-muted-foreground">
-              <Linkedin className="h-4 w-4" />
-              <Mail className="h-4 w-4" />
-            </div>
           </div>
         ))}
       </div>
