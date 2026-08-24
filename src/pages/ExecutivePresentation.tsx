@@ -290,6 +290,9 @@ const ExecutivePresentationInner = () => {
           <ExecPharmacySupplySlide />
           {/* 9. Patient experience */}
           <ExecPatientExperienceSlide />
+          {/* 10. Roles, permissions & audit trail */}
+          <ExecAccessControlSlide />
+
           {/* 7. KSA Industry Gap */}
           <ExecKsaIndustryGapSlide />
           {/* 8. Saudi-Ready compliance */}
