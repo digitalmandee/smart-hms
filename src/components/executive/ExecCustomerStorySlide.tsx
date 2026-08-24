@@ -5,7 +5,7 @@ import { Quote, TrendingDown, TrendingUp, Clock, ShieldCheck } from "lucide-reac
 const CUSTOMER_NAME = "Al-Noor Specialty Clinic";
 const CUSTOMER_DESCRIPTOR = "40-bed multi-specialty, Riyadh";
 const CUSTOMER_QUOTE =
-  "We replaced four separate systems with HealthOS 24 in six weeks. Our claim denials dropped by half and our doctors stopped complaining about software.";
+  "We replaced four separate systems with HMIS in six weeks. Our claim denials dropped by half and our doctors stopped complaining about software.";
 const CUSTOMER_QUOTE_AUTHOR = "Clinic Director, Al-Noor";
 
 const beforeAfter = [
@@ -51,7 +51,7 @@ export function ExecCustomerStorySlide() {
       <div className="flex items-center justify-between mb-5">
         <div>
           <p className="text-sm text-emerald-600 font-semibold mb-1">Customer Story</p>
-          <h2 className="text-3xl font-extrabold text-foreground">Before and after HealthOS 24</h2>
+          <h2 className="text-3xl font-extrabold text-foreground">Before and after HMIS</h2>
           <p className="text-sm text-muted-foreground mt-1">{CUSTOMER_NAME} · {CUSTOMER_DESCRIPTOR}</p>
         </div>
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">Appendix · A4</span>
@@ -108,7 +108,7 @@ export function ExecCustomerStorySlide() {
 
       <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
         <span>Numbers from a live deployment. Anonymized on request.</span>
-        <span>healthos24.com | Confidential</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

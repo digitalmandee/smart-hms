@@ -61,7 +61,7 @@ export function ExecRevenueStreamsSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Four Revenue Streams, One Platform</h2>
           <p className="text-sm text-muted-foreground mt-1">Recurring SaaS at the core. Expansion revenue from telemedicine and mobile clinics.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">14 / 20</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">14 / 19</span>
       </div>
 
       <div className="grid grid-cols-4 gap-3 mb-4">
@@ -134,8 +134,8 @@ export function ExecRevenueStreamsSlide() {
       </div>
 
       <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
-        <span>HealthOS 24 | AI-Powered Hospital Management</span>
-        <span>healthos24.com</span>
+        <span>HMIS | Hospital Management Information System</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

@@ -36,7 +36,7 @@ export function ExecKsaIndustryGapSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">The KSA Healthcare Gap</h2>
           <p className="text-sm text-muted-foreground mt-1">A $66B market with a software problem</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">7 / 20</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">7 / 19</span>
       </div>
 
       <div className="grid grid-cols-4 gap-3 mb-5">
@@ -88,8 +88,8 @@ export function ExecKsaIndustryGapSlide() {
       </div>
 
       <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
-        <span>HealthOS 24 | AI-Powered Hospital Management</span>
-        <span>healthos24.com</span>
+        <span>HMIS | Hospital Management Information System</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

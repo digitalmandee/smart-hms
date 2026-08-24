@@ -27,7 +27,7 @@ export function ExecTabeebiSlide() {
             <p className="text-sm text-muted-foreground">Your competitive differentiator, included in every installation</p>
           </div>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">5 / 20</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">5 / 19</span>
       </div>
 
       <div className="grid grid-cols-2 gap-5 mb-6 relative z-10">
@@ -86,8 +86,8 @@ export function ExecTabeebiSlide() {
       </div>
 
       <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground relative z-10">
-        <span>HealthOS 24 | AI-Powered Hospital Management</span>
-        <span>healthos24.com | Confidential</span>
+        <span>HMIS | Hospital Management Information System</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

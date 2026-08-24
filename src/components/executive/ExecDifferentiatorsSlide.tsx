@@ -20,7 +20,7 @@ export function ExecDifferentiatorsSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Six Unfair Advantages</h2>
           <p className="text-sm text-muted-foreground mt-1">Each one alone is defensible. Together, they're a moat.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">11 / 20</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">11 / 19</span>
       </div>
 
       <div className="grid grid-cols-3 gap-4 flex-1">
@@ -36,8 +36,8 @@ export function ExecDifferentiatorsSlide() {
       </div>
 
       <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
-        <span>HealthOS 24 | AI-Powered Hospital Management</span>
-        <span>healthos24.com | Confidential</span>
+        <span>HMIS | Hospital Management Information System</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

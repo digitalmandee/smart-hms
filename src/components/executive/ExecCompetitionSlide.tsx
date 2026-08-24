@@ -8,7 +8,7 @@ const players = [
   { name: "eClinicWorks", x: 40, y: 55, color: "bg-amber-500" },
   { name: "Salamtak", x: 65, y: 60, color: "bg-blue-500" },
   { name: "ClinicMaster", x: 55, y: 70, color: "bg-purple-500" },
-  { name: "HealthOS 24", x: 92, y: 88, color: "bg-emerald-500", us: true },
+  { name: "HMIS", x: 92, y: 88, color: "bg-emerald-500", us: true },
 ];
 
 export function ExecCompetitionSlide() {
@@ -22,7 +22,7 @@ export function ExecCompetitionSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Why we win in Saudi Arabia</h2>
           <p className="text-sm text-muted-foreground mt-1">Cerner and Epic are too expensive and too foreign. Local tools are too thin. We are the only platform built Saudi-first with real depth.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">10 / 20</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">10 / 19</span>
       </div>
 
       <div className="flex-1 flex gap-6">
@@ -78,7 +78,7 @@ export function ExecCompetitionSlide() {
             <div className="text-xs text-muted-foreground">Good localization, narrow modules, limited scalability.</div>
           </div>
           <div className="rounded-xl border-2 border-emerald-500 bg-emerald-500/5 p-3">
-            <div className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide mb-1">HealthOS 24</div>
+            <div className="text-[10px] font-bold text-emerald-700 uppercase tracking-wide mb-1">HMIS</div>
             <div className="text-xs text-foreground font-medium">Native MENA stack + AI + 1/10th the cost of Cerner.</div>
           </div>
         </div>
@@ -86,7 +86,7 @@ export function ExecCompetitionSlide() {
 
       <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
         <span>Pricing benchmark: HIMSS 2024 per-bed annual cost survey</span>
-        <span>healthos24.com | Confidential</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

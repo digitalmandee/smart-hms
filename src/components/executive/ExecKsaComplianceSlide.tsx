@@ -37,7 +37,7 @@ export function ExecKsaComplianceSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">KSA Regulatory Compliance</h2>
           <p className="text-sm text-muted-foreground mt-1">7 mandatory integrations, fully certified, sandbox-tested, production-ready</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">8 / 20</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">8 / 19</span>
       </div>
 
       {/* 7-Integration Grid (4 + 3 layout) */}
@@ -119,8 +119,8 @@ export function ExecKsaComplianceSlide() {
 
       {/* Footer */}
       <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
-        <span>HealthOS 24 | AI-Powered Hospital Management</span>
-        <span>healthos24.com</span>
+        <span>HMIS | Hospital Management Information System</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

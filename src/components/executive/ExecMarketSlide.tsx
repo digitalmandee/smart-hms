@@ -41,7 +41,7 @@ export function ExecMarketSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">A Multi-Billion Dollar Window</h2>
           <p className="text-sm text-muted-foreground mt-1">Top-down validation: MENA Healthcare IT is one of the fastest-growing verticals globally.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">9 / 20</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">9 / 19</span>
       </div>
 
       <div className="flex-1 flex flex-col gap-4 justify-center">
@@ -78,7 +78,7 @@ export function ExecMarketSlide() {
 
       <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
         <span>Sources: Grand View Research, Ken Research, Statista, WHO, MOH KSA, 2024-2025</span>
-        <span>healthos24.com | Confidential</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

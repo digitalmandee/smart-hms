@@ -1,4 +1,4 @@
-import { Stethoscope, FlaskConical, Pill, Calculator, Settings, Bot, Hotel, Scissors, Siren, HeartPulse, ScanLine, Microscope, Store, Receipt, BarChart3, Wallet, UserCog, Clock, Truck, Warehouse, Shield, Brain, ShieldCheck, FileText, Search, CreditCard, Baby, Droplet, Bluetooth, Smile, Activity, FileSignature, Fingerprint, FileBox, AlertTriangle, TrendingUp, BookOpen, Banknote, Lock } from "lucide-react";
+import { HeartHandshake, Megaphone, RefreshCw, Snowflake, Stethoscope, FlaskConical, Pill, Calculator, Settings, Bot, Hotel, Scissors, Siren, HeartPulse, ScanLine, Microscope, Store, Receipt, BarChart3, Wallet, UserCog, Clock, Truck, Warehouse, Shield, Brain, ShieldCheck, FileText, Search, CreditCard, Baby, Droplet, Bluetooth, Smile, Activity, FileSignature, Fingerprint, FileBox, AlertTriangle, TrendingUp, BookOpen, Banknote, Lock } from "lucide-react";
 
 const categories = [
   {
@@ -16,6 +16,8 @@ const categories = [
       { icon: Baby, name: "ANC / Mother & Child" },
       { icon: Smile, name: "Dental" },
       { icon: Activity, name: "Dialysis" },
+      { icon: Baby, name: "Gyn & Obstetrics" },
+      { icon: FileSignature, name: "Birth & Death Records" },
     ],
   },
   {
@@ -87,6 +89,9 @@ const categories = [
       { icon: Warehouse, name: "Inventory & Stores" },
       { icon: FileBox, name: "Asset Management" },
       { icon: FileText, name: "Document Mgmt" },
+      { icon: Warehouse, name: "Warehouse / WMS" },
+      { icon: Store, name: "Self-Service Kiosk" },
+      { icon: Clock, name: "Queue Displays" },
       { icon: Settings, name: "Multi-Branch Admin" },
     ],
   },
@@ -103,8 +108,21 @@ const categories = [
       { icon: TrendingUp, name: "Predictive Forecasting" },
     ],
   },
+  {
+    name: "Donations & Fundraising",
+    color: "bg-fuchsia-500",
+    borderColor: "border-fuchsia-500/20",
+    bgColor: "bg-fuchsia-500/5",
+    modules: [
+      { icon: HeartHandshake, name: "Donor Management" },
+      { icon: Megaphone, name: "Donation Campaigns" },
+      { icon: RefreshCw, name: "Recurring Donations" },
+      { icon: Banknote, name: "Donations as P&L Revenue" },
+      { icon: Droplet, name: "Blood Donation Drives" },
+      { icon: Snowflake, name: "Cold-Chain Logs" },
+    ],
+  },
 ];
-
 const totalModules = categories.reduce((acc, c) => acc + c.modules.length, 0);
 
 export function ExecModulesSlide() {
@@ -145,8 +163,8 @@ export function ExecModulesSlide() {
       </div>
 
       <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
-        <span>HealthOS 24 | AI-Powered Hospital Management</span>
-        <span>healthos24.com</span>
+        <span>HMIS | Hospital Management Information System</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

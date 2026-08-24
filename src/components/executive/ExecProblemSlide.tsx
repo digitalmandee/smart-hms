@@ -22,7 +22,7 @@ export function ExecProblemSlide() {
           <p className="text-sm text-destructive font-semibold mb-1">The Challenge</p>
           <h2 className="text-3xl font-extrabold text-foreground">The Problem: Fragmented Hospital IT</h2>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">2 / 20</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">2 / 19</span>
       </div>
 
       <div className="grid grid-cols-2 gap-6 flex-1">
@@ -63,8 +63,8 @@ export function ExecProblemSlide() {
       </div>
 
       <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
-        <span>HealthOS 24 | AI-Powered Hospital Management</span>
-        <span>healthos24.com | Confidential</span>
+        <span>HMIS | Hospital Management Information System</span>
+        <span>Confidential</span>
       </div>
     </div>
   );
