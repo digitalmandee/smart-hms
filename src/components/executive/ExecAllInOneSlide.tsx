@@ -1,4 +1,4 @@
-import { Stethoscope, Hotel, Scissors, Siren, FlaskConical, ScanLine, Pill, UserCog, Calculator, Truck, Warehouse, BarChart3, Globe } from "lucide-react";
+import { Stethoscope, Hotel, Scissors, Siren, FlaskConical, ScanLine, Pill, UserCog, Calculator, Truck, Warehouse, BarChart3, Globe, Baby, Smile, HeartHandshake } from "lucide-react";
 
 const departments = [
   { icon: Stethoscope, name: "OPD", color: "bg-blue-500" },
@@ -13,6 +13,9 @@ const departments = [
   { icon: Truck, name: "Procurement", color: "bg-orange-500" },
   { icon: Warehouse, name: "Inventory", color: "bg-lime-600" },
   { icon: BarChart3, name: "Reports & BI", color: "bg-purple-500" },
+  { icon: Baby, name: "Gyn & Obstetrics", color: "bg-rose-500" },
+  { icon: Smile, name: "Dental", color: "bg-sky-500" },
+  { icon: HeartHandshake, name: "Donations", color: "bg-fuchsia-500" },
 ];
 
 export function ExecAllInOneSlide() {
@@ -22,7 +25,7 @@ export function ExecAllInOneSlide() {
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] rounded-full bg-primary/5 blur-3xl" />
       </div>
 
-      <div className="absolute top-6 right-6 text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">4 / 20</div>
+      <div className="absolute top-6 right-6 text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">4 / 19</div>
 
       <div className="relative z-10 flex flex-col items-center w-full max-w-4xl pt-6">
         <p className="text-sm text-primary font-semibold mb-2">The Solution</p>
@@ -37,14 +40,14 @@ export function ExecAllInOneSlide() {
 
         <div className="relative w-full flex items-center justify-center" style={{ minHeight: 340 }}>
           <div className="absolute z-20 w-28 h-28 rounded-full bg-gradient-to-br from-primary to-primary/80 flex flex-col items-center justify-center shadow-2xl border-4 border-background">
-            <span className="text-2xl font-extrabold text-primary-foreground">24</span>
-            <span className="text-[9px] text-primary-foreground/80 font-semibold">HealthOS</span>
+            <span className="text-xl font-extrabold text-primary-foreground tracking-tight">HMIS</span>
+            <span className="text-[8px] text-primary-foreground/80 font-semibold text-center leading-tight px-2">One System</span>
           </div>
 
           {departments.map((dept, i) => {
             const angle = (i * 360) / departments.length - 90;
             const rad = (angle * Math.PI) / 180;
-            const radius = 150;
+            const radius = 165;
             const x = Math.cos(rad) * radius;
             const y = Math.sin(rad) * radius;
             return (
@@ -63,7 +66,7 @@ export function ExecAllInOneSlide() {
             {departments.map((dept, i) => {
               const angle = (i * 360) / departments.length - 90;
               const rad = (angle * Math.PI) / 180;
-              const radius = 150;
+              const radius = 165;
               const x = Math.cos(rad) * radius;
               const y = Math.sin(rad) * radius;
               return (
@@ -83,8 +86,8 @@ export function ExecAllInOneSlide() {
       </div>
 
       <div className="absolute bottom-4 left-0 right-0 flex items-center justify-between px-8 text-[10px] text-muted-foreground">
-        <span>HealthOS 24 | AI-Powered Hospital Management</span>
-        <span>healthos24.com | Confidential</span>
+        <span>HMIS | Hospital Management Information System</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

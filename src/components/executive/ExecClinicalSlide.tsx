@@ -1,4 +1,4 @@
-import { Stethoscope, Hotel, Siren, Scissors, HeartPulse } from "lucide-react";
+import { Stethoscope, Hotel, Siren, Scissors, HeartPulse, Baby } from "lucide-react";
 
 const departments = [
   {
@@ -66,6 +66,19 @@ const departments = [
       "ANC / Maternity module",
     ],
   },
+  {
+    icon: Baby,
+    name: "Gyn & Obstetrics",
+    color: "bg-rose-500",
+    borderColor: "border-rose-500/20",
+    features: [
+      "ANC visit schedule & records",
+      "High-risk pregnancy flagging",
+      "Labour & delivery notes",
+      "Birth records & certificates",
+      "Postnatal & newborn follow-up",
+    ],
+  },
 ];
 
 export function ExecClinicalSlide() {
@@ -79,10 +92,10 @@ export function ExecClinicalSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">Clinical Workflows. Every Department</h2>
           <p className="text-sm text-muted-foreground mt-1">From walk-in to discharge, every clinical touchpoint is covered.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">6 / 20</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">6 / 19</span>
       </div>
 
-      <div className="grid grid-cols-5 gap-3 flex-1">
+      <div className="grid grid-cols-6 gap-2.5 flex-1">
         {departments.map((dept) => (
           <div key={dept.name} className={`rounded-xl border ${dept.borderColor} bg-card p-4 flex flex-col`}>
             <div className="flex items-center gap-2 mb-3">
@@ -104,8 +117,8 @@ export function ExecClinicalSlide() {
       </div>
 
       <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
-        <span>HealthOS 24 | AI-Powered Hospital Management</span>
-        <span>healthos24.com</span>
+        <span>HMIS | Hospital Management Information System</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

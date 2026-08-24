@@ -39,7 +39,8 @@ import { ExecRoadmapSlide } from "@/components/executive/ExecRoadmapSlide";
 import { ExecTeamSlide } from "@/components/executive/ExecTeamSlide";
 import { ExecRisksSlide } from "@/components/executive/ExecRisksSlide";
 import { ExecVisionSlide } from "@/components/executive/ExecVisionSlide";
-import { ExecAskSlide } from "@/components/executive/ExecAskSlide";
+import { ExecSpecialtyCareSlide } from "@/components/executive/ExecSpecialtyCareSlide";
+import { ExecDonationsSlide } from "@/components/executive/ExecDonationsSlide";
 import { ExecCTASlide } from "@/components/executive/ExecCTASlide";
 import { ExecDiagnosticsSlide } from "@/components/executive/ExecDiagnosticsSlide";
 import { ExecInsuranceSlide } from "@/components/executive/ExecInsuranceSlide";
@@ -48,8 +49,8 @@ import { ExecAutomationSlide } from "@/components/executive/ExecAutomationSlide"
 import { ExecFinanceOpsSlide } from "@/components/executive/ExecFinanceOpsSlide";
 import { ExecClinicOnWheelsSlide } from "@/components/executive/ExecClinicOnWheelsSlide";
 
-const TOTAL_SLIDES = 20;
-const APPENDIX_SLIDES = 14;
+const TOTAL_SLIDES = 19;
+const APPENDIX_SLIDES = 16;
 
 const ExecutivePresentationInner = () => {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -103,7 +104,7 @@ const ExecutivePresentationInner = () => {
       const url = URL.createObjectURL(pdfBlob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = lang === "ar" ? "HealthOS24-Product-Deck-ar.pdf" : "HealthOS24-Product-Deck.pdf";
+      link.download = lang === "ar" ? "HMIS-Product-Deck-ar.pdf" : "HMIS-Product-Deck.pdf";
       link.style.display = "none";
       document.body.appendChild(link);
       link.click();
@@ -146,7 +147,7 @@ const ExecutivePresentationInner = () => {
     try {
       const slides = printContainerRef.current.querySelectorAll(".slide");
       const zip = new JSZip();
-      const folder = zip.folder("HealthOS24-Pitch-Deck-Slides")!;
+      const folder = zip.folder("HMIS-Deck-Slides")!;
 
       for (let i = 0; i < slides.length; i++) {
         const el = slides[i] as HTMLElement;
@@ -161,7 +162,7 @@ const ExecutivePresentationInner = () => {
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = lang === "ar" ? "HealthOS24-Pitch-Deck-Images-ar.zip" : "HealthOS24-Pitch-Deck-Images.zip";
+      link.download = lang === "ar" ? "HMIS-Deck-Images-ar.zip" : "HMIS-Deck-Images.zip";
       document.body.appendChild(link);
       link.click();
       setTimeout(() => { document.body.removeChild(link); URL.revokeObjectURL(url); }, 5000);
@@ -208,7 +209,7 @@ const ExecutivePresentationInner = () => {
               </Button>
             </Link>
             <div>
-              <h1 className="font-semibold">HealthOS 24 — Investor Pitch Deck</h1>
+              <h1 className="font-semibold">HMIS — Product Deck</h1>
               <p className="text-xs text-muted-foreground">{TOTAL_SLIDES} core slides + {APPENDIX_SLIDES} appendix</p>
             </div>
           </div>
@@ -269,7 +270,7 @@ const ExecutivePresentationInner = () => {
 
       <div className="bg-muted/30 min-h-screen">
         <div ref={printContainerRef} className="py-8 px-4">
-          {/* Core investor deck — 20 slides + thank-you */}
+          {/* Core deck — 19 slides + thank-you */}
           {/* 1. Title */}
           <ExecTitleSlide />
           {/* 2. Problem */}
@@ -308,8 +309,6 @@ const ExecutivePresentationInner = () => {
           <ExecTeamSlide />
           {/* 19. Risks */}
           <ExecRisksSlide />
-          {/* 20. Ask */}
-          <ExecAskSlide />
           {/* Close */}
           <ExecCTASlide />
 
@@ -337,6 +336,8 @@ const ExecutivePresentationInner = () => {
           <ExecAutomationSlide />           {/* A12 automations */}
           <ExecFinanceOpsSlide />           {/* A13 finance ops */}
           <ExecClinicOnWheelsSlide />       {/* A14 mobile clinics */}
+          <ExecSpecialtyCareSlide />        {/* A15 dental / dialysis / gyn */}
+          <ExecDonationsSlide />            {/* A16 donations + facility profiles */}
         </div>
       </div>
     </>

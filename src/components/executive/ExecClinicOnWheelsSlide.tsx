@@ -103,7 +103,7 @@ export function ExecClinicOnWheelsSlide() {
         <div className="rounded-xl border border-emerald-500/30 bg-emerald-500/5 p-4">
           <div className="flex items-center gap-2 mb-2">
             <Building2 className="h-4 w-4 text-emerald-600" />
-            <h3 className="font-bold text-foreground text-sm">Same HealthOS 24</h3>
+            <h3 className="font-bold text-foreground text-sm">Same HMIS</h3>
           </div>
           <p className="text-[11px] text-foreground leading-relaxed">
             Offline-first, syncs over LTE / Starlink. NPHIES on the spot, ZATCA mobile invoicing, Wasfaty e-prescription from the van.
@@ -112,8 +112,8 @@ export function ExecClinicOnWheelsSlide() {
       </div>
 
       <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
-        <span>HealthOS 24 | AI-Powered Hospital Management</span>
-        <span>healthos24.com</span>
+        <span>HMIS | Hospital Management Information System</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

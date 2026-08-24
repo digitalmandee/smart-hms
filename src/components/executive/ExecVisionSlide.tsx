@@ -16,7 +16,7 @@ const horizons = [
   {
     year: "2030",
     title: "The operating system for MENA healthcare",
-    desc: "1 in 5 KSA facilities on HealthOS 24. Expansion into GCC and North Africa.",
+    desc: "1 in 5 KSA facilities on HMIS. Expansion into GCC and North Africa.",
     color: "from-amber-500 to-orange-500",
   },
 ];
@@ -29,7 +29,7 @@ export function ExecVisionSlide() {
       <div className="flex items-center justify-between mb-6">
         <div>
           <p className="text-sm text-indigo-600 font-semibold mb-1">Vision</p>
-          <h2 className="text-3xl font-extrabold text-foreground">Where HealthOS 24 is going</h2>
+          <h2 className="text-3xl font-extrabold text-foreground">Where HMIS is going</h2>
           <p className="text-sm text-muted-foreground mt-1">A five-year path from Riyadh to the rest of the region.</p>
         </div>
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">Appendix · A6</span>
@@ -42,7 +42,7 @@ export function ExecVisionSlide() {
           <span className="text-[11px] font-bold uppercase tracking-wider opacity-90">North Star</span>
         </div>
         <p className="text-2xl font-extrabold leading-tight">
-          By 2030, HealthOS 24 powers 1 in 5 healthcare facilities in Saudi Arabia.
+          By 2030, HMIS powers 1 in 5 healthcare facilities in Saudi Arabia.
         </p>
         <p className="text-sm opacity-90 mt-2">
           Saudi-native. AI-first. Affordable. The default operating system for hospitals and clinics across MENA.
@@ -68,8 +68,8 @@ export function ExecVisionSlide() {
       </div>
 
       <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
-        <span>HealthOS 24 | AI-Powered Hospital Management</span>
-        <span>healthos24.com</span>
+        <span>HMIS | Hospital Management Information System</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

@@ -68,7 +68,7 @@ export function ExecRoadmapSlide() {
             Tied to compliance, AI depth and hospital-group readiness. Each milestone unlocks the next revenue tier.
           </p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">17 / 20</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">17 / 19</span>
       </div>
 
       <div className="grid grid-cols-4 gap-3 flex-1">
@@ -110,8 +110,8 @@ export function ExecRoadmapSlide() {
       </div>
 
       <div className="mt-3 pt-2 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
-        <span>HealthOS 24 | AI-Powered Hospital Management</span>
-        <span>healthos24.com | Confidential</span>
+        <span>HMIS | Hospital Management Information System</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

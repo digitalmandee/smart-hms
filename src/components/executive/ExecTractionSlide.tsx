@@ -18,9 +18,9 @@ export function ExecTractionSlide() {
         <div>
           <p className="text-sm text-blue-600 font-semibold mb-1">Traction</p>
           <h2 className="text-3xl font-extrabold text-foreground">Built. Shipped. Live.</h2>
-          <p className="text-sm text-muted-foreground mt-1">We're not pre-product. Real facilities are running on HealthOS 24 today.</p>
+          <p className="text-sm text-muted-foreground mt-1">We're not pre-product. Real facilities are running on HMIS today.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">12 / 20</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">12 / 19</span>
       </div>
 
       <div className="grid grid-cols-3 gap-4 flex-1">
@@ -40,7 +40,7 @@ export function ExecTractionSlide() {
 
       <div className="mt-4 pt-3 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
         <span>Figures reflect cumulative platform activity as of Q2 2026</span>
-        <span>healthos24.com | Confidential</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

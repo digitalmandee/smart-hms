@@ -46,7 +46,7 @@ export function ExecGoToMarketSlide() {
             Founder-led direct sales in KSA, channel leverage for scale, pilot-to-paid conversion engine.
           </p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">13 / 20</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">13 / 19</span>
       </div>
 
       <div className="grid grid-cols-3 gap-3 mb-4">
@@ -108,8 +108,8 @@ export function ExecGoToMarketSlide() {
       </div>
 
       <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
-        <span>HealthOS 24 | AI-Powered Hospital Management</span>
-        <span>healthos24.com | Confidential</span>
+        <span>HMIS | Hospital Management Information System</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

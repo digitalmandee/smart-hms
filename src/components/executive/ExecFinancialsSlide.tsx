@@ -26,7 +26,7 @@ export function ExecFinancialsSlide() {
           <h2 className="text-3xl font-extrabold text-foreground">5-Year ARR Projection</h2>
           <p className="text-sm text-muted-foreground mt-1">Bottom-up: 200 paying facilities × $14K avg ACV → $2.8M by Y3, $28M ARR by Y5.</p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">16 / 20</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">16 / 19</span>
       </div>
 
       <div className="flex-1 grid grid-cols-5 gap-6">
@@ -74,7 +74,7 @@ export function ExecFinancialsSlide() {
 
       <div className="mt-3 pt-3 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
         <span>Projections based on KSA SaaS comps and bottom-up facility pipeline. Illustrative.</span>
-        <span>healthos24.com | Confidential</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

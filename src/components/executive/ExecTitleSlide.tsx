@@ -1,8 +1,8 @@
-import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
+import { ExecDeckMark } from "@/components/executive/ExecDeckMark";
 import { Building2, FlaskConical, Users, Shield, Bot, Layers, Globe } from "lucide-react";
 
 const stats = [
-  { icon: Building2, value: "28", label: "Live Modules" },
+  { icon: Building2, value: "34", label: "Live Modules" },
   { icon: FlaskConical, value: "2", label: "Live Deployments" },
   { icon: Users, value: "3", label: "Languages (EN · AR · UR)" },
   { icon: Shield, value: "KSA", label: "Native Compliance" },
@@ -16,7 +16,7 @@ export function ExecTitleSlide() {
       <div className="absolute bottom-[-80px] left-[-80px] w-[300px] h-[300px] rounded-full bg-primary/8 blur-3xl" />
 
       <div className="relative z-10 flex flex-col items-center gap-8">
-        <HealthOS24Logo variant="full" size="xl" showTagline />
+        <ExecDeckMark size="xl" showTagline />
 
         <div className="space-y-3 max-w-3xl">
           <h1 className="text-5xl font-extrabold text-foreground leading-tight tracking-tight">
@@ -26,14 +26,14 @@ export function ExecTitleSlide() {
             AI-native. Saudi-compliant. Already shipped.
           </p>
           <p className="text-base text-muted-foreground max-w-xl mx-auto">
-            One platform that replaces ten. Built for Saudi healthcare from day one. Priced at a fraction of Cerner.
+            One platform that replaces ten. Built for Saudi healthcare from day one. Modular by facility type: hospitals, polyclinics, and specialty centres.
           </p>
         </div>
 
         {/* Feature badges */}
         <div className="flex items-center gap-3 mt-2">
           <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
-            <Layers className="h-3.5 w-3.5" />20+ Modules
+            <Layers className="h-3.5 w-3.5" />34 Modules
           </span>
           <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-primary/10 text-primary text-xs font-semibold">
             <Globe className="h-3.5 w-3.5" />3 Languages
@@ -68,9 +68,8 @@ export function ExecTitleSlide() {
 
       {/* Footer */}
       <div className="absolute bottom-4 left-0 right-0 flex items-center justify-between px-8 text-[10px] text-muted-foreground">
-        <span>HealthOS 24 | AI-Powered Hospital Management</span>
-        <span>March 2026</span>
-        <span>healthos24.com</span>
+        <span>HMIS | Hospital Management Information System</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

@@ -31,7 +31,7 @@ export function ExecUnitEconomicsSlide() {
             High gross margin, fast payback, recurring expansion. Built for capital efficiency in KSA.
           </p>
         </div>
-        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">15 / 20</span>
+        <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">15 / 19</span>
       </div>
 
       <div className="grid grid-cols-3 gap-3 mb-4">
@@ -74,7 +74,7 @@ export function ExecUnitEconomicsSlide() {
 
       <div className="mt-3 pt-2 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
         <span>Modeled on first 2 paying deployments + KSA enterprise SaaS benchmarks</span>
-        <span>healthos24.com | Confidential</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

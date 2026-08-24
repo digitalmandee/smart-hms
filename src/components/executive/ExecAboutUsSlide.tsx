@@ -3,7 +3,7 @@ import { Quote, GraduationCap, Code2, Stethoscope, MapPin } from "lucide-react";
 // Founder story slide (replaces the old "About Us" feature grid).
 // EDIT the FOUNDER_* constants below with real bio / quote / photo before sending the deck.
 const FOUNDER_NAME = "Ahmed Raza";
-const FOUNDER_ROLE = "Founder & CEO, HealthOS 24";
+const FOUNDER_ROLE = "Founder & CEO, HMIS";
 const FOUNDER_LOCATION = "Riyadh, Saudi Arabia";
 const FOUNDER_PHOTO_INITIALS = "AR";
 
@@ -24,7 +24,7 @@ export function ExecAboutUsSlide() {
           <p className="text-sm text-primary font-semibold mb-1">Founder Story</p>
           <h2 className="text-3xl font-extrabold text-foreground">Why we are building this</h2>
           <p className="text-sm text-muted-foreground mt-1">
-            The "aha" moment that started HealthOS 24.
+            The "aha" moment that started HMIS.
           </p>
         </div>
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">2 / 32</span>
@@ -78,8 +78,8 @@ export function ExecAboutUsSlide() {
       </div>
 
       <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
-        <span>HealthOS 24 | AI-Powered Hospital Management</span>
-        <span>healthos24.com | Confidential</span>
+        <span>HMIS | Hospital Management Information System</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

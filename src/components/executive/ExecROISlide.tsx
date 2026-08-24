@@ -36,7 +36,7 @@ const metrics = [
     value: "4 Weeks",
     label: "Go-Live Timeline",
     before: "Typical HMS takes 6-12 months",
-    after: "HealthOS 24 fully operational in 4 weeks",
+    after: "HMIS fully operational in 4 weeks",
     barBefore: 100,
     barAfter: 25,
     color: "bg-amber-500",
@@ -94,8 +94,8 @@ export function ExecROISlide() {
       </div>
 
       <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
-        <span>HealthOS 24 | AI-Powered Hospital Management</span>
-        <span>healthos24.com | Confidential</span>
+        <span>HMIS | Hospital Management Information System</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

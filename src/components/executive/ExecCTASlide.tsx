@@ -1,6 +1,5 @@
-import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
-import { Phone, Mail, Globe, Calendar, Layers, Bot, Rocket, HeadphonesIcon, RefreshCw } from "lucide-react";
-import { generateQRCodeUrl } from "@/lib/qrcode";
+import { ExecDeckMark } from "@/components/executive/ExecDeckMark";
+import { Globe, Layers, Bot, Rocket, HeadphonesIcon, RefreshCw } from "lucide-react";
 
 const reasons = [
   { icon: Layers, title: "True All-in-One", desc: "One unified codebase, clinical, admin, finance, operations. Replace 10+ tools." },
@@ -12,8 +11,6 @@ const reasons = [
 ];
 
 export function ExecCTASlide() {
-  const qrUrl = generateQRCodeUrl("https://healthos24.com", 120);
-
   return (
     <div className="slide flex flex-col relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-primary/5">
       <div className="absolute inset-0">
@@ -25,9 +22,9 @@ export function ExecCTASlide() {
 
       <div className="flex items-center justify-between mb-5 relative z-10">
         <div>
-          <p className="text-sm text-primary font-semibold mb-1">The Ask, in one line</p>
-          <h2 className="text-3xl font-extrabold text-foreground">Let's win Saudi Arabia together</h2>
-          <p className="text-sm text-muted-foreground mt-1">Looking for 2 to 3 strategic investors. Lead check SAR 750K. Closing Q3 2026.</p>
+          <p className="text-sm text-primary font-semibold mb-1">In one line</p>
+          <h2 className="text-3xl font-extrabold text-foreground">Built for Saudi healthcare</h2>
+          <p className="text-sm text-muted-foreground mt-1">One integrated system for every clinical, financial, and operational workflow.</p>
         </div>
         <span className="text-sm text-muted-foreground font-medium bg-muted px-3 py-1 rounded-full">Thank you</span>
       </div>
@@ -48,35 +45,30 @@ export function ExecCTASlide() {
           ))}
         </div>
 
-        {/* Right: Contact + QR */}
+        {/* Right: Summary panel */}
         <div className="w-[260px] flex flex-col items-center gap-4">
-          <HealthOS24Logo variant="full" size="lg" />
+          <ExecDeckMark size="lg" showTagline />
 
           <div className="space-y-2 w-full">
             {[
-              { icon: Phone, label: "+92 304 111 0024" },
-              { icon: Mail, label: "hello@healthos24.com" },
-              { icon: Globe, label: "healthos24.com" },
-              { icon: Calendar, label: "Book a Demo" },
+              { label: "34 modules", note: "Clinical, diagnostics, finance, operations" },
+              { label: "3 languages", note: "English · Arabic · Urdu, full RTL" },
+              { label: "KSA-ready", note: "NPHIES, ZATCA, Wasfaty, Nafath" },
+              { label: "Multi-branch", note: "Central admin, per-branch modules" },
             ].map((c) => (
-              <div key={c.label} className="flex items-center gap-3 px-4 py-2.5 rounded-xl bg-card border text-left">
-                <c.icon className="h-4 w-4 text-primary shrink-0" />
-                <span className="text-xs font-medium text-foreground">{c.label}</span>
+              <div key={c.label} className="px-4 py-2.5 rounded-xl bg-card border text-left">
+                <div className="text-xs font-bold text-foreground">{c.label}</div>
+                <div className="text-[10px] text-muted-foreground leading-snug">{c.note}</div>
               </div>
             ))}
-          </div>
-
-          <div className="flex flex-col items-center gap-1.5">
-            <img src={qrUrl} alt="Scan to visit healthos24.com" className="w-24 h-24 rounded-xl border" />
-            <span className="text-[10px] text-muted-foreground">Scan to visit</span>
           </div>
         </div>
       </div>
 
       <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground relative z-10">
-        <span>HealthOS 24 | AI-Powered Hospital Management</span>
+        <span>HMIS | Hospital Management Information System</span>
         <span className="text-primary font-semibold">One Platform. Every Department. Powered by AI.</span>
-        <span>healthos24.com</span>
+        <span>Confidential</span>
       </div>
     </div>
   );

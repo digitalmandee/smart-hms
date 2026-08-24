@@ -31,7 +31,7 @@ export function ExecAIEverywhereSlide() {
             <Brain className="h-7 w-7 text-white" />
           </div>
           <div>
-            <h3 className="text-lg font-extrabold text-foreground">HealthOS AI Core</h3>
+            <h3 className="text-lg font-extrabold text-foreground">HMIS AI Core</h3>
             <p className="text-xs text-muted-foreground">Powering intelligence across 20+ modules</p>
           </div>
         </div>
@@ -52,8 +52,8 @@ export function ExecAIEverywhereSlide() {
       </div>
 
       <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground relative z-10">
-        <span>HealthOS 24 | AI-Powered Hospital Management</span>
-        <span>healthos24.com</span>
+        <span>HMIS | Hospital Management Information System</span>
+        <span>Confidential</span>
       </div>
     </div>
   );
