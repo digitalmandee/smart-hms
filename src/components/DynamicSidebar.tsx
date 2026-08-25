@@ -1,3 +1,4 @@
+import { LOGO_ICON_URL } from "@/components/brand/HealthOS24Logo";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
 import { cn } from "@/lib/utils";

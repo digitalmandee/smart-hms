@@ -1,3 +1,4 @@
+import { LOGO_ICON_URL } from "@/components/brand/HealthOS24Logo";
 export const KsaDocCover = () => {
   const currentDate = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
 
@@ -5,7 +6,7 @@ export const KsaDocCover = () => {
     <div className="proposal-page flex flex-col justify-between bg-white p-12">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div style={{ width: 48, height: 48, borderRadius: 12, backgroundColor: '#006C35', color: 'white', fontWeight: 700, fontSize: 20, lineHeight: '48px', textAlign: 'center' as const, display: 'inline-block' }}>24</div>
+          <img src={LOGO_ICON_URL} alt="HealthOS" style={{ width: 48, height: 48, borderRadius: 12, objectFit: "contain", flexShrink: 0 }} />
           <div className="flex flex-col">
             <span className="text-2xl font-bold text-gray-900 leading-tight">HealthOS</span>
             <span className="text-xs text-gray-500">Smart Hospital Management</span>

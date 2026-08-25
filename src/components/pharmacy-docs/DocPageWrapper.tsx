@@ -1,3 +1,4 @@
+import { LOGO_ICON_URL } from "@/components/brand/HealthOS24Logo";
 interface DocPageWrapperProps {
   children: React.ReactNode;
   pageNumber: number;
@@ -9,7 +10,7 @@ export const DocPageWrapper = ({ children, pageNumber, totalPages }: DocPageWrap
     {/* Header */}
     <div className="flex items-center justify-between mb-6 pb-4 border-b border-emerald-200">
       <div className="flex items-center gap-2">
-        <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#059669', color: 'white', fontWeight: 700, fontSize: 14, lineHeight: '32px', textAlign: 'center' as const, display: 'inline-block', flexShrink: 0 }}>24</div>
+        <img src={LOGO_ICON_URL} alt="HealthOS" style={{ width: 32, height: 32, borderRadius: 8, objectFit: "contain", flexShrink: 0 }} />
         <span className="text-lg font-bold text-gray-900">HealthOS</span>
       </div>
       <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">

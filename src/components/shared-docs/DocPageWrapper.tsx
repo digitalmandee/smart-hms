@@ -1,3 +1,4 @@
+import { LOGO_ICON_URL } from "@/components/brand/HealthOS24Logo";
 interface DocPageWrapperProps {
   children: React.ReactNode;
   pageNumber: number;
@@ -9,7 +10,7 @@ export const DocPageWrapper = ({ children, pageNumber, totalPages, moduleTitle }
   <div className="proposal-page flex flex-col p-10" style={{ width: '210mm', height: '297mm', background: 'white', overflow: 'hidden' }}>
     <div className="flex items-center justify-between mb-6 pb-4 border-b border-emerald-200">
       <div className="flex items-center gap-2">
-        <div style={{ width: 32, height: 32, borderRadius: 8, backgroundColor: '#059669', color: 'white', fontWeight: 700, fontSize: 14, lineHeight: '32px', textAlign: 'center' as const, display: 'inline-block', flexShrink: 0 }}>24</div>
+        <img src={LOGO_ICON_URL} alt="HealthOS" style={{ width: 32, height: 32, borderRadius: 8, objectFit: "contain", flexShrink: 0 }} />
         <span className="text-lg font-bold text-gray-900">HealthOS</span>
       </div>
       <span className="text-xs font-medium text-emerald-700 bg-emerald-50 px-3 py-1 rounded-full">{moduleTitle}</span>
@@ -28,7 +29,7 @@ export const DocCover = ({ title, subtitle, features }: { title: string; subtitl
     <div className="proposal-page flex flex-col justify-between bg-white p-12" style={{ width: '210mm', height: '297mm' }}>
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-3">
-          <div style={{ width: 48, height: 48, borderRadius: 12, backgroundColor: '#059669', color: 'white', fontWeight: 700, fontSize: 20, lineHeight: '48px', textAlign: 'center' as const, display: 'inline-block' }}>24</div>
+          <img src={LOGO_ICON_URL} alt="HealthOS" style={{ width: 48, height: 48, borderRadius: 12, objectFit: "contain", flexShrink: 0 }} />
           <div className="flex flex-col">
             <span className="text-2xl font-bold text-gray-900 leading-tight">HealthOS</span>
             <span className="text-xs text-gray-500">Smart Hospital Management</span>
