@@ -1179,14 +1179,13 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
       )}>
         {/* Brand group */}
         <div className={cn("flex items-center gap-3", isRTL && "flex-row-reverse")}>
-          <div className="h-9 w-9 rounded-lg bg-gradient-to-br from-sidebar-primary to-sidebar-primary/80 flex items-center justify-center flex-shrink-0 shadow-lg">
-            <span className="text-sm font-bold text-sidebar-primary-foreground">24</span>
-          </div>
+          <img src={LOGO_ICON_URL} alt="HealthOS" className="h-9 w-9 rounded-lg flex-shrink-0 object-contain" />
           {!isCollapsed && (
             <span className={cn("text-lg font-semibold text-sidebar-foreground whitespace-nowrap")}>
-              HealthOS 24
+              HealthOS
             </span>
           )}
+
         </div>
         
         {/* Action group */}
