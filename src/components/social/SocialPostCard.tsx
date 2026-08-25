@@ -1,3 +1,4 @@
+import { LOGO_ICON_URL } from "@/components/brand/HealthOS24Logo";
 import { useRef, useState, useEffect } from "react";
 import { toPng } from "html-to-image";
 import { Download, Loader2 } from "lucide-react";
@@ -114,13 +115,8 @@ export const SocialPostCard = ({ post }: SocialPostCardProps) => {
                 {/* Header: Logo + Module */}
                 <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: "24px" }}>
                   <div style={{ display: "flex", alignItems: "center", gap: "14px" }}>
-                    <div style={{
-                      width: "48px", height: "48px",
-                      backgroundColor: isDark ? "rgba(255,255,255,0.15)" : "#0d9488",
-                      borderRadius: "12px", display: "flex", alignItems: "center", justifyContent: "center",
-                    }}>
-                      <span style={{ color: "#fff", fontWeight: 800, fontSize: "20px", letterSpacing: "-1.5px" }}>24</span>
-                    </div>
+                    <img src={LOGO_ICON_URL} alt="HealthOS" style={{ width: "48px", height: "48px", borderRadius: "12px", objectFit: "contain" }} />
+
                     <span style={{
                       color: isDark ? "#ffffff" : "#1e293b",
                       fontSize: "24px", fontWeight: 700, letterSpacing: "-0.02em",
@@ -184,13 +180,7 @@ export const SocialPostCard = ({ post }: SocialPostCardProps) => {
                 padding: "0 56px",
               }}>
                 <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                  <div style={{
-                    width: "32px", height: "32px",
-                    backgroundColor: "rgba(255,255,255,0.25)",
-                    borderRadius: "8px", display: "flex", alignItems: "center", justifyContent: "center",
-                  }}>
-                    <span style={{ color: "#fff", fontWeight: 800, fontSize: "14px", letterSpacing: "-1px" }}>24</span>
-                  </div>
+                  <img src={LOGO_ICON_URL} alt="HealthOS" style={{ width: "32px", height: "32px", borderRadius: "8px", objectFit: "contain" }} />
                   <span style={{ color: "#ffffff", fontSize: "20px", fontWeight: 700, letterSpacing: "0.02em" }}>HealthOS</span>
                 </div>
                 <span style={{ color: "rgba(255,255,255,0.8)", fontSize: "20px", fontWeight: 500, letterSpacing: "0.05em" }}>healthos24.com</span>
