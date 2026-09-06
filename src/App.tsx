@@ -1176,6 +1176,7 @@ function App() {
               {/* Dental routes */}
               <Route path="dental" element={<DentalDashboard />} />
               <Route path="dental/chart" element={<DentalChartPage />} />
+              <Route path="dental/plans" element={<DentalPlansPage />} />
               <Route path="dental/treatments" element={<DentalTreatmentsPage />} />
               <Route path="dental/treatments/new" element={<DentalNewTreatmentPage />} />
               <Route path="dental/procedures" element={<DentalProceduresPage />} />
