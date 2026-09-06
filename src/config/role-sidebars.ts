@@ -365,6 +365,19 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Reports", path: "/app/dialysis/reports", icon: "BarChart3" },
         ]
       },
+      {
+        name: "Dental",
+        path: "",
+        icon: "Smile",
+        children: [
+          { name: "Dashboard", path: "/app/dental", icon: "LayoutDashboard" },
+          { name: "Tooth Chart", path: "/app/dental/chart", icon: "Smile" },
+          { name: "Treatment Plans", path: "/app/dental/plans", icon: "ListChecks" },
+          { name: "Treatments", path: "/app/dental/treatments", icon: "ClipboardList" },
+          { name: "Procedures", path: "/app/dental/procedures", icon: "BookOpen" },
+          { name: "Images", path: "/app/dental/images", icon: "Image" },
+        ]
+      },
       { 
         name: "My Work", 
         path: "", 
