@@ -90,7 +90,7 @@ export function useDentalTreatments(patientId?: string) {
     queryFn: async () => {
       let query = supabase
         .from("dental_treatments")
-        .select("*, dental_procedures(name, code, category), patients(first_name, last_name, mrn_number), doctors(profiles(full_name))")
+        .select("*, dental_procedures(name, code, category), patients(first_name, last_name, patient_number), doctors(profiles(full_name))")
         .eq("organization_id", profile!.organization_id!)
         .order("created_at", { ascending: false });
       if (patientId) query = query.eq("patient_id", patientId);
