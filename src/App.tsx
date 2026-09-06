@@ -491,6 +491,7 @@ import DialysisPatientDetailPage from "./pages/app/dialysis/DialysisPatientDetai
 // Dental pages
 import DentalDashboard from "./pages/app/dental/DentalDashboard";
 import DentalChartPage from "./pages/app/dental/DentalChartPage";
+import DentalPlansPage from "./pages/app/dental/DentalPlansPage";
 import DentalTreatmentsPage from "./pages/app/dental/DentalTreatmentsPage";
 import DentalNewTreatmentPage from "./pages/app/dental/DentalNewTreatmentPage";
 import DentalProceduresPage from "./pages/app/dental/DentalProceduresPage";
@@ -1176,6 +1177,7 @@ function App() {
               {/* Dental routes */}
               <Route path="dental" element={<DentalDashboard />} />
               <Route path="dental/chart" element={<DentalChartPage />} />
+              <Route path="dental/plans" element={<DentalPlansPage />} />
               <Route path="dental/treatments" element={<DentalTreatmentsPage />} />
               <Route path="dental/treatments/new" element={<DentalNewTreatmentPage />} />
               <Route path="dental/procedures" element={<DentalProceduresPage />} />

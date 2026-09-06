@@ -148,7 +148,11 @@ export default function DentalNewTreatmentPage() {
               </div>
             </div>
             {row.tooth_number && (
-              <ToothSurfaceSelector toothNumber={Number(row.tooth_number)} selectedSurfaces={row.surfaces} onToggleSurface={s => toggleSurface(i, s)} />
+              <ToothSurfaceSelector
+                toothNumber={Number(row.tooth_number)}
+                surfaces={row.surfaces.reduce((acc: Record<string, string>, s) => { acc[s] = "caries"; return acc; }, {})}
+                onSelectSurface={s => toggleSurface(i, s)}
+              />
             )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div><Label>Diagnosis</Label><Textarea value={row.diagnosis} onChange={e => updateRow(i, "diagnosis", e.target.value)} rows={2} /></div>
