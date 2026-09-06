@@ -491,6 +491,7 @@ import DialysisPatientDetailPage from "./pages/app/dialysis/DialysisPatientDetai
 // Dental pages
 import DentalDashboard from "./pages/app/dental/DentalDashboard";
 import DentalChartPage from "./pages/app/dental/DentalChartPage";
+import DentalPlansPage from "./pages/app/dental/DentalPlansPage";
 import DentalTreatmentsPage from "./pages/app/dental/DentalTreatmentsPage";
 import DentalNewTreatmentPage from "./pages/app/dental/DentalNewTreatmentPage";
 import DentalProceduresPage from "./pages/app/dental/DentalProceduresPage";
