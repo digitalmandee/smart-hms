@@ -1,35 +1,46 @@
-import { useState } from "react";
+import { useMemo, useState } from "react";
 import { PageHeader } from "@/components/PageHeader";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { useDentalChart, useUpsertDentalChart } from "@/hooks/useDental";
+import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
-import Dental3DChart from "@/components/dental/Dental3DChart";
-
-const CONDITIONS = ["healthy", "decayed", "missing", "restored", "crown", "implant", "bridge", "root_canal", "fractured"];
-const CONDITION_COLORS: Record<string, string> = {
-  healthy: "bg-green-100 text-green-800 border-green-300",
-  decayed: "bg-red-100 text-red-800 border-red-300",
-  missing: "bg-gray-200 text-gray-500 border-gray-300",
-  restored: "bg-blue-100 text-blue-800 border-blue-300",
-  crown: "bg-yellow-100 text-yellow-800 border-yellow-300",
-  implant: "bg-purple-100 text-purple-800 border-purple-300",
-  bridge: "bg-orange-100 text-orange-800 border-orange-300",
-  root_canal: "bg-pink-100 text-pink-800 border-pink-300",
-  fractured: "bg-red-200 text-red-900 border-red-400",
-};
+import { useDentalChart, useUpsertDentalChart } from "@/hooks/useDental";
+import { useToothSurfaces, useUpsertToothSurface, useLogToothHistory } from "@/hooks/useDentalCharting";
+import Dental3DChart, { ToothState } from "@/components/dental/Dental3DChart";
+import Odontogram2D from "@/components/dental/Odontogram2D";
+import ToothDetailPanel from "@/components/dental/ToothDetailPanel";
+import ConditionPalette from "@/components/dental/ConditionPalette";
+import PerioChart from "@/components/dental/PerioChart";
+import {
+  CONDITIONS,
+  CONDITION_MAP,
+  Dentition,
+  SurfaceKey,
+  getQuadrants,
+  normalizeCondition,
+} from "@/lib/dental/constants";
+import { useDentalT } from "@/lib/dental/i18n";
+import { Printer } from "lucide-react";
 
 export default function DentalChartPage() {
   const { profile } = useAuth();
+  const { dt, isRTL } = useDentalT();
   const [patientId, setPatientId] = useState("");
+  const [dentition, setDentition] = useState<Dentition>("permanent");
   const [viewMode, setViewMode] = useState<"3d" | "2d">("3d");
-  const { data: chartData } = useDentalChart(patientId || undefined);
-  const upsertChart = useUpsertDentalChart();
+  const [jawView, setJawView] = useState<"both" | "upper" | "lower">("both");
   const [selectedTooth, setSelectedTooth] = useState<number | null>(null);
+  const [paintCondition, setPaintCondition] = useState<string | null>(null);
+
+  const { data: chartRows } = useDentalChart(patientId || undefined);
+  const { data: surfaceRows } = useToothSurfaces(patientId || undefined);
+  const upsertChart = useUpsertDentalChart();
+  const upsertSurface = useUpsertToothSurface();
+  const logHistory = useLogToothHistory();
 
   const { data: patients } = useQuery({
     queryKey: ["patients-dental-chart", profile?.organization_id],
@@ -42,105 +53,215 @@ export default function DentalChartPage() {
     enabled: !!profile?.organization_id,
   });
 
-  const toothMap = (chartData || []).reduce((acc: Record<number, any>, t: any) => {
-    acc[t.tooth_number] = t;
-    return acc;
-  }, {});
+  const chartMap = useMemo(() => {
+    const m: Record<number, any> = {};
+    (chartRows || []).forEach((r: any) => { m[r.tooth_number] = r; });
+    return m;
+  }, [chartRows]);
 
-  const handleConditionChange = (toothNumber: number, condition: string) => {
+  const toothStates = useMemo(() => {
+    const states: Record<number, ToothState> = {};
+    (chartRows || []).forEach((r: any) => {
+      states[r.tooth_number] = { condition: normalizeCondition(r.condition), surfaces: {} };
+    });
+    (surfaceRows || []).forEach((r: any) => {
+      if (!states[r.tooth_number]) states[r.tooth_number] = { condition: "healthy", surfaces: {} };
+      states[r.tooth_number].surfaces[r.surface as SurfaceKey] = normalizeCondition(r.condition);
+    });
+    return states;
+  }, [chartRows, surfaceRows]);
+
+  const setToothCondition = (tooth: number, condition: string) => {
     if (!patientId) return;
-    upsertChart.mutate({ patient_id: patientId, tooth_number: toothNumber, condition });
+    const prev = chartMap[tooth]?.condition;
+    upsertChart.mutate({ patient_id: patientId, tooth_number: tooth, condition, notes: chartMap[tooth]?.notes });
+    logHistory.mutate({ patient_id: patientId, tooth_number: tooth, previous_condition: prev, new_condition: condition });
   };
 
+  const setSurfaceCondition = (tooth: number, surface: SurfaceKey, condition: string) => {
+    if (!patientId) return;
+    upsertSurface.mutate({
+      patient_id: patientId,
+      tooth_number: tooth,
+      surface,
+      condition,
+      previous_condition: toothStates[tooth]?.surfaces?.[surface],
+    });
+  };
+
+  // Painting: applies the picked condition to a tooth (whole-tooth condition) or a surface
+  const handlePaintSurface = (tooth: number, surface: SurfaceKey) => {
+    if (!paintCondition) { setSelectedTooth(tooth); return; }
+    const def = CONDITION_MAP[paintCondition];
+    if (def?.scope === "tooth") setToothCondition(tooth, paintCondition);
+    else setSurfaceCondition(tooth, surface, paintCondition);
+  };
+
+  const handleSelectTooth = (tooth: number | null) => {
+    if (tooth !== null && paintCondition && CONDITION_MAP[paintCondition]?.scope === "tooth") {
+      setToothCondition(tooth, paintCondition);
+      setSelectedTooth(tooth);
+      return;
+    }
+    setSelectedTooth(tooth);
+  };
+
+  const resetTooth = (tooth: number) => {
+    setToothCondition(tooth, "healthy");
+    (["M", "D", "B", "L", "O"] as SurfaceKey[]).forEach((s) => {
+      if (toothStates[tooth]?.surfaces?.[s] && toothStates[tooth].surfaces[s] !== "healthy") {
+        setSurfaceCondition(tooth, s, "healthy");
+      }
+    });
+  };
+
+  const markQuadrantHealthy = (teeth: number[]) => teeth.forEach((t) => setToothCondition(t, "healthy"));
+
   return (
-    <div className="space-y-6">
+    <div className="space-y-6" dir={isRTL ? "rtl" : "ltr"}>
       <PageHeader
-        title="Dental Chart"
-        description="Interactive 3D FDI tooth chart — select a patient to view/edit"
-        breadcrumbs={[{ label: "Dental", href: "/app/dental" }, { label: "Tooth Chart" }]}
+        title={dt("dental.chart")}
+        description={dt("dental.paintHint")}
+        breadcrumbs={[{ label: "Dental", href: "/app/dental" }, { label: dt("dental.odontogram") }]}
         actions={
-          <div className="flex gap-2">
-            <Button variant={viewMode === "3d" ? "default" : "outline"} size="sm" onClick={() => setViewMode("3d")}>3D</Button>
-            <Button variant={viewMode === "2d" ? "default" : "outline"} size="sm" onClick={() => setViewMode("2d")}>2D</Button>
+          <div className={`flex gap-2 ${isRTL ? "flex-row-reverse" : ""}`}>
+            <Button variant={viewMode === "3d" ? "default" : "outline"} size="sm" onClick={() => setViewMode("3d")}>{dt("dental.view3d")}</Button>
+            <Button variant={viewMode === "2d" ? "default" : "outline"} size="sm" onClick={() => setViewMode("2d")}>{dt("dental.view2d")}</Button>
+            <Button variant="outline" size="sm" onClick={() => window.print()} className="gap-1.5">
+              <Printer className="h-4 w-4" />{dt("dental.print")}
+            </Button>
           </div>
         }
       />
 
       <Card>
-        <CardContent className="pt-6">
-          <div className="mb-4">
-            <Select value={patientId} onValueChange={setPatientId}>
-              <SelectTrigger><SelectValue placeholder="Select patient..." /></SelectTrigger>
+        <CardContent className="pt-6 space-y-4">
+          <div className="grid gap-3 md:grid-cols-3">
+            <Select value={patientId} onValueChange={(v) => { setPatientId(v); setSelectedTooth(null); }}>
+              <SelectTrigger><SelectValue placeholder={dt("dental.selectPatient")} /></SelectTrigger>
               <SelectContent>
                 {(patients || []).map((p: any) => (
                   <SelectItem key={p.id} value={p.id}>{p.first_name} {p.last_name} — {p.patient_number}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
+
+            <Select value={dentition} onValueChange={(v) => setDentition(v as Dentition)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="permanent">{dt("dental.permanent")}</SelectItem>
+                <SelectItem value="primary">{dt("dental.primary")}</SelectItem>
+              </SelectContent>
+            </Select>
+
+            <Select value={jawView} onValueChange={(v) => setJawView(v as any)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="both">{dt("dental.both")}</SelectItem>
+                <SelectItem value="upper">{dt("dental.upper")}</SelectItem>
+                <SelectItem value="lower">{dt("dental.lower")}</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
-          {viewMode === "3d" ? (
-            <Dental3DChart
-              toothMap={toothMap}
-              selectedTooth={selectedTooth}
-              onSelectTooth={setSelectedTooth}
-            />
-          ) : (
-            <div className="space-y-6">
-              {[
-                { label: "Upper Right (Q1)", teeth: [18, 17, 16, 15, 14, 13, 12, 11] },
-                { label: "Upper Left (Q2)", teeth: [21, 22, 23, 24, 25, 26, 27, 28] },
-                { label: "Lower Left (Q3)", teeth: [38, 37, 36, 35, 34, 33, 32, 31] },
-                { label: "Lower Right (Q4)", teeth: [41, 42, 43, 44, 45, 46, 47, 48] },
-              ].map((q, qi) => (
-                <div key={qi}>
-                  <p className="text-sm font-medium text-muted-foreground mb-2">{q.label}</p>
-                  <div className="flex gap-2 flex-wrap">
-                    {q.teeth.map(tooth => {
-                      const data = toothMap[tooth];
-                      const condition = data?.condition || "healthy";
-                      const colorClass = CONDITION_COLORS[condition] || "bg-muted";
-                      return (
-                        <button
-                          key={tooth}
-                          onClick={() => setSelectedTooth(selectedTooth === tooth ? null : tooth)}
-                          className={`w-12 h-14 rounded-lg border-2 flex flex-col items-center justify-center text-xs font-bold transition-all ${colorClass} ${selectedTooth === tooth ? "ring-2 ring-primary" : ""}`}
-                        >
-                          <span>{tooth}</span>
-                          <span className="text-[9px] font-normal truncate">{condition === "healthy" ? "" : condition.slice(0, 4)}</span>
-                        </button>
-                      );
-                    })}
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {/* Selected tooth detail */}
-          {selectedTooth && patientId && (
-            <div className="mt-6 p-4 border rounded-lg">
-              <p className="font-semibold mb-2">Tooth #{selectedTooth}</p>
-              <Select
-                value={toothMap[selectedTooth]?.condition || "healthy"}
-                onValueChange={val => handleConditionChange(selectedTooth, val)}
-              >
-                <SelectTrigger className="w-48"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {CONDITIONS.map(c => <SelectItem key={c} value={c}>{c.replace("_", " ")}</SelectItem>)}
-                </SelectContent>
-              </Select>
-            </div>
-          )}
-
-          {/* Legend */}
-          <div className="mt-6 flex flex-wrap gap-2">
-            {CONDITIONS.map(c => (
-              <Badge key={c} variant="outline" className={CONDITION_COLORS[c]}>{c.replace("_", " ")}</Badge>
-            ))}
-          </div>
+          {!patientId && <p className="text-sm text-muted-foreground">{dt("dental.selectPatientFirst")}</p>}
         </CardContent>
       </Card>
+
+      {patientId && (
+        <Tabs defaultValue="chart">
+          <TabsList>
+            <TabsTrigger value="chart">{dt("dental.odontogram")}</TabsTrigger>
+            <TabsTrigger value="perio">{dt("dental.perio")}</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="chart" className="space-y-4">
+            <Card>
+              <CardContent className="pt-6 space-y-3">
+                <p className="text-xs font-medium text-muted-foreground">{dt("dental.paintMode")}</p>
+                <ConditionPalette value={paintCondition} onChange={setPaintCondition} />
+              </CardContent>
+            </Card>
+
+            <div className="grid gap-4 lg:grid-cols-3">
+              <div className="lg:col-span-2 space-y-4">
+                <Card>
+                  <CardContent className="pt-6">
+                    {viewMode === "3d" ? (
+                      <Dental3DChart
+                        dentition={dentition}
+                        toothStates={toothStates}
+                        selectedTooth={selectedTooth}
+                        onSelectTooth={handleSelectTooth}
+                        onPaintSurface={handlePaintSurface}
+                        jawView={jawView}
+                      />
+                    ) : (
+                      <Odontogram2D
+                        dentition={dentition}
+                        toothStates={toothStates}
+                        selectedTooth={selectedTooth}
+                        onSelectTooth={handleSelectTooth}
+                        onPaintSurface={handlePaintSurface}
+                      />
+                    )}
+
+                    <div className="mt-4 flex flex-wrap gap-2">
+                      {getQuadrants(dentition).map((q) => (
+                        <Button key={q.key} variant="outline" size="sm" onClick={() => markQuadrantHealthy(q.teeth)}>
+                          {dt(`quadrant.${q.labelKey}`)} · {dt("dental.markQuadrant")}
+                        </Button>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+
+                <Card>
+                  <CardContent className="pt-6">
+                    <p className="text-xs font-medium text-muted-foreground mb-2">{dt("dental.legend")}</p>
+                    <div className="flex flex-wrap gap-1.5">
+                      {CONDITIONS.map((c) => (
+                        <Badge key={c.key} variant="outline" className="gap-1.5 font-normal">
+                          <span className="w-2.5 h-2.5 rounded-sm border border-black/10" style={{ backgroundColor: c.color }} />
+                          {dt(`cond.${c.key}`)}
+                        </Badge>
+                      ))}
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+
+              <div>
+                {selectedTooth ? (
+                  <ToothDetailPanel
+                    patientId={patientId}
+                    toothNumber={selectedTooth}
+                    state={toothStates[selectedTooth] || { condition: "healthy", surfaces: {} }}
+                    notes={chartMap[selectedTooth]?.notes}
+                    onSetToothCondition={(c) => setToothCondition(selectedTooth, c)}
+                    onSetSurfaceCondition={(s, c) => setSurfaceCondition(selectedTooth, s, c)}
+                    onSaveNotes={(notes) =>
+                      upsertChart.mutate({
+                        patient_id: patientId,
+                        tooth_number: selectedTooth,
+                        condition: toothStates[selectedTooth]?.condition || "healthy",
+                        notes,
+                      })
+                    }
+                    onResetTooth={() => resetTooth(selectedTooth)}
+                  />
+                ) : (
+                  <Card><CardContent className="pt-6 text-sm text-muted-foreground">{dt("dental.selectToothHint")}</CardContent></Card>
+                )}
+              </div>
+            </div>
+          </TabsContent>
+
+          <TabsContent value="perio">
+            <PerioChart patientId={patientId} dentition={dentition} />
+          </TabsContent>
+        </Tabs>
+      )}
     </div>
   );
 }
