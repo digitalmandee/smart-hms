@@ -6337,6 +6337,69 @@ export type Database = {
           },
         ]
       }
+      dental_chart_findings: {
+        Row: {
+          branch_id: string | null
+          cdt_code: string | null
+          charted_at: string
+          charted_by: string | null
+          closed_at: string | null
+          color: string | null
+          created_at: string
+          dentition: string
+          finding_key: string
+          finding_name: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          patient_id: string
+          status: string
+          surface: string | null
+          tooth_number: number
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          cdt_code?: string | null
+          charted_at?: string
+          charted_by?: string | null
+          closed_at?: string | null
+          color?: string | null
+          created_at?: string
+          dentition?: string
+          finding_key: string
+          finding_name?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          patient_id: string
+          status?: string
+          surface?: string | null
+          tooth_number: number
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          cdt_code?: string | null
+          charted_at?: string
+          charted_by?: string | null
+          closed_at?: string | null
+          color?: string | null
+          created_at?: string
+          dentition?: string
+          finding_key?: string
+          finding_name?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          patient_id?: string
+          status?: string
+          surface?: string | null
+          tooth_number?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
       dental_chart_history: {
         Row: {
           changed_at: string
@@ -6449,6 +6512,176 @@ export type Database = {
           },
         ]
       }
+      dental_clinical_records: {
+        Row: {
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          data: Json
+          doctor_id: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          patient_id: string
+          record_date: string
+          record_type: string
+          status: string
+          title: string | null
+          tooth_number: number | null
+          updated_at: string
+        }
+        Insert: {
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          doctor_id?: string | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          patient_id: string
+          record_date?: string
+          record_type: string
+          status?: string
+          title?: string | null
+          tooth_number?: number | null
+          updated_at?: string
+        }
+        Update: {
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          data?: Json
+          doctor_id?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          patient_id?: string
+          record_date?: string
+          record_type?: string
+          status?: string
+          title?: string | null
+          tooth_number?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      dental_consents: {
+        Row: {
+          body: string | null
+          branch_id: string | null
+          consent_type: string
+          created_at: string
+          created_by: string | null
+          id: string
+          organization_id: string
+          patient_id: string
+          signature_data: string | null
+          signed_at: string | null
+          signed_by_name: string | null
+          title: string
+          tooth_numbers: string | null
+          updated_at: string
+          witnessed_by: string | null
+        }
+        Insert: {
+          body?: string | null
+          branch_id?: string | null
+          consent_type: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id: string
+          patient_id: string
+          signature_data?: string | null
+          signed_at?: string | null
+          signed_by_name?: string | null
+          title: string
+          tooth_numbers?: string | null
+          updated_at?: string
+          witnessed_by?: string | null
+        }
+        Update: {
+          body?: string | null
+          branch_id?: string | null
+          consent_type?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          organization_id?: string
+          patient_id?: string
+          signature_data?: string | null
+          signed_at?: string | null
+          signed_by_name?: string | null
+          title?: string
+          tooth_numbers?: string | null
+          updated_at?: string
+          witnessed_by?: string | null
+        }
+        Relationships: []
+      }
+      dental_findings_catalog: {
+        Row: {
+          category: string
+          cdt_code: string | null
+          color: string
+          created_at: string
+          id: string
+          is_active: boolean
+          is_favourite: boolean
+          key: string
+          name: string
+          name_ar: string | null
+          name_ur: string | null
+          organization_id: string | null
+          scope: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          category?: string
+          cdt_code?: string | null
+          color?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_favourite?: boolean
+          key: string
+          name: string
+          name_ar?: string | null
+          name_ur?: string | null
+          organization_id?: string | null
+          scope?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          category?: string
+          cdt_code?: string | null
+          color?: string
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_favourite?: boolean
+          key?: string
+          name?: string
+          name_ar?: string | null
+          name_ur?: string | null
+          organization_id?: string | null
+          scope?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dental_findings_catalog_organization_id_fkey"
+            columns: ["organization_id"]
+            isOneToOne: false
+            referencedRelation: "organizations"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dental_images: {
         Row: {
           created_at: string | null
@@ -6509,6 +6742,72 @@ export type Database = {
             referencedColumns: ["id"]
           },
         ]
+      }
+      dental_lab_orders: {
+        Row: {
+          branch_id: string | null
+          cost: number | null
+          created_at: string
+          created_by: string | null
+          doctor_id: string | null
+          due_date: string | null
+          fitted_date: string | null
+          id: string
+          instructions: string | null
+          lab_name: string | null
+          organization_id: string
+          patient_id: string
+          received_date: string | null
+          sent_date: string | null
+          shade: string | null
+          status: string
+          tooth_numbers: string | null
+          updated_at: string
+          work_type: string
+        }
+        Insert: {
+          branch_id?: string | null
+          cost?: number | null
+          created_at?: string
+          created_by?: string | null
+          doctor_id?: string | null
+          due_date?: string | null
+          fitted_date?: string | null
+          id?: string
+          instructions?: string | null
+          lab_name?: string | null
+          organization_id: string
+          patient_id: string
+          received_date?: string | null
+          sent_date?: string | null
+          shade?: string | null
+          status?: string
+          tooth_numbers?: string | null
+          updated_at?: string
+          work_type: string
+        }
+        Update: {
+          branch_id?: string | null
+          cost?: number | null
+          created_at?: string
+          created_by?: string | null
+          doctor_id?: string | null
+          due_date?: string | null
+          fitted_date?: string | null
+          id?: string
+          instructions?: string | null
+          lab_name?: string | null
+          organization_id?: string
+          patient_id?: string
+          received_date?: string | null
+          sent_date?: string | null
+          shade?: string | null
+          status?: string
+          tooth_numbers?: string | null
+          updated_at?: string
+          work_type?: string
+        }
+        Relationships: []
       }
       dental_perio_charts: {
         Row: {
