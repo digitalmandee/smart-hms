@@ -337,3 +337,88 @@ export function useSaveDentalLabOrder() {
     onError: (e: any) => toast.error(e.message),
   });
 }
+
+// ── Bill a dental lab order to the patient's account ────────────────────────
+export function useBillDentalLabOrder() {
+  const qc = useQueryClient();
+  const { profile } = useAuth();
+  return useMutation({
+    mutationFn: async (order: {
+      id: string;
+      patient_id: string;
+      work_type: string;
+      tooth_numbers?: string | null;
+      lab_name?: string | null;
+      cost?: number | null;
+    }) => {
+      const amount = Number(order.cost) || 0;
+      if (amount <= 0) throw new Error("Set a cost on the lab order before billing");
+
+      const existing = await db
+        .from("dental_lab_orders")
+        .select("id, invoice_id, is_billed")
+        .eq("id", order.id);
+      if (existing.error) throw existing.error;
+      if (existing.data?.[0]?.is_billed) throw new Error("This lab order is already billed");
+
+      const now = new Date();
+      const dateStr = now.toISOString().slice(0, 10).replace(/-/g, "");
+      const invoiceNumber = `DEN-${dateStr}-${Math.floor(1000 + Math.random() * 9000)}`;
+      const description = [
+        "Dental lab",
+        order.work_type,
+        order.tooth_numbers ? `#${order.tooth_numbers}` : null,
+        order.lab_name,
+      ]
+        .filter(Boolean)
+        .join(" · ");
+
+      const { data: invRows, error: invErr } = await db
+        .from("invoices")
+        .insert([{
+          invoice_number: invoiceNumber,
+          patient_id: order.patient_id,
+          organization_id: profile!.organization_id!,
+          branch_id: profile!.branch_id,
+          invoice_date: now.toISOString().slice(0, 10),
+          subtotal: amount,
+          total_amount: amount,
+          paid_amount: 0,
+          balance_amount: amount,
+          status: "pending",
+          notes: description,
+          created_by: profile!.id,
+        }])
+        .select();
+      if (invErr) throw invErr;
+      const invoice = invRows?.[0];
+      if (!invoice) throw new Error("Invoice could not be created");
+
+      const { error: itemErr } = await db.from("invoice_items").insert([{
+        invoice_id: invoice.id,
+        description,
+        quantity: 1,
+        unit_price: amount,
+        total_price: amount,
+      }]);
+      if (itemErr) throw itemErr;
+
+      // Link the order to the invoice before anything reads it as payable
+      const { error: linkErr } = await db
+        .from("dental_lab_orders")
+        .update({ invoice_id: invoice.id, is_billed: true, updated_at: now.toISOString() })
+        .eq("id", order.id)
+        .select();
+      if (linkErr) throw linkErr;
+
+      return invoice;
+    },
+    onSuccess: (inv: any, v) => {
+      qc.invalidateQueries({ queryKey: ["dental-lab-orders", v.patient_id] });
+      qc.invalidateQueries({ queryKey: ["dental-billing-invoices", v.patient_id] });
+      qc.invalidateQueries({ queryKey: ["invoices"] });
+      toast.success(`Invoice ${inv?.invoice_number} created`);
+    },
+    onError: (e: any) => toast.error(e.message),
+  });
+}

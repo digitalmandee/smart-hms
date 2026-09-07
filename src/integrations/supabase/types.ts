@@ -6754,6 +6754,8 @@ export type Database = {
           fitted_date: string | null
           id: string
           instructions: string | null
+          invoice_id: string | null
+          is_billed: boolean
           lab_name: string | null
           organization_id: string
           patient_id: string
@@ -6775,6 +6777,8 @@ export type Database = {
           fitted_date?: string | null
           id?: string
           instructions?: string | null
+          invoice_id?: string | null
+          is_billed?: boolean
           lab_name?: string | null
           organization_id: string
           patient_id: string
@@ -6796,6 +6800,8 @@ export type Database = {
           fitted_date?: string | null
           id?: string
           instructions?: string | null
+          invoice_id?: string | null
+          is_billed?: boolean
           lab_name?: string | null
           organization_id?: string
           patient_id?: string
@@ -6807,7 +6813,15 @@ export type Database = {
           updated_at?: string
           work_type?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "dental_lab_orders_invoice_id_fkey"
+            columns: ["invoice_id"]
+            isOneToOne: false
+            referencedRelation: "invoices"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       dental_perio_charts: {
         Row: {
