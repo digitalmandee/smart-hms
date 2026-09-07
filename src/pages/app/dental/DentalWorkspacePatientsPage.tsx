@@ -10,7 +10,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/contexts/AuthContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import { useDentalT } from "@/lib/dental/i18n";
-import SEO from "@/components/SEO";
+import { SEO } from "@/components/SEO";
 
 export default function DentalWorkspacePatientsPage() {
   const { dt, isRTL } = useDentalT();
