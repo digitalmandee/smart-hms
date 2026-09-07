@@ -1,5 +1,7 @@
 import { useCountryConfig } from "@/contexts/CountryConfigContext";
 import { useCallback } from "react";
+import { wsEn, wsAr, wsUr } from "./i18n-workspace";
+
 
 type Dict = Record<string, string>;
 
@@ -264,7 +266,12 @@ const ur: Dict = {
   "cond.to_extract": "نکالنا ہے",
 };
 
-const dicts: Record<string, Dict> = { en, ar, ur };
+const dicts: Record<string, Dict> = {
+  en: { ...en, ...wsEn },
+  ar: { ...ar, ...wsAr },
+  ur: { ...ur, ...wsUr },
+};
+
 
 export function useDentalT() {
   const { default_language } = useCountryConfig();
