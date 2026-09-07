@@ -97,7 +97,23 @@ export default function LabOrdersTab({ patientId }: { patientId: string }) {
                       <SelectTrigger className="w-32 h-8 ms-auto"><SelectValue /></SelectTrigger>
                       <SelectContent>{STATUSES.map((s) => <SelectItem key={s} value={s}>{s.replace(/_/g, " ")}</SelectItem>)}</SelectContent>
                     </Select>
+                    {o.is_billed ? (
+                      <Badge variant="secondary">{dt("dw.lab.billed")}</Badge>
+                    ) : (
+                      ["received", "fitted"].includes(o.status) && Number(o.cost) > 0 && (
+                        <Button
+                          size="sm"
+                          variant="outline"
+                          className="h-8 gap-1.5"
+                          disabled={bill.isPending}
+                          onClick={() => bill.mutate({ ...o, patient_id: patientId })}
+                        >
+                          <Receipt className="h-3.5 w-3.5" /> {dt("dw.lab.bill")}
+                        </Button>
+                      )
+                    )}
                   </div>
+
                   <div className="flex flex-wrap gap-x-4 text-xs text-muted-foreground">
                     {o.sent_date && <span>{dt("dw.f.sentDate")}: {o.sent_date}</span>}
                     {o.due_date && <span>{dt("dw.f.dueDate")}: {o.due_date}</span>}
