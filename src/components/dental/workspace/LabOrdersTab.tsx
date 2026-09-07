@@ -6,9 +6,9 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Plus } from "lucide-react";
+import { Plus, Receipt } from "lucide-react";
 import { useDentalT } from "@/lib/dental/i18n";
-import { useDentalLabOrders, useSaveDentalLabOrder } from "@/hooks/useDentalWorkspace";
+import { useDentalLabOrders, useSaveDentalLabOrder, useBillDentalLabOrder } from "@/hooks/useDentalWorkspace";
 
 const WORK_TYPES = ["Crown", "Bridge", "Veneer", "Inlay/Onlay", "Partial denture", "Complete denture", "Implant crown", "Night guard", "Retainer", "Aligner"];
 const STATUSES = ["draft", "sent", "in_lab", "received", "fitted", "remake", "cancelled"];
@@ -17,6 +17,7 @@ export default function LabOrdersTab({ patientId }: { patientId: string }) {
   const { dt } = useDentalT();
   const { data: orders } = useDentalLabOrders(patientId);
   const save = useSaveDentalLabOrder();
+  const bill = useBillDentalLabOrder();
 
   const [form, setForm] = useState<any>({ work_type: "Crown", status: "draft" });
   const set = (k: string, v: any) => setForm((f: any) => ({ ...f, [k]: v }));
