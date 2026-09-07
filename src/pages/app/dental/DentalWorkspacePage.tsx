@@ -30,7 +30,7 @@ import {
   useDeleteChartFinding,
   FindingDef,
 } from "@/hooks/useDentalWorkspace";
-import SEO from "@/components/SEO";
+import { SEO } from "@/components/SEO";
 
 const RECORD_TABS = [
   "endodontics",
@@ -62,7 +62,7 @@ export default function DentalWorkspacePage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("patients")
-        .select("id, patient_number, first_name, last_name, gender, date_of_birth, phone, blood_group, allergies")
+        .select("id, patient_number, first_name, last_name, gender, date_of_birth, phone, blood_group")
         .eq("id", patientId)
         .maybeSingle();
       if (error) throw error;
@@ -183,7 +183,7 @@ export default function DentalWorkspacePage() {
             {patient?.phone ? ` · ${patient.phone}` : ""}
           </p>
         </div>
-        {patient?.allergies && <Badge variant="destructive">{patient.allergies}</Badge>}
+        
         {patient?.blood_group && <Badge variant="outline">{patient.blood_group}</Badge>}
         <Select value={notation} onValueChange={(v) => setNotation(v as Notation)}>
           <SelectTrigger className="w-32 h-9"><SelectValue /></SelectTrigger>

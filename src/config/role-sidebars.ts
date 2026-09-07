@@ -272,6 +272,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "Smile",
         children: [
           { name: "Dashboard", path: "/app/dental", icon: "LayoutDashboard" },
+          { name: "Dental Workspace", path: "/app/dental/workspace", icon: "Stethoscope" },
           { name: "Tooth Chart", path: "/app/dental/chart", icon: "Smile" },
           { name: "Treatment Plans", path: "/app/dental/plans", icon: "ListChecks" },
           { name: "Treatments", path: "/app/dental/treatments", icon: "ClipboardList" },
@@ -371,6 +372,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         icon: "Smile",
         children: [
           { name: "Dashboard", path: "/app/dental", icon: "LayoutDashboard" },
+          { name: "Dental Workspace", path: "/app/dental/workspace", icon: "Stethoscope" },
           { name: "Tooth Chart", path: "/app/dental/chart", icon: "Smile" },
           { name: "Treatment Plans", path: "/app/dental/plans", icon: "ListChecks" },
           { name: "Treatments", path: "/app/dental/treatments", icon: "ClipboardList" },
