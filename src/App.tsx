@@ -21,6 +21,7 @@ import Index from "./pages/Index";
 import NotFound from "./pages/NotFound";
 import Presentation from "./pages/Presentation";
 import ExecutivePresentation from "./pages/ExecutivePresentation";
+import PitchDeck from "./pages/PitchDeck";
 import PharmacyWarehousePresentation from "./pages/PharmacyWarehousePresentation";
 import ThalassemiaPresentation from "./pages/ThalassemiaPresentation";
 import PricingProposal from "./pages/PricingProposal";
