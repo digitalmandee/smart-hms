@@ -11,6 +11,7 @@ import {
   PitchJourneySlide,
   PitchMobileSlide,
 } from "@/components/pitch/PitchSlidesA";
+import { PitchPaperlessSlide } from "@/components/pitch/PitchPaperlessSlide";
 import {
   PitchAISlide,
   PitchComparisonSlide,
@@ -18,7 +19,7 @@ import {
   PitchCloseSlide,
 } from "@/components/pitch/PitchSlidesB";
 
-const TOTAL_SLIDES = 9;
+const TOTAL_SLIDES = 10;
 
 export default function PitchDeck() {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -134,6 +135,7 @@ export default function PitchDeck() {
           <PitchModulesSlide />
           <PitchJourneySlide />
           <PitchMobileSlide />
+          <PitchPaperlessSlide />
           <PitchAISlide />
           <PitchComparisonSlide />
           <PitchCompliancePitchSlide />

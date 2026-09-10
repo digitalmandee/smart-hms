@@ -3,6 +3,7 @@ import {
   Check, X, Minus, Shield, Receipt, Pill, Fingerprint, Lock, Eye, History,
   Building2, Globe, Layers, Rocket, Smartphone,
 } from "lucide-react";
+import { totalModules } from "./PitchSlidesA";
 
 const SlideFooter = ({ label }: { label: string }) => (
   <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground relative z-10">
@@ -47,7 +48,7 @@ export function PitchAISlide() {
           </div>
         ))}
       </div>
-      <SlideFooter label="6 / 9" />
+      <SlideFooter label="7 / 10" />
     </div>
   );
 }
@@ -167,7 +168,7 @@ export function PitchComparisonSlide() {
       <p className="text-[9px] text-muted-foreground mt-2">
         Competitor figures are public-market estimates for comparison, not quotations. Our pricing is our own list range.
       </p>
-      <SlideFooter label="7 / 9" />
+      <SlideFooter label="8 / 10" />
     </div>
   );
 }
@@ -230,7 +231,7 @@ export function PitchCompliancePitchSlide() {
           </div>
         </div>
       </div>
-      <SlideFooter label="8 / 9" />
+      <SlideFooter label="9 / 10" />
     </div>
   );
 }
@@ -248,7 +249,7 @@ export function PitchCloseSlide() {
 
         <div className="grid grid-cols-4 gap-4 mt-10 w-full max-w-4xl">
           {[
-            { icon: Layers, big: "54", small: "modules, one platform" },
+            { icon: Layers, big: String(totalModules), small: "modules, one platform" },
             { icon: Globe, big: "3", small: "languages, full RTL" },
             { icon: Smartphone, big: "4", small: "role-based mobile apps" },
             { icon: Rocket, big: "4-8", small: "weeks to go live" },
@@ -263,7 +264,7 @@ export function PitchCloseSlide() {
       </div>
       <div className="absolute bottom-4 left-0 right-0 flex items-center justify-between px-8 text-[10px] text-muted-foreground">
         <span>HMIS | Hospital Management Information System</span>
-        <span>9 / 9</span>
+        <span>10 / 10</span>
       </div>
     </div>
   );
