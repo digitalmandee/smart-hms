@@ -100,14 +100,18 @@ const categories = [
     modules: [
       { icon: Stethoscope, name: "OPD & Consultations" },
       { icon: Hotel, name: "IPD & Admissions" },
+      { icon: Hotel, name: "Ward & Bed Management" },
       { icon: Scissors, name: "Surgery & OT" },
       { icon: Siren, name: "Emergency / Casualty" },
       { icon: HeartPulse, name: "Nursing Station" },
+      { icon: ClipboardList, name: "Daily Rounds & Notes" },
       { icon: Clock, name: "Queue & Token" },
       { icon: Baby, name: "Gyn & Obstetrics" },
       { icon: Smile, name: "Dental & Odontogram" },
       { icon: Activity, name: "Dialysis" },
+      { icon: FileSignature, name: "Consent Forms" },
       { icon: FileSignature, name: "Birth & Death Records" },
+      { icon: Store, name: "Diet & Kitchen" },
     ],
   },
   {
@@ -119,6 +123,8 @@ const categories = [
       { icon: Droplet, name: "Blood Bank" },
       { icon: FileSignature, name: "Specimen Tracking" },
       { icon: Bluetooth, name: "Analyzer Integration" },
+      { icon: FileText, name: "Report Templates" },
+      { icon: Activity, name: "Critical Result Alerts" },
     ],
   },
   {
@@ -131,6 +137,9 @@ const categories = [
       { icon: AlertTriangle, name: "Drug Interaction Checks" },
       { icon: Truck, name: "Procurement PR→PO→GRN" },
       { icon: Warehouse, name: "Warehouse / WMS" },
+      { icon: FileBox, name: "Picking & Packing" },
+      { icon: RefreshCw, name: "Cycle Count & Audit" },
+      { icon: Truck, name: "Returns to Vendor" },
       { icon: Snowflake, name: "Cold-Chain Logs" },
     ],
   },
@@ -140,12 +149,17 @@ const categories = [
       { icon: Receipt, name: "Billing & Invoicing" },
       { icon: Calculator, name: "Chart of Accounts" },
       { icon: BookOpen, name: "Journals & GL" },
+      { icon: FileText, name: "Vouchers (CPV/CRV/JV)" },
       { icon: Wallet, name: "Doctor Compensation" },
       { icon: Banknote, name: "Patient Deposits" },
+      { icon: Receipt, name: "Credit Notes & Refunds" },
       { icon: CreditCard, name: "Vendor Payments" },
+      { icon: FileBox, name: "Fixed Assets & Depreciation" },
+      { icon: BarChart3, name: "Cost Centres & Budgets" },
       { icon: Lock, name: "Daily Closing" },
       { icon: UserCog, name: "HR & Payroll" },
       { icon: Fingerprint, name: "Biometric Attendance" },
+      { icon: FileSignature, name: "Exit & Clearance" },
       { icon: BarChart3, name: "Financial Reports & BI" },
     ],
   },
@@ -160,6 +174,9 @@ const categories = [
       { icon: Shield, name: "NPHIES Integration" },
       { icon: Receipt, name: "ZATCA E-Invoicing" },
       { icon: Fingerprint, name: "Nafath Identity" },
+      { icon: Pill, name: "Tatmeen Traceability" },
+      { icon: Shield, name: "HESN Notifiable Diseases" },
+      { icon: Lock, name: "HIPAA Audit & Access Logs" },
     ],
   },
   {
@@ -172,6 +189,7 @@ const categories = [
       { icon: Bot, name: "Tabeebi Medical AI" },
       { icon: Brain, name: "Analytics & BI" },
       { icon: TrendingUp, name: "Predictive Forecasting" },
+      { icon: Bell, name: "WhatsApp & SMS Alerts" },
       { icon: HeartHandshake, name: "Donor Management" },
       { icon: Megaphone, name: "Donation Campaigns" },
       { icon: RefreshCw, name: "Recurring Donations" },
@@ -180,7 +198,8 @@ const categories = [
     ],
   },
 ];
-const totalModules = categories.reduce((a, c) => a + c.modules.length, 0);
+export const totalModules = categories.reduce((a, c) => a + c.modules.length, 0);
+
 
 export function PitchModulesSlide() {
   return (
