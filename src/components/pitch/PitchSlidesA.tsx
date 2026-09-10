@@ -37,7 +37,7 @@ export function PitchOpeningSlide() {
 
         <div className="grid grid-cols-3 gap-4 mt-10 w-full max-w-2xl">
           {[
-            { big: "60+", small: "Integrated modules" },
+            { big: "54", small: "Integrated modules" },
             { big: "4", small: "Mobile app roles" },
             { big: "3", small: "Languages, full RTL" },
           ].map((s) => (

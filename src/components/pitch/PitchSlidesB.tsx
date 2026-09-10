@@ -248,7 +248,7 @@ export function PitchCloseSlide() {
 
         <div className="grid grid-cols-4 gap-4 mt-10 w-full max-w-4xl">
           {[
-            { icon: Layers, big: "60+", small: "modules, one platform" },
+            { icon: Layers, big: "54", small: "modules, one platform" },
             { icon: Globe, big: "3", small: "languages, full RTL" },
             { icon: Smartphone, big: "4", small: "role-based mobile apps" },
             { icon: Rocket, big: "4-8", small: "weeks to go live" },
