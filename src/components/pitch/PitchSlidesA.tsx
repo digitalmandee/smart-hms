@@ -37,7 +37,7 @@ export function PitchOpeningSlide() {
 
         <div className="grid grid-cols-3 gap-4 mt-10 w-full max-w-2xl">
           {[
-            { big: "54", small: "Integrated modules" },
+            { big: String(totalModules), small: "Integrated modules" },
             { big: "4", small: "Mobile app roles" },
             { big: "3", small: "Languages, full RTL" },
           ].map((s) => (
@@ -51,7 +51,7 @@ export function PitchOpeningSlide() {
 
       <div className="absolute bottom-4 left-0 right-0 flex items-center justify-between px-8 text-[10px] text-muted-foreground">
         <span>HMIS | Hospital Management Information System</span>
-        <span>1 / 9</span>
+        <span>1 / 10</span>
       </div>
     </div>
   );
@@ -88,7 +88,7 @@ export function PitchProblemSlide() {
           </div>
         ))}
       </div>
-      <SlideFooter label="2 / 9" />
+      <SlideFooter label="2 / 10" />
     </div>
   );
 }
@@ -233,7 +233,7 @@ export function PitchModulesSlide() {
           </div>
         ))}
       </div>
-      <SlideFooter label="3 / 9" />
+      <SlideFooter label="3 / 10" />
     </div>
   );
 }
@@ -287,7 +287,7 @@ export function PitchJourneySlide() {
           automatically, and the journal entry is posted by the database, not by hand.
         </p>
       </div>
-      <SlideFooter label="4 / 9" />
+      <SlideFooter label="4 / 10" />
     </div>
   );
 }
@@ -438,7 +438,7 @@ export function PitchMobileSlide() {
           </span>
         ))}
       </div>
-      <SlideFooter label="5 / 9" />
+      <SlideFooter label="5 / 10" />
     </div>
   );
 }
