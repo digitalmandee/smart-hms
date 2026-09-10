@@ -135,6 +135,7 @@ export default function PitchDeck() {
           <PitchModulesSlide />
           <PitchJourneySlide />
           <PitchMobileSlide />
+          <PitchPaperlessSlide />
           <PitchAISlide />
           <PitchComparisonSlide />
           <PitchCompliancePitchSlide />

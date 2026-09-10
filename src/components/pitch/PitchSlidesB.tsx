@@ -3,6 +3,7 @@ import {
   Check, X, Minus, Shield, Receipt, Pill, Fingerprint, Lock, Eye, History,
   Building2, Globe, Layers, Rocket, Smartphone,
 } from "lucide-react";
+import { totalModules } from "./PitchSlidesA";
 
 const SlideFooter = ({ label }: { label: string }) => (
   <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground relative z-10">
