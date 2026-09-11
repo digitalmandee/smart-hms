@@ -51,7 +51,7 @@ export function PitchOpeningSlide() {
 
       <div className="absolute bottom-4 left-0 right-0 flex items-center justify-between px-8 text-[10px] text-muted-foreground">
         <span>HMIS | Hospital Management Information System</span>
-        <span>1 / 10</span>
+        <span>1 / 11</span>
       </div>
     </div>
   );
@@ -88,7 +88,7 @@ export function PitchProblemSlide() {
           </div>
         ))}
       </div>
-      <SlideFooter label="2 / 10" />
+      <SlideFooter label="2 / 11" />
     </div>
   );
 }
@@ -233,7 +233,7 @@ export function PitchModulesSlide() {
           </div>
         ))}
       </div>
-      <SlideFooter label="3 / 10" />
+      <SlideFooter label="3 / 11" />
     </div>
   );
 }
@@ -287,7 +287,7 @@ export function PitchJourneySlide() {
           automatically, and the journal entry is posted by the database, not by hand.
         </p>
       </div>
-      <SlideFooter label="4 / 10" />
+      <SlideFooter label="4 / 11" />
     </div>
   );
 }
@@ -438,7 +438,7 @@ export function PitchMobileSlide() {
           </span>
         ))}
       </div>
-      <SlideFooter label="5 / 10" />
+      <SlideFooter label="5 / 11" />
     </div>
   );
 }

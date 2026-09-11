@@ -81,7 +81,7 @@ export function PitchPaperlessSlide() {
         ))}
       </div>
 
-      <SlideFooter label="6 / 10" />
+      <SlideFooter label="6 / 11" />
     </div>
   );
 }
