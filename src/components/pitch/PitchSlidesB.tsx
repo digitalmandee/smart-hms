@@ -58,9 +58,9 @@ type Cell = { v: "yes" | "no" | "part"; t: string };
 const rows: { label: string; us: Cell; epic: Cell; cerner: Cell; inter: Cell }[] = [
   {
     label: "Cost per bed, per year",
-    us: { v: "yes", t: "SAR 2.2K-4.5K" },
-    epic: { v: "no", t: "SAR 30K-56K" },
-    cerner: { v: "no", t: "SAR 30K-56K" },
+    us: { v: "yes", t: "$600-$1.2K" },
+    epic: { v: "no", t: "$8K-$15K" },
+    cerner: { v: "no", t: "$8K-$15K" },
     inter: { v: "no", t: "Enterprise pricing" },
   },
   {
