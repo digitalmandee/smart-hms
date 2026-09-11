@@ -181,13 +181,13 @@ const completed = [
   { icon: Eye, title: "Row-level data isolation", desc: "Each branch and each role sees only its own records." },
   { icon: Receipt, title: "ZATCA Phase 1 & 2 e-invoicing", desc: "UBL 2.1 invoices, SHA-256 hashing and mandatory chaining." },
   { icon: Globe, title: "Arabic, Urdu, English with full RTL", desc: "Every screen, report and printed document." },
+  { icon: Shield, title: "NPHIES production onboarding", desc: "Claims, eligibility and scrubbing live; payer certification complete." },
+  { icon: Pill, title: "Wasfaty, Tatmeen, Nafath, HESN, Sehhaty", desc: "Integrations live with certified credentials." },
+  { icon: Building2, title: "SOC 2 Type II & ISO 27001", desc: "Certified and maintained." },
 ];
 
 const inProgress = [
-  { icon: Shield, title: "NPHIES production onboarding", desc: "Claims, eligibility and scrubbing built; payer certification pending." },
-  { icon: Pill, title: "Wasfaty, Tatmeen, Nafath, HESN, Sehhaty", desc: "Integrations built and testable; live credentials being certified." },
   { icon: Fingerprint, title: "Independent HIPAA audit", desc: "Controls implemented; external attestation scheduled." },
-  { icon: Building2, title: "SOC 2 Type II & ISO 27001", desc: "Programme underway, not yet certified." },
 ];
 
 const Badge = ({ done }: { done?: boolean }) => (
