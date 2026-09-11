@@ -7,6 +7,7 @@ import {
   Layers, FileSpreadsheet, Unplug, Hourglass, ClipboardX, Ticket, Microscope as Micro,
   Smartphone, Wifi, Bell, Globe, User, ClipboardList, ChevronRight, CheckCircle2,
 } from "lucide-react";
+import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 import mobileDoctor from "@/assets/mobile-doctor.png";
 import mobileNurse from "@/assets/mobile-nurse.png";
 import mobilePatient from "@/assets/mobile-patient.png";
@@ -27,8 +28,8 @@ export function PitchOpeningSlide() {
       <div className="absolute bottom-[-80px] left-[-80px] w-[300px] h-[300px] rounded-full bg-emerald-500/10 blur-3xl" />
 
       <div className="relative z-10 flex flex-col items-center">
-        <div className="w-20 h-20 rounded-3xl bg-gradient-to-br from-primary to-primary/70 flex items-center justify-center shadow-2xl mb-6">
-          <HeartPulse className="h-10 w-10 text-primary-foreground" />
+        <div className="flex items-center justify-center shadow-2xl mb-6">
+          <HealthOS24Logo variant="icon" size="xl" />
         </div>
         <p className="text-sm font-semibold text-primary tracking-widest uppercase mb-3">Hospital Management Information System</p>
         <h1 className="text-5xl font-extrabold text-foreground leading-tight max-w-3xl">
