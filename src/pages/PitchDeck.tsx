@@ -13,6 +13,7 @@ import {
 } from "@/components/pitch/PitchSlidesA";
 import { PitchPaperlessSlide } from "@/components/pitch/PitchPaperlessSlide";
 import { PitchTabeebiSlide } from "@/components/pitch/PitchTabeebiSlide";
+import { PitchPharmacyAiSlide } from "@/components/pitch/PitchPharmacyAiSlide";
 import {
   PitchAISlide,
   PitchComparisonSlide,
@@ -20,7 +21,8 @@ import {
   PitchCloseSlide,
 } from "@/components/pitch/PitchSlidesB";
 
-const TOTAL_SLIDES = 11;
+const TOTAL_SLIDES = 12;
+
 
 export default function PitchDeck() {
   const [isDownloading, setIsDownloading] = useState(false);
@@ -138,6 +140,8 @@ export default function PitchDeck() {
           <PitchMobileSlide />
           <PitchPaperlessSlide />
           <PitchTabeebiSlide />
+          <PitchPharmacyAiSlide />
+
           <PitchAISlide />
           <PitchComparisonSlide />
           <PitchCompliancePitchSlide />

@@ -63,7 +63,7 @@ export function PitchTabeebiSlide() {
 
       <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground">
         <span>HMIS | Hospital Management Information System</span>
-        <span>7 / 11</span>
+        <span>7 / 12</span>
       </div>
     </div>
   );

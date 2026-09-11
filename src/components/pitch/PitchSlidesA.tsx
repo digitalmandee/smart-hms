@@ -5,7 +5,7 @@ import {
   ScanLine, Scissors, Search, Settings, Shield, ShieldCheck, Siren, Smile, Snowflake,
   Stethoscope, Store, TrendingUp, Truck, UserCog, Wallet, Warehouse, Calculator,
   Layers, FileSpreadsheet, Unplug, Hourglass, ClipboardX, Ticket, Microscope as Micro,
-  Smartphone, Wifi, Bell, Globe, User, ClipboardList, ChevronRight, CheckCircle2,
+  Smartphone, Wifi, Bell, Globe, User, ClipboardList, ChevronRight, CheckCircle2, Building2,
 } from "lucide-react";
 import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 import mobileDoctor from "@/assets/mobile-doctor.png";
@@ -21,46 +21,88 @@ const SlideFooter = ({ label }: { label: string }) => (
 );
 
 /* ── 1. Opening ─────────────────────────────────────────────── */
-export function PitchOpeningSlide() {
-  return (
-    <div className="slide flex flex-col justify-center items-center text-center relative overflow-hidden bg-gradient-to-br from-primary/10 via-background to-emerald-500/5">
-      <div className="absolute top-[-80px] right-[-80px] w-[340px] h-[340px] rounded-full bg-primary/10 blur-3xl" />
-      <div className="absolute bottom-[-80px] left-[-80px] w-[300px] h-[300px] rounded-full bg-emerald-500/10 blur-3xl" />
+const openingHighlights = [
+  "OPD & IPD", "Laboratory", "Pharmacy", "Billing", "HR & Payroll",
+  "Accounts", "OT & Surgery", "Radiology", "Tabeebi AI",
+];
 
-      <div className="relative z-10 flex flex-col items-center">
-        <div className="flex items-center justify-center shadow-2xl mb-6">
-          <HealthOS24Logo variant="icon" size="xl" />
+export function PitchOpeningSlide() {
+  const currentDate = new Date().toLocaleDateString("en-US", { year: "numeric", month: "long", day: "numeric" });
+
+  return (
+    <div className="slide flex flex-col bg-gradient-to-br from-primary/10 via-background to-primary/5 relative overflow-hidden">
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute top-20 left-20 w-40 h-40 rounded-full bg-primary blur-3xl" />
+        <div className="absolute bottom-20 right-20 w-60 h-60 rounded-full bg-primary blur-3xl" />
+      </div>
+
+      <div className="flex-1 flex flex-col items-center justify-center relative z-10">
+        <div className="mb-5">
+          <HealthOS24Logo variant="full" size="xl" showTagline />
         </div>
-        <p className="text-sm font-semibold text-primary tracking-widest uppercase mb-3">Hospital Management Information System</p>
-        <h1 className="text-5xl font-extrabold text-foreground leading-tight max-w-3xl">
-          One system runs the whole hospital
+
+        <h1 className="text-5xl font-bold text-center mb-3 leading-tight">
+          AI-Powered Hospital<br />
+          <span className="text-primary">Management System</span>
         </h1>
-        <p className="text-lg text-muted-foreground mt-4 max-w-2xl">
-          Clinical, diagnostics, pharmacy, finance, HR and insurance in a single platform, with native mobile
-          apps for doctors, nurses, patients and staff.
+
+        <p className="text-xl text-muted-foreground text-center mb-5 max-w-2xl">
+          {totalModules} integrated modules for 24/7 healthcare operations
         </p>
 
-        <div className="grid grid-cols-3 gap-4 mt-10 w-full max-w-2xl">
+        <div className="flex flex-wrap justify-center gap-2.5 mb-5 max-w-3xl">
+          {openingHighlights.map((item) => (
+            <span
+              key={item}
+              className="px-4 py-1.5 bg-primary/10 text-primary rounded-full text-sm font-medium border border-primary/20"
+            >
+              {item}
+            </span>
+          ))}
+        </div>
+
+        <div className="flex items-center gap-2 mb-5">
+          <span className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">English</span>
+          <span className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">عربي</span>
+          <span className="px-2.5 py-1 rounded-full bg-primary/10 text-primary text-xs font-semibold">اردو</span>
+        </div>
+
+        <div className="flex items-center gap-8 bg-card border border-border rounded-2xl px-8 py-4 shadow-lg">
           {[
-            { big: String(totalModules), small: "Integrated modules" },
-            { big: "4", small: "Mobile app roles" },
-            { big: "3", small: "Languages, full RTL" },
-          ].map((s) => (
-            <div key={s.small} className="rounded-2xl border bg-card px-5 py-4">
-              <div className="text-3xl font-extrabold text-primary">{s.big}</div>
-              <div className="text-xs text-muted-foreground mt-1">{s.small}</div>
+            { icon: Layers, value: String(totalModules), label: "Modules" },
+            { icon: Smartphone, value: "4", label: "Role-based apps" },
+            { icon: Globe, value: "3", label: "Languages, full RTL" },
+          ].map((stat, index) => (
+            <div key={stat.label} className="flex items-center gap-3">
+              <div className="p-2 rounded-lg bg-primary/10">
+                <stat.icon className="h-5 w-5 text-primary" />
+              </div>
+              <div className="text-left">
+                <div className="text-2xl font-bold text-primary">{stat.value}</div>
+                <div className="text-xs text-muted-foreground">{stat.label}</div>
+              </div>
+              {index < 2 && <div className="w-px h-10 bg-border ml-6" />}
             </div>
           ))}
         </div>
       </div>
 
-      <div className="absolute bottom-4 left-0 right-0 flex items-center justify-between px-8 text-[10px] text-muted-foreground">
-        <span>HMIS | Hospital Management Information System</span>
-        <span>1 / 11</span>
+      <div className="relative z-10 pb-2">
+        <div className="flex items-center justify-center gap-8 mb-2 text-sm text-muted-foreground">
+          <span className="flex items-center gap-2"><Wifi className="h-4 w-4 text-primary" />Cloud-based</span>
+          <span className="flex items-center gap-2"><Shield className="h-4 w-4 text-primary" />HIPAA controls</span>
+          <span className="flex items-center gap-2"><Building2 className="h-4 w-4 text-primary" />Multi-branch</span>
+        </div>
+        <div className="flex items-center justify-center gap-6 text-muted-foreground text-sm">
+          <span>{currentDate}</span>
+          <span>healthos24.com</span>
+          <span>1 / 12</span>
+        </div>
       </div>
     </div>
   );
 }
+
 
 /* ── 2. Problem ─────────────────────────────────────────────── */
 const problems = [
@@ -93,7 +135,7 @@ export function PitchProblemSlide() {
           </div>
         ))}
       </div>
-      <SlideFooter label="2 / 11" />
+      <SlideFooter label="2 / 12" />
     </div>
   );
 }
@@ -239,7 +281,7 @@ export function PitchModulesSlide() {
           </div>
         ))}
       </div>
-      <SlideFooter label="3 / 11" />
+      <SlideFooter label="3 / 12" />
     </div>
   );
 }
@@ -293,7 +335,7 @@ export function PitchJourneySlide() {
           automatically, and the journal entry is posted by the database, not by hand.
         </p>
       </div>
-      <SlideFooter label="4 / 11" />
+      <SlideFooter label="4 / 12" />
     </div>
   );
 }
@@ -348,7 +390,7 @@ export function PitchMobileSlide() {
           </span>
         ))}
       </div>
-      <SlideFooter label="5 / 11" />
+      <SlideFooter label="5 / 12" />
     </div>
   );
 }
