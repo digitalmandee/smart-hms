@@ -300,7 +300,7 @@ export function PitchJourneySlide() {
 function PhoneShot({ title, subtitle, src }: { title: string; subtitle: string; src: string }) {
   return (
     <div className="flex flex-col items-center">
-      <div className="relative w-[168px] h-[364px] rounded-[30px] bg-foreground/90 p-[4px] shadow-xl">
+      <div className="relative w-[196px] h-[424px] rounded-[34px] bg-foreground/90 p-[4px] shadow-xl">
         <div className="absolute top-2 left-1/2 -translate-x-1/2 w-14 h-3 bg-foreground rounded-b-2xl z-10" />
         <div className="w-full h-full rounded-[26px] overflow-hidden bg-background">
           <img src={src} alt={`${title} mobile app screen`} className="w-full h-full object-cover object-top" />
