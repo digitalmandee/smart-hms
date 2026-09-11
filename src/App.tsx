@@ -22,6 +22,7 @@ import NotFound from "./pages/NotFound";
 import Presentation from "./pages/Presentation";
 import ExecutivePresentation from "./pages/ExecutivePresentation";
 import PitchDeck from "./pages/PitchDeck";
+import MobileShowcase from "./pages/MobileShowcase";
 import PharmacyWarehousePresentation from "./pages/PharmacyWarehousePresentation";
 import ThalassemiaPresentation from "./pages/ThalassemiaPresentation";
 import PricingProposal from "./pages/PricingProposal";
@@ -773,6 +774,8 @@ function App() {
               <Route path="/presentation" element={<><SEO title="HealthOS 24 Product Presentation" description="Full product walkthrough for HealthOS 24 covering clinical, pharmacy, finance and compliance modules." path="/presentation" /><Presentation /></>} />
               <Route path="/executive-presentation" element={<><SEO title="HealthOS 24 Executive Overview" description="Executive-level overview of HealthOS 24: ROI, operations, compliance and growth across hospital workflows." path="/executive-presentation" /><ExecutivePresentation /></>} />
               <Route path="/pitch" element={<><SEO title="4-Minute Hospital System Pitch — HealthOS 24" description="Nine-slide pitch covering all hospital modules, role-based mobile apps, built-in AI and how HealthOS 24 compares with Epic, Cerner and InterSystems." path="/pitch" /><PitchDeck /></>} />
+              <Route path="/mobile-showcase" element={<MobileShowcase />} />
+              <Route path="/mobile-showcase/:role" element={<MobileShowcase />} />
               <Route path="/pharmacy-warehouse-presentation" element={<><SEO title="Pharmacy & Warehouse Presentation — HealthOS 24" description="Pharmacy POS, dispensing, GRN and warehouse stock workflows in HealthOS 24." path="/pharmacy-warehouse-presentation" /><PharmacyWarehousePresentation /></>} />
               <Route path="/presentations/thalassemia" element={<><SEO title="ADF Thalassemia Patient Journey — HealthOS 24" description="End-to-end thalassemia patient journey for Aleem Dar Foundation: registration with Zakat intake, screening, blood bank, transfusion, chelation and family screening." path="/presentations/thalassemia" /><ThalassemiaPresentation /></>} />
               <Route path="/pricing-proposal" element={<><SEO title="HealthOS 24 Pricing Proposal" description="Transparent pricing and licensing options for HealthOS 24 hospital management deployments." path="/pricing-proposal" /><PricingProposal /></>} />
