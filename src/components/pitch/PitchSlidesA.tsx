@@ -7,6 +7,10 @@ import {
   Layers, FileSpreadsheet, Unplug, Hourglass, ClipboardX, Ticket, Microscope as Micro,
   Smartphone, Wifi, Bell, Globe, User, ClipboardList, ChevronRight, CheckCircle2,
 } from "lucide-react";
+import mobileDoctor from "@/assets/mobile-doctor.png";
+import mobileNurse from "@/assets/mobile-nurse.png";
+import mobilePatient from "@/assets/mobile-patient.png";
+import mobileStaff from "@/assets/mobile-staff.png";
 
 const SlideFooter = ({ label }: { label: string }) => (
   <div className="mt-auto pt-4 border-t border-border flex items-center justify-between text-[10px] text-muted-foreground relative z-10">
