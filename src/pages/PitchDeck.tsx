@@ -140,6 +140,8 @@ export default function PitchDeck() {
           <PitchMobileSlide />
           <PitchPaperlessSlide />
           <PitchTabeebiSlide />
+          <PitchPharmacyAiSlide />
+
           <PitchAISlide />
           <PitchComparisonSlide />
           <PitchCompliancePitchSlide />
