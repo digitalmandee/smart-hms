@@ -7,6 +7,7 @@ import {
   Layers, FileSpreadsheet, Unplug, Hourglass, ClipboardX, Ticket, Microscope as Micro,
   Smartphone, Wifi, Bell, Globe, User, ClipboardList, ChevronRight, CheckCircle2,
 } from "lucide-react";
+import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 import mobileDoctor from "@/assets/mobile-doctor.png";
 import mobileNurse from "@/assets/mobile-nurse.png";
 import mobilePatient from "@/assets/mobile-patient.png";
