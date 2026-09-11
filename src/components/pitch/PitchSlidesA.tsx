@@ -292,54 +292,18 @@ export function PitchJourneySlide() {
   );
 }
 
-/* ── 5. Mobile apps ────────────────────────────────────────── */
-function PhoneFrame({ title, accent, header, stats, actions, list }: {
-  title: string; accent: string; header: string;
-  stats: { label: string; value: string }[];
-  actions: string[];
-  list: { primary: string; secondary: string }[];
-}) {
+/* ── 5. Mobile apps — real app screenshots ─────────────────── */
+function PhoneShot({ title, subtitle, src }: { title: string; subtitle: string; src: string }) {
   return (
     <div className="flex flex-col items-center">
-      <div className="relative w-[176px] h-[350px] rounded-[32px] bg-foreground/90 p-[3px] shadow-xl">
-        <div className="absolute top-1.5 left-1/2 -translate-x-1/2 w-14 h-3.5 bg-foreground rounded-b-2xl z-10" />
-        <div className="w-full h-full rounded-[29px] overflow-hidden bg-background flex flex-col">
-          <div className={`${accent} px-3 pt-6 pb-3`}>
-            <p className="text-[9px] text-primary-foreground/80">Good Morning</p>
-            <p className="text-[11px] font-bold text-primary-foreground leading-tight">{header}</p>
-          </div>
-          <div className="p-2 grid grid-cols-2 gap-1.5">
-            {stats.map((s) => (
-              <div key={s.label} className="rounded-lg border bg-card px-2 py-1.5">
-                <div className="text-[13px] font-extrabold text-foreground leading-none">{s.value}</div>
-                <div className="text-[7px] text-muted-foreground mt-0.5 leading-tight">{s.label}</div>
-              </div>
-            ))}
-          </div>
-          <div className="px-2 pb-1">
-            <p className="text-[7px] font-bold text-muted-foreground uppercase tracking-wide mb-1">Quick Actions</p>
-            <div className="flex flex-wrap gap-1">
-              {actions.map((a) => (
-                <span key={a} className="text-[7px] font-semibold px-1.5 py-1 rounded-md bg-muted text-foreground">{a}</span>
-              ))}
-            </div>
-          </div>
-          <div className="px-2 pt-1 flex-1 space-y-1">
-            {list.map((l) => (
-              <div key={l.primary} className="rounded-lg border bg-card px-2 py-1.5">
-                <div className="text-[8px] font-bold text-foreground leading-tight">{l.primary}</div>
-                <div className="text-[7px] text-muted-foreground leading-tight">{l.secondary}</div>
-              </div>
-            ))}
-          </div>
-          <div className="border-t border-border flex items-center justify-around py-1.5">
-            {[Activity, Clock, Bell, User].map((I, i) => (
-              <I key={i} className={`h-3 w-3 ${i === 0 ? "text-primary" : "text-muted-foreground/50"}`} />
-            ))}
-          </div>
+      <div className="relative w-[168px] h-[364px] rounded-[30px] bg-foreground/90 p-[4px] shadow-xl">
+        <div className="absolute top-2 left-1/2 -translate-x-1/2 w-14 h-3 bg-foreground rounded-b-2xl z-10" />
+        <div className="w-full h-full rounded-[26px] overflow-hidden bg-background">
+          <img src={src} alt={`${title} mobile app screen`} className="w-full h-full object-cover object-top" />
         </div>
       </div>
       <p className="text-xs font-bold text-foreground mt-2">{title}</p>
+      <p className="text-[10px] text-muted-foreground text-center leading-tight">{subtitle}</p>
     </div>
   );
 }
@@ -358,77 +322,17 @@ export function PitchMobileSlide() {
       <div className="h-2 bg-gradient-to-r from-primary to-primary/60 rounded-t-lg -mx-8 -mt-8 mb-5" />
       <div className="mb-4">
         <p className="text-sm text-primary font-semibold mb-1">Mobile Apps</p>
-        <h2 className="text-3xl font-extrabold text-foreground">A different app for every person in the hospital</h2>
+        <h2 className="text-3xl font-extrabold text-foreground">One app design, four roles — real screens</h2>
         <p className="text-sm text-muted-foreground mt-1">
-          The same platform, shaped to each role. Already shipping on iOS and Android.
+          Same navigation, same cards, same language switch. Only the work changes. Screens below are captured from the live app.
         </p>
       </div>
 
       <div className="grid grid-cols-4 gap-4 flex-1">
-        <PhoneFrame
-          title="Doctor"
-          accent="bg-blue-600"
-          header="Dr. Ahmed · Today's list"
-          stats={[
-            { label: "Today's patients", value: "18" },
-            { label: "Lab results", value: "6" },
-            { label: "Surgeries", value: "2" },
-            { label: "In progress", value: "1" },
-          ]}
-          actions={["My Patients", "Prescribe", "Voice Note", "Rounds"]}
-          list={[
-            { primary: "Token 04 · Fatima N.", secondary: "Follow-up · Checked in" },
-            { primary: "Token 05 · Bilal K.", secondary: "Chest pain · Urgent" },
-          ]}
-        />
-        <PhoneFrame
-          title="Nurse"
-          accent="bg-emerald-600"
-          header="Ward B · Shift handover"
-          stats={[
-            { label: "Ward patients", value: "24" },
-            { label: "Critical", value: "2" },
-            { label: "Pending vitals", value: "7" },
-            { label: "Pending meds", value: "11" },
-          ]}
-          actions={["Record Vitals", "Medications", "Nursing Notes"]}
-          list={[
-            { primary: "Bed 12 · Vitals due", secondary: "BP, temp, SpO₂" },
-            { primary: "Bed 07 · 2pm dose", secondary: "Scan patient band" },
-          ]}
-        />
-        <PhoneFrame
-          title="Patient"
-          accent="bg-purple-600"
-          header="Your care, in your pocket"
-          stats={[
-            { label: "Upcoming visits", value: "1" },
-            { label: "Pending bills", value: "1" },
-            { label: "New reports", value: "2" },
-            { label: "Prescriptions", value: "3" },
-          ]}
-          actions={["Book Appointment", "My Reports", "Prescriptions"]}
-          list={[
-            { primary: "Tue 10:30 · Dr. Ahmed", secondary: "Cardiology follow-up" },
-            { primary: "Lab report ready", secondary: "CBC · view or download" },
-          ]}
-        />
-        <PhoneFrame
-          title="Staff"
-          accent="bg-amber-600"
-          header="Reception · Front desk"
-          stats={[
-            { label: "Pending tasks", value: "9" },
-            { label: "Notifications", value: "4" },
-            { label: "Queue waiting", value: "13" },
-            { label: "Open session", value: "1" },
-          ]}
-          actions={["Check-in", "Tokens", "Collect Payment", "Tasks"]}
-          list={[
-            { primary: "Walk-in registration", secondary: "4 steps, token printed" },
-            { primary: "Cash session open", secondary: "Close before shift end" },
-          ]}
-        />
+        <PhoneShot title="Doctor" subtitle="Today's list, consults, lab results" src={mobileDoctor} />
+        <PhoneShot title="Nurse" subtitle="Ward, vitals, medication tasks" src={mobileNurse} />
+        <PhoneShot title="Patient" subtitle="Visits, bills, reports, prescriptions" src={mobilePatient} />
+        <PhoneShot title="Staff" subtitle="Queue, check-in, cash session" src={mobileStaff} />
       </div>
 
       <div className="mt-4 flex items-center gap-2 flex-wrap">
