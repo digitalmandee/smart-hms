@@ -183,11 +183,12 @@ const completed = [
   { icon: Globe, title: "Arabic, Urdu, English with full RTL", desc: "Every screen, report and printed document." },
   { icon: Shield, title: "NPHIES production onboarding", desc: "Claims, eligibility and scrubbing live; payer certification complete." },
   { icon: Pill, title: "Wasfaty, Tatmeen, Nafath, HESN, Sehhaty", desc: "Integrations live with certified credentials." },
-  { icon: Building2, title: "SOC 2 Type II & ISO 27001", desc: "Certified and maintained." },
+  { icon: Building2, title: "SOC 2 Type II", desc: "Certified and maintained." },
 ];
 
 const inProgress = [
   { icon: Fingerprint, title: "Independent HIPAA audit", desc: "Controls implemented; external attestation scheduled." },
+  { icon: Building2, title: "ISO 27001", desc: "Programme underway; certification pending." },
 ];
 
 const Badge = ({ done }: { done?: boolean }) => (
