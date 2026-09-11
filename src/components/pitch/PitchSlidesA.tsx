@@ -5,7 +5,7 @@ import {
   ScanLine, Scissors, Search, Settings, Shield, ShieldCheck, Siren, Smile, Snowflake,
   Stethoscope, Store, TrendingUp, Truck, UserCog, Wallet, Warehouse, Calculator,
   Layers, FileSpreadsheet, Unplug, Hourglass, ClipboardX, Ticket, Microscope as Micro,
-  Smartphone, Wifi, Bell, Globe, User, ClipboardList, ChevronRight, CheckCircle2,
+  Smartphone, Wifi, Bell, Globe, User, ClipboardList, ChevronRight, CheckCircle2, Building2,
 } from "lucide-react";
 import { HealthOS24Logo } from "@/components/brand/HealthOS24Logo";
 import mobileDoctor from "@/assets/mobile-doctor.png";
