@@ -48,7 +48,7 @@ export function PitchAISlide() {
           </div>
         ))}
       </div>
-      <SlideFooter label="8 / 11" />
+      <SlideFooter label="9 / 12" />
     </div>
   );
 }
@@ -168,7 +168,7 @@ export function PitchComparisonSlide() {
       <p className="text-[9px] text-muted-foreground mt-2">
         Competitor figures are public-market estimates for comparison, not quotations. Our pricing is our own list range.
       </p>
-      <SlideFooter label="9 / 11" />
+      <SlideFooter label="10 / 12" />
     </div>
   );
 }
@@ -290,7 +290,7 @@ export function PitchCloseSlide() {
       </div>
       <div className="absolute bottom-4 left-0 right-0 flex items-center justify-between px-8 text-[10px] text-muted-foreground">
         <span>HMIS | Hospital Management Information System</span>
-        <span>11 / 11</span>
+        <span>12 / 12</span>
       </div>
     </div>
   );

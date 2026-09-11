@@ -135,7 +135,7 @@ export function PitchProblemSlide() {
           </div>
         ))}
       </div>
-      <SlideFooter label="2 / 11" />
+      <SlideFooter label="2 / 12" />
     </div>
   );
 }
@@ -281,7 +281,7 @@ export function PitchModulesSlide() {
           </div>
         ))}
       </div>
-      <SlideFooter label="3 / 11" />
+      <SlideFooter label="3 / 12" />
     </div>
   );
 }
@@ -335,7 +335,7 @@ export function PitchJourneySlide() {
           automatically, and the journal entry is posted by the database, not by hand.
         </p>
       </div>
-      <SlideFooter label="4 / 11" />
+      <SlideFooter label="4 / 12" />
     </div>
   );
 }
@@ -390,7 +390,7 @@ export function PitchMobileSlide() {
           </span>
         ))}
       </div>
-      <SlideFooter label="5 / 11" />
+      <SlideFooter label="5 / 12" />
     </div>
   );
 }
