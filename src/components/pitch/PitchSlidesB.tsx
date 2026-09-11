@@ -173,68 +173,94 @@ export function PitchComparisonSlide() {
   );
 }
 
-/* ── 8. Compliance & security ──────────────────────────────── */
-const compliance = [
-  { icon: Shield, title: "NPHIES", desc: "Eligibility, pre-auth and claims on HL7 FHIR" },
-  { icon: Receipt, title: "ZATCA Phase 2", desc: "UBL 2.1 e-invoices, hashed and chained" },
-  { icon: Pill, title: "Wasfaty & Tatmeen", desc: "e-Prescription and medicine traceability" },
-  { icon: Fingerprint, title: "Nafath", desc: "National identity verification at registration" },
+/* ── 11. Compliance & security ─────────────────────────────── */
+const completed = [
+  { icon: Lock, title: "HIPAA technical safeguards", desc: "Private per-organisation storage, PHI field masking, role-based session timeouts, multi-factor sign-in." },
+  { icon: History, title: "Audit trail & access logging", desc: "Every view, change and export of patient data logged and exportable." },
+  { icon: Shield, title: "HIPAA governance modules", desc: "Breach notification tracking, workforce training records, BAA register, HIPAA dashboard." },
+  { icon: Eye, title: "Row-level data isolation", desc: "Each branch and each role sees only its own records." },
+  { icon: Receipt, title: "ZATCA Phase 1 & 2 e-invoicing", desc: "UBL 2.1 invoices, SHA-256 hashing and mandatory chaining." },
+  { icon: Globe, title: "Arabic, Urdu, English with full RTL", desc: "Every screen, report and printed document." },
 ];
-const security = [
-  { icon: Lock, title: "Row-level data isolation", desc: "Each branch and each role only sees its own records." },
-  { icon: Eye, title: "PHI masking", desc: "Sensitive patient fields hidden from roles that do not need them." },
-  { icon: History, title: "Full audit trail", desc: "Every view and change of patient data is logged and exportable." },
-  { icon: Building2, title: "Multi-branch control", desc: "Central administration with modules enabled per facility." },
+
+const inProgress = [
+  { icon: Shield, title: "NPHIES production onboarding", desc: "Claims, eligibility and scrubbing built; payer certification pending." },
+  { icon: Pill, title: "Wasfaty, Tatmeen, Nafath, HESN, Sehhaty", desc: "Integrations built and testable; live credentials being certified." },
+  { icon: Fingerprint, title: "Independent HIPAA audit", desc: "Controls implemented; external attestation scheduled." },
+  { icon: Building2, title: "SOC 2 Type II & ISO 27001", desc: "Programme underway, not yet certified." },
 ];
+
+const Badge = ({ done }: { done?: boolean }) => (
+  <span
+    className={`ml-auto shrink-0 px-2 py-0.5 rounded-full text-[9px] font-bold uppercase tracking-wide ${
+      done ? "bg-emerald-500/15 text-emerald-700" : "bg-amber-500/15 text-amber-700"
+    }`}
+  >
+    {done ? "Completed" : "In process"}
+  </span>
+);
 
 export function PitchCompliancePitchSlide() {
   return (
-    <div className="slide flex flex-col bg-gradient-to-br from-emerald-500/5 via-background to-blue-500/5 relative overflow-hidden">
-      <div className="h-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-blue-500 rounded-t-lg -mx-8 -mt-8 mb-6" />
-      <div className="mb-6">
+    <div className="slide flex flex-col bg-gradient-to-br from-emerald-500/5 via-background to-amber-500/5 relative overflow-hidden">
+      <div className="h-2 bg-gradient-to-r from-emerald-500 via-teal-500 to-amber-500 rounded-t-lg -mx-8 -mt-8 mb-5" />
+      <div className="mb-5">
         <p className="text-sm text-emerald-600 font-semibold mb-1">Trust</p>
-        <h2 className="text-3xl font-extrabold text-foreground">Saudi-ready and audit-ready on day one</h2>
-        <p className="text-sm text-muted-foreground mt-1">Regulatory connections and HIPAA-style controls are part of the product, not a later project.</p>
+        <h2 className="text-3xl font-extrabold text-foreground">Compliance status, stated honestly</h2>
+        <p className="text-sm text-muted-foreground mt-1">
+          What is already live in the product, and what is still going through certification.
+        </p>
       </div>
 
-      <div className="grid grid-cols-2 gap-6 flex-1">
+      <div className="grid grid-cols-2 gap-5 flex-1">
         <div>
-          <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-wide mb-3">Regulatory integrations</h3>
-          <div className="space-y-3">
-            {compliance.map((c) => (
-              <div key={c.title} className="rounded-xl border bg-card p-4 flex gap-3">
-                <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
+          <h3 className="text-xs font-bold text-emerald-700 uppercase tracking-wide mb-3">Completed and live</h3>
+          <div className="space-y-2.5">
+            {completed.map((c) => (
+              <div key={c.title} className="rounded-xl border bg-card p-3 flex gap-3 items-start">
+                <div className="w-8 h-8 rounded-lg bg-emerald-500/10 flex items-center justify-center shrink-0">
                   <c.icon className="h-4 w-4 text-emerald-600" />
                 </div>
-                <div>
-                  <div className="font-bold text-sm text-foreground">{c.title}</div>
-                  <div className="text-[11px] text-muted-foreground leading-relaxed">{c.desc}</div>
+                <div className="flex-1">
+                  <div className="flex items-start gap-2">
+                    <div className="font-bold text-[12px] text-foreground leading-tight">{c.title}</div>
+                    <Badge done />
+                  </div>
+                  <div className="text-[10.5px] text-muted-foreground leading-snug mt-0.5">{c.desc}</div>
                 </div>
               </div>
             ))}
           </div>
         </div>
         <div>
-          <h3 className="text-xs font-bold text-blue-700 uppercase tracking-wide mb-3">Security & governance</h3>
-          <div className="space-y-3">
-            {security.map((c) => (
-              <div key={c.title} className="rounded-xl border bg-card p-4 flex gap-3">
-                <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center shrink-0">
-                  <c.icon className="h-4 w-4 text-blue-600" />
+          <h3 className="text-xs font-bold text-amber-700 uppercase tracking-wide mb-3">In process</h3>
+          <div className="space-y-2.5">
+            {inProgress.map((c) => (
+              <div key={c.title} className="rounded-xl border bg-card p-3 flex gap-3 items-start">
+                <div className="w-8 h-8 rounded-lg bg-amber-500/10 flex items-center justify-center shrink-0">
+                  <c.icon className="h-4 w-4 text-amber-600" />
                 </div>
-                <div>
-                  <div className="font-bold text-sm text-foreground">{c.title}</div>
-                  <div className="text-[11px] text-muted-foreground leading-relaxed">{c.desc}</div>
+                <div className="flex-1">
+                  <div className="flex items-start gap-2">
+                    <div className="font-bold text-[12px] text-foreground leading-tight">{c.title}</div>
+                    <Badge />
+                  </div>
+                  <div className="text-[10.5px] text-muted-foreground leading-snug mt-0.5">{c.desc}</div>
                 </div>
               </div>
             ))}
           </div>
+          <p className="text-[10px] text-muted-foreground mt-3 leading-snug">
+            Two hosting-level settings are switched on at go-live: leaked-password protection and the scheduled
+            data-retention purge.
+          </p>
         </div>
       </div>
-      <SlideFooter label="10 / 11" />
+      <SlideFooter label="11 / 12" />
     </div>
   );
 }
+
 
 /* ── 9. Close ──────────────────────────────────────────────── */
 export function PitchCloseSlide() {
