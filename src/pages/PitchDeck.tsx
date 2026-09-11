@@ -12,6 +12,7 @@ import {
   PitchMobileSlide,
 } from "@/components/pitch/PitchSlidesA";
 import { PitchPaperlessSlide } from "@/components/pitch/PitchPaperlessSlide";
+import { PitchTabeebiSlide } from "@/components/pitch/PitchTabeebiSlide";
 import {
   PitchAISlide,
   PitchComparisonSlide,
