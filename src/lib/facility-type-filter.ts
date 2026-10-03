@@ -133,5 +133,16 @@ export function filterSidebarByFacilityType(
   
   const labelOverrides = LABEL_OVERRIDES[facilityType];
   const hiddenNames = HIDDEN_ITEM_NAMES[facilityType];
-  return filterItems(items, blockedPrefixes, labelOverrides, hiddenNames);
+  const filtered = filterItems(items, blockedPrefixes, labelOverrides, hiddenNames);
+  if (facilityType === "thalassemia_center" && !filtered.some(i => i.path === "/app/thalassemia")) {
+    const thalMenu: SidebarMenuItem = {
+      name: "Thalassemia Care", path: "", icon: "HeartPulse",
+      children: [
+        { name: "Thalassemia Dashboard", path: "/app/thalassemia", icon: "LayoutDashboard" },
+        { name: "Patient Registry", path: "/app/thalassemia/registry", icon: "Users" },
+      ],
+    } as SidebarMenuItem;
+    filtered.splice(Math.min(1, filtered.length), 0, thalMenu);
+  }
+  return filtered;
 }

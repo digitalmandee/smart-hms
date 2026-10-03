@@ -617,6 +617,9 @@ import DeadStockReport from "./pages/app/inventory/reports/DeadStockReport";
 import FastMovingReport from "./pages/app/inventory/reports/FastMovingReport";
 
 // Donation Management pages (aliased to avoid conflict with blood-bank imports)
+const ThalassemiaDashboard = React.lazy(() => import("./pages/app/thalassemia/ThalassemiaDashboard"));
+const ThalassemiaRegistry = React.lazy(() => import("./pages/app/thalassemia/ThalassemiaRegistry"));
+const ThalassemiaPatientPage = React.lazy(() => import("./pages/app/thalassemia/ThalassemiaPatientPage"));
 const FinDonationDashboard = React.lazy(() => import("./pages/app/donations/DonationDashboard"));
 const FinDonorsListPage = React.lazy(() => import("./pages/app/donations/DonorsListPage"));
 const FinDonorFormPage = React.lazy(() => import("./pages/app/donations/DonorFormPage"));
@@ -1413,6 +1416,9 @@ function App() {
                 <Route path="accounts/vendor-statement/:vendorId" element={<VendorStatementPage />} />
 
                {/* Donation Management routes */}
+               <Route path="thalassemia" element={<ThalassemiaDashboard />} />
+               <Route path="thalassemia/registry" element={<ThalassemiaRegistry />} />
+               <Route path="thalassemia/patients/:patientId" element={<ThalassemiaPatientPage />} />
                <Route path="donations" element={<FinDonationDashboard />} />
                <Route path="donations/donors" element={<FinDonorsListPage />} />
                <Route path="donations/donors/new" element={<FinDonorFormPage />} />
