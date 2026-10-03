@@ -3525,6 +3525,48 @@ export type Database = {
         }
         Relationships: []
       }
+      chelation_records: {
+        Row: {
+          compliance_pct: number | null
+          created_at: string
+          dose: string | null
+          drug: string
+          id: string
+          notes: string | null
+          organization_id: string
+          patient_id: string
+          record_date: string
+          side_effects: string | null
+          updated_at: string
+        }
+        Insert: {
+          compliance_pct?: number | null
+          created_at?: string
+          dose?: string | null
+          drug: string
+          id?: string
+          notes?: string | null
+          organization_id: string
+          patient_id: string
+          record_date?: string
+          side_effects?: string | null
+          updated_at?: string
+        }
+        Update: {
+          compliance_pct?: number | null
+          created_at?: string
+          dose?: string | null
+          drug?: string
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          patient_id?: string
+          record_date?: string
+          side_effects?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       claim_attachments: {
         Row: {
           attachment_type: string
@@ -19755,6 +19797,57 @@ export type Database = {
         }
         Relationships: []
       }
+      patient_sponsorships: {
+        Row: {
+          coverage_pct: number
+          created_at: string
+          donor_id: string | null
+          end_date: string | null
+          fund_type: string
+          id: string
+          is_active: boolean
+          monthly_cap: number | null
+          notes: string | null
+          organization_id: string
+          patient_id: string
+          sponsor_name: string
+          start_date: string
+          updated_at: string
+        }
+        Insert: {
+          coverage_pct?: number
+          created_at?: string
+          donor_id?: string | null
+          end_date?: string | null
+          fund_type?: string
+          id?: string
+          is_active?: boolean
+          monthly_cap?: number | null
+          notes?: string | null
+          organization_id: string
+          patient_id: string
+          sponsor_name: string
+          start_date?: string
+          updated_at?: string
+        }
+        Update: {
+          coverage_pct?: number
+          created_at?: string
+          donor_id?: string | null
+          end_date?: string | null
+          fund_type?: string
+          id?: string
+          is_active?: boolean
+          monthly_cap?: number | null
+          notes?: string | null
+          organization_id?: string
+          patient_id?: string
+          sponsor_name?: string
+          start_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       patients: {
         Row: {
           address: string | null
@@ -26576,6 +26669,189 @@ export type Database = {
           started_at?: string | null
           status?: Database["public"]["Enums"]["telemed_session_status"]
           updated_at?: string
+        }
+        Relationships: []
+      }
+      thalassemia_monitoring: {
+        Row: {
+          alt: number | null
+          created_at: string
+          creatinine: number | null
+          ferritin: number | null
+          hb: number | null
+          id: string
+          notes: string | null
+          organization_id: string
+          patient_id: string
+          reading_date: string
+          updated_at: string
+        }
+        Insert: {
+          alt?: number | null
+          created_at?: string
+          creatinine?: number | null
+          ferritin?: number | null
+          hb?: number | null
+          id?: string
+          notes?: string | null
+          organization_id: string
+          patient_id: string
+          reading_date?: string
+          updated_at?: string
+        }
+        Update: {
+          alt?: number | null
+          created_at?: string
+          creatinine?: number | null
+          ferritin?: number | null
+          hb?: number | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          patient_id?: string
+          reading_date?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      thalassemia_profiles: {
+        Row: {
+          baseline_hb: number | null
+          blood_group: string | null
+          branch_id: string | null
+          chelation_drug: string | null
+          created_at: string
+          diagnosis_date: string | null
+          diagnosis_type: string
+          id: string
+          next_due_date: string | null
+          notes: string | null
+          organization_id: string
+          patient_id: string
+          phenotype: string | null
+          splenectomy: boolean
+          status: string
+          target_pre_hb: number | null
+          transfusion_interval_days: number
+          updated_at: string
+          weight_kg: number | null
+        }
+        Insert: {
+          baseline_hb?: number | null
+          blood_group?: string | null
+          branch_id?: string | null
+          chelation_drug?: string | null
+          created_at?: string
+          diagnosis_date?: string | null
+          diagnosis_type?: string
+          id?: string
+          next_due_date?: string | null
+          notes?: string | null
+          organization_id: string
+          patient_id: string
+          phenotype?: string | null
+          splenectomy?: boolean
+          status?: string
+          target_pre_hb?: number | null
+          transfusion_interval_days?: number
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Update: {
+          baseline_hb?: number | null
+          blood_group?: string | null
+          branch_id?: string | null
+          chelation_drug?: string | null
+          created_at?: string
+          diagnosis_date?: string | null
+          diagnosis_type?: string
+          id?: string
+          next_due_date?: string | null
+          notes?: string | null
+          organization_id?: string
+          patient_id?: string
+          phenotype?: string | null
+          splenectomy?: boolean
+          status?: string
+          target_pre_hb?: number | null
+          transfusion_interval_days?: number
+          updated_at?: string
+          weight_kg?: number | null
+        }
+        Relationships: []
+      }
+      thalassemia_visits: {
+        Row: {
+          branch_id: string | null
+          chair_no: string | null
+          charge_amount: number | null
+          created_at: string
+          created_by: string | null
+          id: string
+          ml_per_kg: number | null
+          notes: string | null
+          organization_id: string
+          patient_id: string
+          post_hb: number | null
+          pre_hb: number | null
+          reaction: string | null
+          sponsor_covered: number | null
+          sponsorship_id: string | null
+          status: string
+          transfusion_id: string | null
+          units_given: number | null
+          updated_at: string
+          visit_date: string
+          volume_ml: number | null
+          weight_kg: number | null
+        }
+        Insert: {
+          branch_id?: string | null
+          chair_no?: string | null
+          charge_amount?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          ml_per_kg?: number | null
+          notes?: string | null
+          organization_id: string
+          patient_id: string
+          post_hb?: number | null
+          pre_hb?: number | null
+          reaction?: string | null
+          sponsor_covered?: number | null
+          sponsorship_id?: string | null
+          status?: string
+          transfusion_id?: string | null
+          units_given?: number | null
+          updated_at?: string
+          visit_date?: string
+          volume_ml?: number | null
+          weight_kg?: number | null
+        }
+        Update: {
+          branch_id?: string | null
+          chair_no?: string | null
+          charge_amount?: number | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          ml_per_kg?: number | null
+          notes?: string | null
+          organization_id?: string
+          patient_id?: string
+          post_hb?: number | null
+          pre_hb?: number | null
+          reaction?: string | null
+          sponsor_covered?: number | null
+          sponsorship_id?: string | null
+          status?: string
+          transfusion_id?: string | null
+          units_given?: number | null
+          updated_at?: string
+          visit_date?: string
+          volume_ml?: number | null
+          weight_kg?: number | null
         }
         Relationships: []
       }
