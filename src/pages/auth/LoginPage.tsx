@@ -292,7 +292,7 @@ export const LoginPage = () => {
         </div>
         <div className="relative flex justify-center text-xs uppercase">
           <span className="bg-background px-2 text-muted-foreground">
-            Hospital Demo (Shifa Medical Center)
+            Hospital Demo (Aleem Dar Foundation)
           </span>
         </div>
       </div>
