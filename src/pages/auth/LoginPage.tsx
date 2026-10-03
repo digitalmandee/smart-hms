@@ -12,7 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Loader2, Eye, EyeOff, Crown, Building, Building2, Stethoscope, Heart, UserCheck, Pill, FlaskConical, Calculator, Lock, Unlock, Warehouse, Users, Banknote, Droplets, ScanLine, Bed, Scissors, Syringe, HeartPulse } from "lucide-react";
 
-// Hospital Demo Accounts (Shifa Medical Center)
+// Hospital Demo Accounts (Aleem Dar Foundation)
 const hospitalDemoAccounts = [
   // Admin Roles
   { email: "superadmin@healthos.demo", role: "Super Admin", icon: Crown, color: "bg-amber-500/10 text-amber-600 hover:bg-amber-500/20 border-amber-500/20" },

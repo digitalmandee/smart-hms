@@ -301,7 +301,7 @@ export default function PayslipsPage() {
         payrollRun={selectedRun}
         entries={payrollEntries || []}
         isLoading={isLoadingEntries}
-        organizationName="Shifa Medical Center"
+        organizationName="Aleem Dar Foundation"
       />
     </div>
   );
