@@ -13,7 +13,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { LineChart, Line, XAxis, YAxis, Tooltip, CartesianGrid, ResponsiveContainer, ReferenceLine } from "recharts";
-import { useThalList, useThalSave, bumpNextDue, today, type PatientLite } from "@/hooks/useThalassemia";
+import { useThalList, useThalSave, bumpNextDue, useLabThalReadings, today, type PatientLite } from "@/hooks/useThalassemia";
 import { useThalT, type ThalKey } from "@/lib/thalassemia/i18n";
 
 type Field = { k: string; label: ThalKey; type?: "number" | "date" | "text"; options?: ThalKey[] };
@@ -65,7 +65,12 @@ export default function ThalassemiaPatientPage() {
   const profile = (useThalList("thalassemia_profiles", patientId).data || [])[0] as any;
   const visits = useThalList("thalassemia_visits", patientId).data || [];
   const chelation = useThalList("chelation_records", patientId).data || [];
-  const monitoring = useThalList("thalassemia_monitoring", patientId).data || [];
+  const manualMon = useThalList("thalassemia_monitoring", patientId).data || [];
+  const labMon = useLabThalReadings(patientId).data || [];
+  const monitoring = [
+    ...manualMon.map((m: any) => ({ ...m, source: "manual" })),
+    ...labMon.filter((l) => !manualMon.some((m: any) => m.reading_date === l.reading_date && (m.ferritin === l.ferritin || l.ferritin == null) && (m.hb === l.hb || l.hb == null))),
+  ].sort((a: any, b: any) => b.reading_date.localeCompare(a.reading_date));
   const sponsors = useThalList("patient_sponsorships", patientId).data || [];
   const saveProfile = useThalSave("thalassemia_profiles");
   const saveVisit = useThalSave("thalassemia_visits");
@@ -179,8 +184,10 @@ export default function ThalassemiaPatientPage() {
               <Tooltip /><ReferenceLine y={2500} stroke="hsl(var(--destructive))" strokeDasharray="4 4" /><ReferenceLine y={1000} stroke="hsl(var(--muted-foreground))" strokeDasharray="4 4" />
               <Line dataKey="ferritin" name={t("ferritin")} stroke="hsl(var(--primary))" />
             </LineChart></ResponsiveContainer></CardContent></Card>}
+          <p className="text-sm text-muted-foreground text-start">{t("labSynced")}</p>
           <Card><CardContent className="pt-6"><RecordTable rows={monitoring} cols={[
-            { k: "reading_date", label: "date" }, { k: "ferritin", label: "ferritin" }, { k: "hb", label: "hb" }, { k: "alt", label: "alt" }, { k: "creatinine", label: "creatinine" }]} /></CardContent></Card>
+            { k: "reading_date", label: "date" },
+            { k: "source", label: "source", render: (r) => <Badge variant={r.source === "lab" ? "default" : "outline"}>{t(r.source === "lab" ? "fromLab" : "manual")}</Badge> }, { k: "ferritin", label: "ferritin" }, { k: "hb", label: "hb" }, { k: "alt", label: "alt" }, { k: "creatinine", label: "creatinine" }]} /></CardContent></Card>
         </TabsContent>
 
         <TabsContent value="sponsorship" className="space-y-4">
