@@ -75,3 +75,50 @@ export function usePatientSearch(term: string) {
 
 export const patientName = (p?: PatientLite | null) => (p ? `${p.first_name} ${p.last_name || ""}`.trim() : "—");
 export const today = () => new Date().toISOString().slice(0, 10);
+
+/* ---------- Lab-sourced ferritin / Hb ---------- */
+const FERRITIN_RE = /ferritin/i;
+const HB_RE = /^(hb|hgb|h(a)?emoglobin)\b/i;
+
+function toNum(v: any): number | null {
+  if (v == null) return null;
+  if (typeof v === "object") v = v.value ?? v.result ?? null;
+  const n = parseFloat(String(v ?? "").replace(/,/g, ""));
+  return Number.isFinite(n) ? n : null;
+}
+
+/** Ferritin & Hb readings parsed from this patient's lab results (published or completed). */
+export function useLabThalReadings(patientId?: string) {
+  return useQuery({
+    queryKey: ["thal-lab-readings", patientId],
+    enabled: !!patientId,
+    queryFn: async () => {
+      const { data: orders } = await db.from("lab_orders")
+        .select("id, created_at, published_at, status, is_published").eq("patient_id", patientId).limit(500);
+      const ok = (orders || []).filter((o: any) => o.is_published || o.status === "completed");
+      if (!ok.length) return [];
+      const omap = new Map(ok.map((o: any) => [o.id, o]));
+      const { data: items } = await db.from("lab_order_items")
+        .select("id, lab_order_id, test_name, result, result_values, result_date").in("lab_order_id", [...omap.keys()]);
+      const byDate = new Map<string, { id: string; reading_date: string; ferritin: number | null; hb: number | null; source: "lab" }>();
+      (items || []).forEach((it: any) => {
+        const o: any = omap.get(it.lab_order_id);
+        const date = String(it.result_date || o?.published_at || o?.created_at || "").slice(0, 10);
+        if (!date) return;
+        let ferritin: number | null = null, hb: number | null = null;
+        const vals = (it.result_values || {}) as Record<string, any>;
+        Object.entries(vals).forEach(([k, v]) => {
+          if (FERRITIN_RE.test(k)) ferritin ??= toNum(v);
+          else if (HB_RE.test(k.trim())) hb ??= toNum(v);
+        });
+        if (FERRITIN_RE.test(it.test_name)) ferritin ??= toNum(it.result) ?? (Object.values(vals).length === 1 ? toNum(Object.values(vals)[0]) : null);
+        if (HB_RE.test(String(it.test_name).trim())) hb ??= toNum(it.result);
+        if (ferritin == null && hb == null) return;
+        const r = byDate.get(date) || { id: `lab-${date}`, reading_date: date, ferritin: null, hb: null, source: "lab" as const };
+        r.ferritin ??= ferritin; r.hb ??= hb;
+        byDate.set(date, r);
+      });
+      return [...byDate.values()];
+    },
+  });
+}
