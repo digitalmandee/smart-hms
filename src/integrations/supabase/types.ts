@@ -28419,7 +28419,6 @@ export type Database = {
         }
         Returns: string
       }
-      portal_touch_login: { Args: never; Returns: undefined }
       post_monthly_depreciation_per_asset: {
         Args: { _month: number; _organization_id: string; _year: number }
         Returns: Json
