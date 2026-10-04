@@ -130,12 +130,40 @@ export const GLOBALLY_HIDDEN_PREFIXES = [
   "/app/services/category/radiology",
   "/app/hr/ot-roster",
   "/app/settings/surgeon-fee",
+  "/app/emergency",
+  "/app/dialysis",
+  "/app/dental",
+  "/app/insurance",
+  "/app/mobile-units",
+  "/app/home-care",
+  "/app/telemedicine",
+  "/app/kitchen",
+  "/app/hr/emergency-roster",
+  "/app/settings/ksa",
+  "/app/settings/kiosk",
 ];
 const GLOBALLY_HIDDEN_NAMES = [
   "radiology", "surgery", "surgeries", "operation theatre", "operation theater", "ot",
   "ot charges", "ot roster", "surgeon fee templates", "surgery schedule", "pre-anesthesia",
-  "anesthesia", "pacs", "imaging",
+  "anesthesia", "pacs", "imaging", "emergency", "dialysis", "dental", "insurance", "nphies",
+  "gynecology", "gynecology & obstetrics", "obstetrics", "maternity", "clinic on wheels", "mobile units",
+  "kiosk", "kiosks", "ksa compliance", "ksa integrations", "wasfaty", "tatmeen", "nafath", "telemedicine",
+  "home care", "kitchen", "emergency roster",
 ];
+
+// Welfare / donation menu added for every facility
+export const WELFARE_MENU: SidebarMenuItem = {
+  name: "Donations & Welfare", path: "", icon: "HeartHandshake",
+  children: [
+    { name: "Front Desk", path: "/app/reception/front-desk", icon: "UserCheck" },
+    { name: "Donations Dashboard", path: "/app/donations", icon: "LayoutDashboard" },
+    { name: "Donors", path: "/app/donations/donors", icon: "Users" },
+    { name: "Record Donation", path: "/app/donations/record", icon: "HandCoins" },
+    { name: "Fund Balances", path: "/app/donations/funds", icon: "Wallet" },
+    { name: "Welfare Report", path: "/app/donations/welfare-report", icon: "FileBarChart" },
+    { name: "Campaigns", path: "/app/donations/campaigns", icon: "Target" },
+  ],
+} as SidebarMenuItem;
 
 export function filterSidebarByFacilityType(
   items: SidebarMenuItem[],
@@ -154,6 +182,10 @@ export function filterSidebarByFacilityType(
       ],
     } as SidebarMenuItem;
     filtered.splice(Math.min(1, filtered.length), 0, thalMenu);
+  }
+  const hasWelfare = JSON.stringify(filtered).includes("/app/donations/funds");
+  if (!hasWelfare && facilityType !== "warehouse" && facilityType !== "pharmacy") {
+    filtered.splice(Math.min(2, filtered.length), 0, WELFARE_MENU);
   }
   return filtered;
 }

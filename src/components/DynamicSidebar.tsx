@@ -174,7 +174,7 @@ import { Badge } from "@/components/ui/badge";
 import { useMenuItems } from "@/hooks/useMenuItems";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROLE_SIDEBAR_CONFIG, getPrimaryRole } from "@/config/role-sidebars";
-import { filterSidebarByFacilityType, GLOBALLY_HIDDEN_PREFIXES } from "@/lib/facility-type-filter";
+import { filterSidebarByFacilityType, GLOBALLY_HIDDEN_PREFIXES, WELFARE_MENU } from "@/lib/facility-type-filter";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation, useIsRTL } from "@/lib/i18n";
@@ -1069,7 +1069,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
     });
   };
 
-  const HIDDEN_DB_NAMES = ["radiology", "surgery", "surgeries", "operation theatre", "operation theater", "ot", "ot charges", "ot roster", "surgeon fee templates", "surgery schedule", "pre-anesthesia", "anesthesia", "pacs"];
+  const HIDDEN_DB_NAMES = ["radiology", "surgery", "surgeries", "operation theatre", "operation theater", "ot", "ot charges", "ot roster", "surgeon fee templates", "surgery schedule", "pre-anesthesia", "anesthesia", "pacs", "emergency", "dialysis", "dental", "insurance", "gynecology", "obstetrics", "clinic on wheels", "mobile units", "kiosk", "kiosks", "ksa compliance", "telemedicine", "home care", "kitchen"];
   const hideDbItems = (items: typeof dbMenuItems): typeof dbMenuItems =>
     items
       .filter(i => !(i.path && GLOBALLY_HIDDEN_PREFIXES.some(p => i.path!.startsWith(p))) && !HIDDEN_DB_NAMES.includes((i.name || "").toLowerCase()))
@@ -1078,7 +1078,13 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
 
   // Convert static config to menu items format for rendering
   const menuItems = usesDatabaseMenus 
-    ? hideDbItems(applyDbLabelOverrides(dbMenuItems))
+    ? (() => {
+        const items = hideDbItems(applyDbLabelOverrides(dbMenuItems));
+        if (JSON.stringify(items).includes("/app/donations/funds") || orgFacilityType === "warehouse" || orgFacilityType === "pharmacy") return items;
+        const w = { id: "welfare-menu", code: "welfare-menu", name: WELFARE_MENU.name, icon: WELFARE_MENU.icon, path: null,
+          children: (WELFARE_MENU.children || []).map((c, i) => ({ id: `welfare-${i}`, code: c.path, name: c.name, icon: c.icon, path: c.path, children: [] })) } as any;
+        return [...items.slice(0, 2), w, ...items.slice(2)];
+      })()
     : (sidebarConfig?.items.map((item, index) => ({
         id: `role-menu-${index}`,
         code: item.path || `menu-${index}`,
