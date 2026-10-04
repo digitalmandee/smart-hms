@@ -17,6 +17,7 @@ import { useBloodCamp, useSaveCamp, useCampRow, useReceiveCampBags } from "@/hoo
 import { useCampT } from "@/lib/blood-bank/camp-i18n";
 import { BloodGroupBadge } from "@/components/blood-bank/BloodGroupBadge";
 import { campStatusVariant } from "./CampsListPage";
+import { CampMoney } from "./CampMoney";
 
 const ROLES = ["doctor", "phlebotomist", "nurse", "driver", "volunteer"];
 const REJECT_REASONS = ["damaged", "missing", "cold_chain", "clotted", "underfilled"];
