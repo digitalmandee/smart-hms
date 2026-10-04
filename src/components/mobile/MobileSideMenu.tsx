@@ -463,9 +463,7 @@ export function MobileSideMenu({ open, onOpenChange }: MobileSideMenuProps) {
 
   // Get menu items from appropriate source, then filter by facility type
   const rawStaticItems = ROLE_SIDEBAR_CONFIG[primaryRole]?.items || ROLE_SIDEBAR_CONFIG.default?.items || [];
-  const filteredStaticItems = orgFacilityType 
-    ? filterSidebarByFacilityType(rawStaticItems, orgFacilityType) 
-    : rawStaticItems;
+  const filteredStaticItems = filterSidebarByFacilityType(rawStaticItems, orgFacilityType);
 
   // Label overrides for DB menu items based on facility type
   const DB_LABEL_OVERRIDES: Record<string, Record<string, string>> = {
