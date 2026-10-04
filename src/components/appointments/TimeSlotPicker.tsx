@@ -20,6 +20,7 @@ export function TimeSlotPicker({
   initialSlot,
   onSelect,
 }: TimeSlotPickerProps) {
+  const { t } = useTranslation();
   const { data: slots, isLoading } = useAvailableSlots(doctorId, date);
 
   // Auto-select initial slot when slots are loaded and no slot is selected yet

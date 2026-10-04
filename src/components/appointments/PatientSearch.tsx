@@ -25,6 +25,7 @@ interface PatientSearchProps {
 }
 
 export function PatientSearch({ onSelect, onCreateNew, selectedPatient }: PatientSearchProps) {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<Patient[]>([]);
   const [isSearching, setIsSearching] = useState(false);
