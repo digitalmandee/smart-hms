@@ -1,0 +1,1 @@
+CREATE POLICY "portal_self_select_fund_utilizations" ON public.fund_utilizations FOR SELECT TO authenticated USING (public.user_owns_patient(patient_id));
