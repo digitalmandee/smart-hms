@@ -24,6 +24,8 @@ export default function DonationFormPage() {
   const navigate = useNavigate();
   const { tt, rtl } = useBBT();
   const [searchParams] = useSearchParams();
+  const campId = searchParams.get("campId");
+  const backTo = campId ? `/app/blood-bank/camps/${campId}` : "/app/blood-bank/donations";
   const [donorSearch, setDonorSearch] = useState("");
   const [selectedDonorId, setSelectedDonorId] = useState<string | null>(searchParams.get("donorId"));
   const { data: donors, isLoading: loadingDonors } = useBloodDonors({ search: donorSearch });
@@ -63,7 +65,7 @@ export default function DonationFormPage() {
     try {
       await deferBloodDonor(selectedDonorId, eligibility.reasons.map((r) => tt(`r_${r}`)).join("; "), days);
       toast.success(tt("deferredFor", { n: days }));
-      navigate("/app/blood-bank/donors");
+      navigate(campId ? backTo : "/app/blood-bank/donors");
     } catch (e: any) { toast.error(e.message); }
   };
 
@@ -87,9 +89,10 @@ export default function DonationFormPage() {
         screening_passed: true,
         questionnaire: answers,
         notes: formData.notes || null,
-        status: "screening",
+        status: campId ? "collecting" : "screening",
+        camp_id: campId || null,
       } as any);
-      navigate("/app/blood-bank/donations");
+      navigate(backTo);
     } catch { /* toast in hook */ }
   };
 
@@ -104,7 +107,7 @@ export default function DonationFormPage() {
   return (
     <div className="space-y-6" dir={rtl ? "rtl" : "ltr"}>
       <PageHeader title={tt("startDonation")} description={tt("startDonationDesc")}
-        actions={<Button variant="outline" onClick={() => navigate("/app/blood-bank/donations")}><ArrowLeft className="h-4 w-4 me-2" />{tt("backToDonations")}</Button>} />
+        actions={<Button variant="outline" onClick={() => navigate(backTo)}><ArrowLeft className="h-4 w-4 me-2" />{tt("backToDonations")}</Button>} />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
@@ -211,7 +214,7 @@ export default function DonationFormPage() {
         )}
 
         <div className={`flex justify-end gap-3 ${row}`}>
-          <Button type="button" variant="outline" onClick={() => navigate("/app/blood-bank/donations")}>{tt("cancel")}</Button>
+          <Button type="button" variant="outline" onClick={() => navigate(backTo)}>{tt("cancel")}</Button>
           <Button type="button" variant="secondary" disabled={!selectedDonorId || checking} onClick={runCheck}>
             {checking ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <ShieldCheck className="h-4 w-4 me-2" />}{tt("checkEligibility")}
           </Button>
