@@ -350,10 +350,11 @@ export function useCreateDonation() {
           ...donation,
           organization_id: profile!.organization_id!,
           branch_id: profile!.branch_id!,
-          created_by: profile!.id,
+          collected_by: profile!.id,
         })
-        .select()
-        .single();
+        .select();
+      if (error) throw error;
+      return data?.[0];
       if (error) throw error;
       return data;
     },
