@@ -1,0 +1,1 @@
+ALTER TABLE public.patients DROP COLUMN IF EXISTS needs_welfare, DROP COLUMN IF EXISTS preferred_fund, DROP COLUMN IF EXISTS suggested_coverage_pct;
