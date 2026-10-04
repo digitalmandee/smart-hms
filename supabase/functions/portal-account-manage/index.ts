@@ -75,7 +75,7 @@ Deno.serve(async (req) => {
         return json({ error: insErr.message }, 400);
       }
       // Portal-only login: make sure no staff role lingers from the signup trigger
-      await admin.from("user_roles").delete().eq("user_id", created.user.id).neq("role", "patient");
+      await admin.from("user_roles").delete().eq("user_id", created.user.id);
       return json({ ok: true, email: addr, password });
     }
 
