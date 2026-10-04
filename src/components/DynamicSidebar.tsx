@@ -174,7 +174,7 @@ import { Badge } from "@/components/ui/badge";
 import { useMenuItems } from "@/hooks/useMenuItems";
 import { useAuth } from "@/contexts/AuthContext";
 import { ROLE_SIDEBAR_CONFIG, getPrimaryRole } from "@/config/role-sidebars";
-import { filterSidebarByFacilityType } from "@/lib/facility-type-filter";
+import { filterSidebarByFacilityType, GLOBALLY_HIDDEN_PREFIXES } from "@/lib/facility-type-filter";
 import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { useTranslation, useIsRTL } from "@/lib/i18n";
