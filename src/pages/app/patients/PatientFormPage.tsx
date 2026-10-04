@@ -48,6 +48,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useCountryConfig } from "@/contexts/CountryConfigContext";
 import { useTranslation } from "@/lib/i18n";
 import { isValidSaudiId, getSaudiIdType } from "@/lib/validations/saudiId";
+import { WelfareAssessmentSection } from "@/components/patients/WelfareAssessmentSection";
 
 const patientSchema = z.object({
   // Personal Information
@@ -99,6 +100,19 @@ const patientSchema = z.object({
   // Additional
   notes: z.string().optional(),
   branch_id: z.string().optional(),
+
+  // Welfare / need assessment (NGO)
+  needs_welfare: z.boolean().optional(),
+  monthly_income: z.string().optional(),
+  family_members: z.string().optional(),
+  earning_members: z.string().optional(),
+  head_occupation: z.string().optional(),
+  housing_status: z.string().optional(),
+  zakat_eligible: z.string().optional(),
+  preferred_fund: z.string().optional(),
+  suggested_coverage_pct: z.string().optional().refine((v) => !v || (Number(v) >= 0 && Number(v) <= 100), "0–100"),
+  welfare_referral: z.string().optional(),
+  welfare_notes: z.string().optional(),
 });
 
 type PatientFormData = z.infer<typeof patientSchema>;
@@ -196,11 +210,27 @@ export function PatientFormPage() {
         referral_details: (patient as any).referral_details || "",
         notes: patient.notes || "",
         branch_id: patient.branch_id || "",
+        needs_welfare: !!(patient as any).needs_welfare,
+        monthly_income: (patient as any).monthly_income?.toString() || "",
+        family_members: (patient as any).family_members?.toString() || "",
+        earning_members: (patient as any).earning_members?.toString() || "",
+        head_occupation: (patient as any).head_occupation || "",
+        housing_status: (patient as any).housing_status || "",
+        zakat_eligible: (patient as any).zakat_eligible == null ? "" : (patient as any).zakat_eligible ? "yes" : "no",
+        preferred_fund: (patient as any).preferred_fund || "",
+        suggested_coverage_pct: (patient as any).suggested_coverage_pct?.toString() || "",
+        welfare_referral: (patient as any).welfare_referral || "",
+        welfare_notes: (patient as any).welfare_notes || "",
       });
     }
   }, [patient, form]);
 
   const onSubmit = async (data: PatientFormData) => {
+    if (data.needs_welfare && !data.national_id?.trim()) {
+      form.setError("national_id", { message: `${cc.national_id_label} *` });
+      return;
+    }
+    const toNum = (v?: string) => (v && v !== "" ? Number(v) : null);
     try {
       const payload: any = {
         first_name: data.first_name,
@@ -226,8 +256,6 @@ export function PatientFormPage() {
         emergency_contact_name: data.emergency_contact_name || null,
         emergency_contact_relation: data.emergency_contact_relation || null,
         emergency_contact_phone: data.emergency_contact_phone || null,
-        insurance_provider: data.insurance_provider || null,
-        insurance_id: data.insurance_id || null,
         referred_by: data.referred_by || null,
         referral_details: data.referral_details || null,
         notes: data.notes || null,
@@ -235,6 +263,17 @@ export function PatientFormPage() {
         guardian_phone: data.guardian_phone || null,
         guardian_relation: data.guardian_relation || null,
         branch_id: data.branch_id || null,
+        needs_welfare: !!data.needs_welfare,
+        monthly_income: data.needs_welfare ? toNum(data.monthly_income) : null,
+        family_members: data.needs_welfare ? toNum(data.family_members) : null,
+        earning_members: data.needs_welfare ? toNum(data.earning_members) : null,
+        head_occupation: data.needs_welfare ? data.head_occupation || null : null,
+        housing_status: data.needs_welfare ? data.housing_status || null : null,
+        zakat_eligible: data.needs_welfare && data.zakat_eligible ? data.zakat_eligible === "yes" : null,
+        preferred_fund: data.needs_welfare ? data.preferred_fund || null : null,
+        suggested_coverage_pct: data.needs_welfare ? toNum(data.suggested_coverage_pct) : null,
+        welfare_referral: data.needs_welfare ? data.welfare_referral || null : null,
+        welfare_notes: data.needs_welfare ? data.welfare_notes || null : null,
       };
 
       if (isEditing && id) {
@@ -552,6 +591,8 @@ export function PatientFormPage() {
           </Card>
 
           {/* Extended Fields - Collapsible Sections */}
+          <WelfareAssessmentSection form={form} />
+
           {showAllFields && (
             <Accordion type="multiple" defaultValue={["personal", "emergency"]} className="space-y-4">
               {/* Personal Details */}
@@ -858,55 +899,6 @@ export function PatientFormPage() {
                 </AccordionContent>
               </AccordionItem>
 
-              {/* Insurance */}
-              <AccordionItem value="insurance" className="border rounded-lg bg-card">
-                <AccordionTrigger className="px-6 hover:no-underline">
-                  <div className="flex items-center gap-2">
-                    <Shield className="h-5 w-5 text-primary" />
-                    <span className="font-semibold">{t('patient.insuranceSection')}</span>
-                  </div>
-                </AccordionTrigger>
-                <AccordionContent className="px-6 pb-6">
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <FormField
-                      control={form.control}
-                      name="insurance_provider"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('patient.insuranceProvider')}</FormLabel>
-                          <Select onValueChange={field.onChange} value={field.value}>
-                            <FormControl>
-                              <SelectTrigger>
-                                <SelectValue placeholder={t('patient.insuranceProvider')} />
-                              </SelectTrigger>
-                            </FormControl>
-                            <SelectContent>
-                              {(insuranceProviders.data || []).map((ins) => (
-                                <SelectItem key={ins.id} value={ins.name}>{ins.name}</SelectItem>
-                              ))}
-                            </SelectContent>
-                          </Select>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="insurance_id"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel>{t('patient.insuranceId')}</FormLabel>
-                          <FormControl>
-                            <Input {...field} placeholder="Insurance ID number" />
-                          </FormControl>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-                </AccordionContent>
-              </AccordionItem>
 
               {/* Referral */}
               <AccordionItem value="referral" className="border rounded-lg bg-card">
