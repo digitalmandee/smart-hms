@@ -2833,6 +2833,7 @@ export const en = {
   "donations.purpose.zakat": "Zakat",
   "donations.purpose.sadaqah": "Sadaqah",
   "donations.purpose.fitrana": "Fitrana",
+  "donations.purpose.sponsorship": "Sponsorship",
   "donations.purpose.other": "Other",
   "donations.paymentMethod.cash": "Cash",
   "donations.paymentMethod.bank_transfer": "Bank Transfer",

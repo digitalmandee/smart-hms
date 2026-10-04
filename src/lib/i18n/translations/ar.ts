@@ -2768,6 +2768,7 @@ export const ar: Record<TranslationKey, string> = {
   "donations.purpose.zakat": "زكاة",
   "donations.purpose.sadaqah": "صدقة",
   "donations.purpose.fitrana": "فطرة",
+  "donations.purpose.sponsorship": "كفالة",
   "donations.purpose.other": "أخرى",
   "donations.paymentMethod.cash": "نقداً",
   "donations.paymentMethod.bank_transfer": "تحويل بنكي",
