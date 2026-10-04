@@ -355,8 +355,6 @@ export function useCreateDonation() {
         .select();
       if (error) throw error;
       return data?.[0];
-      if (error) throw error;
-      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["blood-donations"] });
