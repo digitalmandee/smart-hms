@@ -227,7 +227,7 @@ export function PatientFormPage() {
 
   const onSubmit = async (data: PatientFormData) => {
     if (data.needs_welfare && !data.national_id?.trim()) {
-      form.setError("national_id", { message: `${cc.national_id_label} *` });
+      form.setError("national_id", { message: `${countryConfig.national_id_label} *` });
       return;
     }
     const toNum = (v?: string) => (v && v !== "" ? Number(v) : null);
