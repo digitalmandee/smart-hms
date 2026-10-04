@@ -847,16 +847,40 @@ export function useCreateTransfusion() {
           organization_id: profile!.organization_id!,
           branch_id: profile!.branch_id!,
         })
-        .select()
-        .single();
+        .select();
       if (error) throw error;
-
-      // Bag status, request status and thalassemia visits are kept in step by database triggers.
-      return data;
+      return data?.[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["blood-transfusions"] });
       queryClient.invalidateQueries({ queryKey: ["blood-inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["blood-stock"] });
+      toast.success("Transfusion scheduled");
+    },
+    onError: (error: Error) => {
+      toast.error(`Failed to schedule transfusion: ${error.message}`);
+    },
+  });
+}
+
+export function useUpdateTransfusion() {
+  const queryClient = useQueryClient();
+
+  return useMutation({
+    mutationFn: async ({ id, ...updates }: Partial<BloodTransfusion> & { id: string }) => {
+      const { data, error } = await db
+        .from("blood_transfusions")
+        .update(updates)
+        .eq("id", id)
+        .select();
+      if (error) throw error;
+      // Bag status, request completion and thalassemia visits are kept in step by database triggers.
+      return data?.[0];
+    },
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["blood-transfusions"] });
+      queryClient.invalidateQueries({ queryKey: ["blood-inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["blood-requests"] });
       queryClient.invalidateQueries({ queryKey: ["blood-stock"] });
       toast.success("Transfusion updated");
     },
@@ -864,6 +888,46 @@ export function useCreateTransfusion() {
       toast.error(`Failed to update transfusion: ${error.message}`);
     },
   });
+}
+
+// =============================================
+// ISSUE / ELIGIBILITY (server-side rules)
+// =============================================
+
+export function useIssueBloodUnits() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (requestId: string) => {
+      const { data, error } = await db.rpc("issue_blood_units", { _request_id: requestId });
+      if (error) throw error;
+      return data as { issued: number; invoice_id: string | null; total: number };
+    },
+    onSuccess: () => {
+      ["blood-requests", "blood-inventory", "blood-transfusions", "blood-stock", "invoices"].forEach((k) =>
+        queryClient.invalidateQueries({ queryKey: [k] }));
+    },
+  });
+}
+
+export interface EligibilityResult { eligible: boolean; reasons: string[]; defer_days: number }
+
+export async function checkDonorEligibility(args: {
+  donorId: string; hemoglobin?: number | null; weight?: number | null; donationType?: string; answers?: Record<string, boolean>;
+}): Promise<EligibilityResult> {
+  const { data, error } = await db.rpc("check_donor_eligibility", {
+    _donor_id: args.donorId,
+    _hemoglobin: args.hemoglobin ?? null,
+    _weight: args.weight ?? null,
+    _donation_type: args.donationType || "whole_blood",
+    _answers: args.answers || {},
+  });
+  if (error) throw error;
+  return data as EligibilityResult;
+}
+
+export async function deferBloodDonor(donorId: string, reason: string, days: number) {
+  const { error } = await db.rpc("defer_blood_donor", { _donor_id: donorId, _reason: reason, _days: days });
+  if (error) throw error;
 }
 
 // =============================================
