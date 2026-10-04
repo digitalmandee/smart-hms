@@ -2405,6 +2405,50 @@ export type Database = {
           },
         ]
       }
+      blood_camp_expenses: {
+        Row: {
+          amount: number
+          camp_id: string
+          category: string
+          created_at: string
+          created_by: string | null
+          id: string
+          notes: string | null
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          amount?: number
+          camp_id: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          updated_at?: string
+        }
+        Update: {
+          amount?: number
+          camp_id?: string
+          category?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          notes?: string | null
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blood_camp_expenses_camp_id_fkey"
+            columns: ["camp_id"]
+            isOneToOne: false
+            referencedRelation: "blood_camps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       blood_camp_staff: {
         Row: {
           camp_id: string
