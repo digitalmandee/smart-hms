@@ -2405,18 +2405,45 @@ export type Database = {
           },
         ]
       }
+      blood_component_shelf_life: {
+        Row: {
+          component_type: Database["public"]["Enums"]["blood_component_type"]
+          created_at: string
+          default_volume_ml: number
+          shelf_days: number
+          storage: string
+        }
+        Insert: {
+          component_type: Database["public"]["Enums"]["blood_component_type"]
+          created_at?: string
+          default_volume_ml: number
+          shelf_days: number
+          storage: string
+        }
+        Update: {
+          component_type?: Database["public"]["Enums"]["blood_component_type"]
+          created_at?: string
+          default_volume_ml?: number
+          shelf_days?: number
+          storage?: string
+        }
+        Relationships: []
+      }
       blood_donations: {
         Row: {
           bag_number: string | null
           blood_pressure: string | null
           branch_id: string
           collected_by: string | null
+          components_prepared: boolean
           created_at: string | null
           donation_date: string
           donation_number: string
           donation_time: string
           donation_type: string | null
           donor_id: string
+          eligibility_passed: boolean | null
+          eligibility_reasons: string[] | null
           hemoglobin_level: number | null
           id: string
           notes: string | null
@@ -2424,11 +2451,14 @@ export type Database = {
           processed_at: string | null
           processed_by: string | null
           pulse_rate: number | null
+          questionnaire: Json | null
           rejection_reason: string | null
           screening_notes: string | null
           screening_passed: boolean | null
+          screening_result: Json | null
           status: Database["public"]["Enums"]["donation_status"]
           temperature: number | null
+          testing_status: string | null
           updated_at: string | null
           volume_ml: number | null
         }
@@ -2437,12 +2467,15 @@ export type Database = {
           blood_pressure?: string | null
           branch_id: string
           collected_by?: string | null
+          components_prepared?: boolean
           created_at?: string | null
           donation_date?: string
           donation_number: string
           donation_time: string
           donation_type?: string | null
           donor_id: string
+          eligibility_passed?: boolean | null
+          eligibility_reasons?: string[] | null
           hemoglobin_level?: number | null
           id?: string
           notes?: string | null
@@ -2450,11 +2483,14 @@ export type Database = {
           processed_at?: string | null
           processed_by?: string | null
           pulse_rate?: number | null
+          questionnaire?: Json | null
           rejection_reason?: string | null
           screening_notes?: string | null
           screening_passed?: boolean | null
+          screening_result?: Json | null
           status?: Database["public"]["Enums"]["donation_status"]
           temperature?: number | null
+          testing_status?: string | null
           updated_at?: string | null
           volume_ml?: number | null
         }
@@ -2463,12 +2499,15 @@ export type Database = {
           blood_pressure?: string | null
           branch_id?: string
           collected_by?: string | null
+          components_prepared?: boolean
           created_at?: string | null
           donation_date?: string
           donation_number?: string
           donation_time?: string
           donation_type?: string | null
           donor_id?: string
+          eligibility_passed?: boolean | null
+          eligibility_reasons?: string[] | null
           hemoglobin_level?: number | null
           id?: string
           notes?: string | null
@@ -2476,11 +2515,14 @@ export type Database = {
           processed_at?: string | null
           processed_by?: string | null
           pulse_rate?: number | null
+          questionnaire?: Json | null
           rejection_reason?: string | null
           screening_notes?: string | null
           screening_passed?: boolean | null
+          screening_result?: Json | null
           status?: Database["public"]["Enums"]["donation_status"]
           temperature?: number | null
+          testing_status?: string | null
           updated_at?: string | null
           volume_ml?: number | null
         }
@@ -2656,12 +2698,16 @@ export type Database = {
           collection_date: string
           component_type: Database["public"]["Enums"]["blood_component_type"]
           created_at: string | null
+          discard_reason: string | null
+          discarded_at: string | null
+          discarded_by: string | null
           donation_id: string | null
           expiry_date: string
           hbsag_tested: boolean | null
           hcv_tested: boolean | null
           hiv_tested: boolean | null
           id: string
+          invoice_id: string | null
           malaria_tested: boolean | null
           notes: string | null
           organization_id: string
@@ -2682,12 +2728,16 @@ export type Database = {
           collection_date: string
           component_type?: Database["public"]["Enums"]["blood_component_type"]
           created_at?: string | null
+          discard_reason?: string | null
+          discarded_at?: string | null
+          discarded_by?: string | null
           donation_id?: string | null
           expiry_date: string
           hbsag_tested?: boolean | null
           hcv_tested?: boolean | null
           hiv_tested?: boolean | null
           id?: string
+          invoice_id?: string | null
           malaria_tested?: boolean | null
           notes?: string | null
           organization_id: string
@@ -2708,12 +2758,16 @@ export type Database = {
           collection_date?: string
           component_type?: Database["public"]["Enums"]["blood_component_type"]
           created_at?: string | null
+          discard_reason?: string | null
+          discarded_at?: string | null
+          discarded_by?: string | null
           donation_id?: string | null
           expiry_date?: string
           hbsag_tested?: boolean | null
           hcv_tested?: boolean | null
           hiv_tested?: boolean | null
           id?: string
+          invoice_id?: string | null
           malaria_tested?: boolean | null
           notes?: string | null
           organization_id?: string
@@ -2890,6 +2944,12 @@ export type Database = {
           created_at: string | null
           cross_match_id: string | null
           id: string
+          invoice_id: string | null
+          mid_bp: string | null
+          mid_pulse: number | null
+          mid_recorded_at: string | null
+          mid_resp_rate: number | null
+          mid_temp: number | null
           notes: string | null
           organization_id: string
           patient_id: string
@@ -2919,6 +2979,12 @@ export type Database = {
           created_at?: string | null
           cross_match_id?: string | null
           id?: string
+          invoice_id?: string | null
+          mid_bp?: string | null
+          mid_pulse?: number | null
+          mid_recorded_at?: string | null
+          mid_resp_rate?: number | null
+          mid_temp?: number | null
           notes?: string | null
           organization_id: string
           patient_id: string
@@ -2948,6 +3014,12 @@ export type Database = {
           created_at?: string | null
           cross_match_id?: string | null
           id?: string
+          invoice_id?: string | null
+          mid_bp?: string | null
+          mid_pulse?: number | null
+          mid_recorded_at?: string | null
+          mid_resp_rate?: number | null
+          mid_temp?: number | null
           notes?: string | null
           organization_id?: string
           patient_id?: string
@@ -28300,6 +28372,16 @@ export type Database = {
         Args: { _organization_id: string }
         Returns: Json
       }
+      check_donor_eligibility: {
+        Args: {
+          _answers?: Json
+          _donation_type?: string
+          _donor_id: string
+          _hemoglobin?: number
+          _weight?: number
+        }
+        Returns: Json
+      }
       check_drug_allergy: {
         Args: { p_drug_name: string; p_patient_id: string }
         Returns: boolean
@@ -28321,10 +28403,15 @@ export type Database = {
         Args: { p_lab_order_id: string }
         Returns: string
       }
+      defer_blood_donor: {
+        Args: { _days: number; _donor_id: string; _reason: string }
+        Returns: undefined
+      }
       enqueue_whatsapp_notification: {
         Args: { p_patient_id: string; p_payload: Json; p_template: string }
         Returns: undefined
       }
+      expire_blood_units: { Args: never; Returns: number }
       find_opd_department_by_specialization: {
         Args: { p_branch_id: string; p_specialization_id: string }
         Returns: string
@@ -28427,6 +28514,7 @@ export type Database = {
       hash_kiosk_password: { Args: { password: string }; Returns: string }
       is_org_admin_for: { Args: { _org_id: string }; Returns: boolean }
       is_super_admin: { Args: never; Returns: boolean }
+      issue_blood_units: { Args: { _request_id: string }; Returns: Json }
       lock_fiscal_year: { Args: { _fiscal_year_id: string }; Returns: Json }
       log_kiosk_token: {
         Args: {
@@ -28450,6 +28538,13 @@ export type Database = {
       set_org_language: {
         Args: { p_language: string; p_supported_languages: string[] }
         Returns: undefined
+      }
+      split_blood_donation: {
+        Args: {
+          _components: Database["public"]["Enums"]["blood_component_type"][]
+          _donation_id: string
+        }
+        Returns: number
       }
       user_belongs_to_org: { Args: { _org_id: string }; Returns: boolean }
       user_owns_patient: { Args: { _patient_id: string }; Returns: boolean }
