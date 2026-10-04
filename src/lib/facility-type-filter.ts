@@ -122,17 +122,28 @@ function filterItems(items: SidebarMenuItem[], blockedPrefixes: string[], labelO
  * - For 'thalassemia_center': hides OT, Emergency, Radiology, Dialysis, Dental (keeps procurement/warehouse)
  * - For 'hospital', 'clinic', 'diagnostic_center': no filtering (full access)
  */
+// Features switched off for every facility for now (radiology, surgery/OT, surgeon, anesthesia)
+export const GLOBALLY_HIDDEN_PREFIXES = [
+  "/app/ot",
+  "/app/radiology",
+  "/app/reception/ot-charges",
+  "/app/services/category/radiology",
+  "/app/hr/ot-roster",
+  "/app/settings/surgeon-fee",
+];
+const GLOBALLY_HIDDEN_NAMES = [
+  "radiology", "surgery", "surgeries", "operation theatre", "operation theater", "ot",
+  "ot charges", "ot roster", "surgeon fee templates", "surgery schedule", "pre-anesthesia",
+  "anesthesia", "pacs", "imaging",
+];
+
 export function filterSidebarByFacilityType(
   items: SidebarMenuItem[],
   facilityType: string | null | undefined
 ): SidebarMenuItem[] {
-  if (!facilityType) return items;
-  
-  const blockedPrefixes = BLOCKED_PREFIXES[facilityType];
-  if (!blockedPrefixes) return items; // hospital, clinic, diagnostic_center = no filtering
-  
-  const labelOverrides = LABEL_OVERRIDES[facilityType];
-  const hiddenNames = HIDDEN_ITEM_NAMES[facilityType];
+  const blockedPrefixes = [...GLOBALLY_HIDDEN_PREFIXES, ...((facilityType && BLOCKED_PREFIXES[facilityType]) || [])];
+  const labelOverrides = facilityType ? LABEL_OVERRIDES[facilityType] : undefined;
+  const hiddenNames = [...GLOBALLY_HIDDEN_NAMES, ...((facilityType && HIDDEN_ITEM_NAMES[facilityType]) || [])];
   const filtered = filterItems(items, blockedPrefixes, labelOverrides, hiddenNames);
   if (facilityType === "thalassemia_center" && !filtered.some(i => i.path === "/app/thalassemia")) {
     const thalMenu: SidebarMenuItem = {
