@@ -19938,7 +19938,6 @@ export type Database = {
           nafath_verified_at: string | null
           national_id: string | null
           nationality: string | null
-          needs_welfare: boolean
           notes: string | null
           number_of_children: number | null
           occupation: string | null
@@ -19947,7 +19946,6 @@ export type Database = {
           patient_number: string
           phone: string | null
           postal_code: string | null
-          preferred_fund: string | null
           preferred_language: string | null
           profile_photo_url: string | null
           qr_code: string | null
@@ -19955,7 +19953,6 @@ export type Database = {
           referred_by: string | null
           religion: string | null
           secondary_phone: string | null
-          suggested_coverage_pct: number | null
           updated_at: string
           welfare_coverage_pct: number
           welfare_fund: string | null
@@ -19998,7 +19995,6 @@ export type Database = {
           nafath_verified_at?: string | null
           national_id?: string | null
           nationality?: string | null
-          needs_welfare?: boolean
           notes?: string | null
           number_of_children?: number | null
           occupation?: string | null
@@ -20007,7 +20003,6 @@ export type Database = {
           patient_number: string
           phone?: string | null
           postal_code?: string | null
-          preferred_fund?: string | null
           preferred_language?: string | null
           profile_photo_url?: string | null
           qr_code?: string | null
@@ -20015,7 +20010,6 @@ export type Database = {
           referred_by?: string | null
           religion?: string | null
           secondary_phone?: string | null
-          suggested_coverage_pct?: number | null
           updated_at?: string
           welfare_coverage_pct?: number
           welfare_fund?: string | null
@@ -20058,7 +20052,6 @@ export type Database = {
           nafath_verified_at?: string | null
           national_id?: string | null
           nationality?: string | null
-          needs_welfare?: boolean
           notes?: string | null
           number_of_children?: number | null
           occupation?: string | null
@@ -20067,7 +20060,6 @@ export type Database = {
           patient_number?: string
           phone?: string | null
           postal_code?: string | null
-          preferred_fund?: string | null
           preferred_language?: string | null
           profile_photo_url?: string | null
           qr_code?: string | null
@@ -20075,7 +20067,6 @@ export type Database = {
           referred_by?: string | null
           religion?: string | null
           secondary_phone?: string | null
-          suggested_coverage_pct?: number | null
           updated_at?: string
           welfare_coverage_pct?: number
           welfare_fund?: string | null

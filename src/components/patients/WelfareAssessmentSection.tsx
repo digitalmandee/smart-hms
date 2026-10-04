@@ -44,7 +44,7 @@ export function useWelfareDict() {
 export function WelfareAssessmentSection({ form }: { form: UseFormReturn<any> }) {
   const d = useWelfareDict();
   const needs = form.watch("needs_welfare");
-  const wt = useWelfareT();
+  const { t: wt } = useWelfareT();
 
   const sel = (name: string, label: string, opts: [string, string][]) => (
     <FormField control={form.control} name={name} render={({ field }) => (
