@@ -457,6 +457,8 @@ import BloodBankDashboard from "./pages/app/blood-bank/BloodBankDashboard";
 import DonorsListPage from "./pages/app/blood-bank/DonorsListPage";
 import DonorFormPage from "./pages/app/blood-bank/DonorFormPage";
 import DonationsPage from "./pages/app/blood-bank/DonationsPage";
+import CampsListPage from "./pages/app/blood-bank/camps/CampsListPage";
+import CampDetailPage from "./pages/app/blood-bank/camps/CampDetailPage";
 import DonationFormPage from "./pages/app/blood-bank/DonationFormPage";
 import DonationDetailPage from "./pages/app/blood-bank/DonationDetailPage";
 import BloodInventoryPage from "./pages/app/blood-bank/InventoryPage";
@@ -1008,6 +1010,8 @@ function App() {
               <Route path="blood-bank/donors/new" element={<DonorFormPage />} />
               <Route path="blood-bank/donors/:id" element={<DonorDetailPage />} />
               <Route path="blood-bank/donors/:id/edit" element={<DonorFormPage />} />
+              <Route path="blood-bank/camps" element={<CampsListPage />} />
+              <Route path="blood-bank/camps/:id" element={<CampDetailPage />} />
               <Route path="blood-bank/donations" element={<DonationsPage />} />
               <Route path="blood-bank/donations/new" element={<DonationFormPage />} />
               <Route path="blood-bank/donations/:id" element={<DonationDetailPage />} />
