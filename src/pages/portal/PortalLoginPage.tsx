@@ -45,6 +45,15 @@ export default function PortalLoginPage() {
     }
   }
 
+  async function onForgot() {
+    if (!email) {
+      toast({ title: t("portal.forgot_enter_email" as any), variant: "destructive" });
+      return;
+    }
+    await supabase.auth.resetPasswordForEmail(email, { redirectTo: `${window.location.origin}/reset-password` });
+    toast({ title: t("portal.forgot_sent" as any) });
+  }
+
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     setLoading(true);
@@ -87,6 +96,9 @@ export default function PortalLoginPage() {
             <Label htmlFor="password">{t("portal.password" as any)}</Label>
             <Input id="password" type="password" required value={password} onChange={(e) => setPassword(e.target.value)} disabled={loading} autoComplete="current-password" />
           </div>
+          <button type="button" onClick={onForgot} className="text-xs text-primary hover:underline">
+            {t("portal.forgot" as any)}
+          </button>
           <Button type="submit" className="w-full" disabled={loading}>
             {loading && <Loader2 className="h-4 w-4 me-2 animate-spin" />}
             {t("portal.sign_in" as any)}

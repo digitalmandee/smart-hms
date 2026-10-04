@@ -13,7 +13,7 @@ export function PortalLayout() {
   const { t } = useTranslation();
   const rtl = useIsRTL();
   const navigate = useNavigate();
-  const [account, setAccount] = useState<{ patient_id: string } | null>(null);
+  const [account, setAccount] = useState<{ patient_id: string; is_active?: boolean } | null>(null);
   const [loading, setLoading] = useState(true);
   const [open, setOpen] = useState(false);
 
@@ -26,12 +26,16 @@ export function PortalLayout() {
     (async () => {
       const { data } = await supabase
         .from("patient_portal_accounts")
-        .select("patient_id")
+        .select("patient_id, is_active")
         .eq("user_id", user.id)
         .maybeSingle();
       if (!active) return;
-      setAccount(data ?? null);
+      setAccount((data as any) ?? null);
       setLoading(false);
+      if (data && (data as any).is_active !== false && !sessionStorage.getItem("portal_login_touched")) {
+        sessionStorage.setItem("portal_login_touched", "1");
+        await (supabase as any).from("patient_portal_accounts").update({ last_login_at: new Date().toISOString() }).eq("user_id", user.id);
+      }
     })();
     return () => { active = false; };
   }, [user, navigate]);
@@ -42,6 +46,18 @@ export function PortalLayout() {
 
   if (loading) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">{t("common.loading" as any)}</div>;
+  }
+
+  if (account && account.is_active === false) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6">
+        <div className="max-w-md text-center space-y-4">
+          <Heart className="h-10 w-10 mx-auto text-primary" />
+          <p className="text-muted-foreground">{t("portal.disabled_msg" as any)}</p>
+          <Button onClick={() => signOut().then(() => navigate("/portal/login"))}>{t("portal.sign_out" as any)}</Button>
+        </div>
+      </div>
+    );
   }
 
   if (!account) {
