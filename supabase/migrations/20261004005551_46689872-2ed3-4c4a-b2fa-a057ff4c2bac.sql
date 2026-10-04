@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.post_fund_utilization_to_journal() FROM PUBLIC, anon, authenticated;

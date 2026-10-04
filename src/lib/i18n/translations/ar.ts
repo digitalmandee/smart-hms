@@ -1115,6 +1115,8 @@ export const ar: Record<TranslationKey, string> = {
   "reception.appointmentsList": "قائمة المواعيد",
   "reception.aiIntake": "استقبال المريض بالذكاء الاصطناعي",
   "reception.aiGuided": "إدخال موجّه بالذكاء الاصطناعي",
+  "reception.frontDesk": "مكتب الاستقبال",
+  "reception.frontDeskDesc": "المريض والزيارة والدفع في شاشة واحدة",
 
   // Missing DB menu item names for sidebar
   "nav.walkInPatient": "مريض حضوري",
@@ -2766,6 +2768,7 @@ export const ar: Record<TranslationKey, string> = {
   "donations.purpose.zakat": "زكاة",
   "donations.purpose.sadaqah": "صدقة",
   "donations.purpose.fitrana": "فطرة",
+  "donations.purpose.sponsorship": "كفالة",
   "donations.purpose.other": "أخرى",
   "donations.paymentMethod.cash": "نقداً",
   "donations.paymentMethod.bank_transfer": "تحويل بنكي",

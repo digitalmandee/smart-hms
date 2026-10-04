@@ -12,7 +12,7 @@ import { useDonationCampaigns } from "@/hooks/useCampaigns";
 import { useTranslation } from "@/lib/i18n";
 import { useState } from "react";
 
-const PURPOSES = ["general", "building_fund", "equipment", "patient_welfare", "zakat", "sadaqah", "fitrana", "other"];
+const PURPOSES = ["zakat", "sadaqah", "fitrana", "general", "patient_welfare", "sponsorship", "building_fund", "equipment", "other"];
 const PAYMENT_METHODS = ["cash", "bank_transfer", "cheque", "online", "mobile_wallet"];
 const DONATION_TYPES = ["one_time", "recurring", "pledge", "in_kind"];
 

@@ -1112,6 +1112,8 @@ export const en = {
   "reception.appointmentsList": "Appointments list",
   "reception.aiIntake": "AI Patient Intake",
   "reception.aiGuided": "AI-guided intake",
+  "reception.frontDesk": "Front Desk",
+  "reception.frontDeskDesc": "Patient, visit and payment on one screen",
 
   // Missing DB menu item names for sidebar
   "nav.walkInPatient": "Walk-in Patient",
@@ -2831,6 +2833,7 @@ export const en = {
   "donations.purpose.zakat": "Zakat",
   "donations.purpose.sadaqah": "Sadaqah",
   "donations.purpose.fitrana": "Fitrana",
+  "donations.purpose.sponsorship": "Sponsorship",
   "donations.purpose.other": "Other",
   "donations.paymentMethod.cash": "Cash",
   "donations.paymentMethod.bank_transfer": "Bank Transfer",
