@@ -24,6 +24,7 @@ import { toast } from "sonner";
 import { ArrowLeft, Printer, CheckCircle, Loader2, User, Calendar, Stethoscope, FlaskConical, AlertTriangle, Globe, Copy, Mail, Barcode, CreditCard, PhoneCall } from "lucide-react";
 import { BarcodeStickerPrint } from "@/components/lab/BarcodeStickerPrint";
 import { LogCriticalCallbackDialog, FlaggedResult } from "@/components/lab/LogCriticalCallbackDialog";
+import { LabInvoiceCard } from "@/components/lab/LabInvoiceCard";
 import { format, differenceInYears } from "date-fns";
 
 const priorityConfig = {
@@ -289,6 +290,13 @@ export default function LabResultEntryPage() {
           )}
         </CardContent>
       </Card>
+
+      <LabInvoiceCard
+        labOrderId={labOrder.id}
+        invoiceId={(labOrder as unknown as { invoice_id?: string | null }).invoice_id}
+        patient={patient as any}
+        orderNumber={labOrder.order_number}
+      />
 
       {/* Sample Collection Status - Payment Required Warning */}
       {labOrder.status === "ordered" && !canProcessUnpaid && (
