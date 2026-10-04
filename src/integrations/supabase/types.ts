@@ -11236,6 +11236,48 @@ export type Database = {
           },
         ]
       }
+      fund_utilizations: {
+        Row: {
+          amount: number
+          branch_id: string | null
+          created_at: string
+          created_by: string | null
+          department: string | null
+          fund: string
+          id: string
+          invoice_id: string | null
+          notes: string | null
+          organization_id: string
+          patient_id: string | null
+        }
+        Insert: {
+          amount?: number
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          department?: string | null
+          fund: string
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          organization_id: string
+          patient_id?: string | null
+        }
+        Update: {
+          amount?: number
+          branch_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          department?: string | null
+          fund?: string
+          id?: string
+          invoice_id?: string | null
+          notes?: string | null
+          organization_id?: string
+          patient_id?: string | null
+        }
+        Relationships: []
+      }
       gate_logs: {
         Row: {
           created_at: string
@@ -19871,6 +19913,7 @@ export type Database = {
           insurance_id: string | null
           insurance_provider: string | null
           is_active: boolean | null
+          is_welfare: boolean
           last_name: string | null
           marital_status: Database["public"]["Enums"]["marital_status"] | null
           nafath_request_id: string | null
@@ -19894,6 +19937,8 @@ export type Database = {
           religion: string | null
           secondary_phone: string | null
           updated_at: string
+          welfare_coverage_pct: number
+          welfare_fund: string | null
         }
         Insert: {
           address?: string | null
@@ -19917,6 +19962,7 @@ export type Database = {
           insurance_id?: string | null
           insurance_provider?: string | null
           is_active?: boolean | null
+          is_welfare?: boolean
           last_name?: string | null
           marital_status?: Database["public"]["Enums"]["marital_status"] | null
           nafath_request_id?: string | null
@@ -19940,6 +19986,8 @@ export type Database = {
           religion?: string | null
           secondary_phone?: string | null
           updated_at?: string
+          welfare_coverage_pct?: number
+          welfare_fund?: string | null
         }
         Update: {
           address?: string | null
@@ -19963,6 +20011,7 @@ export type Database = {
           insurance_id?: string | null
           insurance_provider?: string | null
           is_active?: boolean | null
+          is_welfare?: boolean
           last_name?: string | null
           marital_status?: Database["public"]["Enums"]["marital_status"] | null
           nafath_request_id?: string | null
@@ -19986,6 +20035,8 @@ export type Database = {
           religion?: string | null
           secondary_phone?: string | null
           updated_at?: string
+          welfare_coverage_pct?: number
+          welfare_fund?: string | null
         }
         Relationships: [
           {
