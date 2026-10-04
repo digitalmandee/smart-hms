@@ -91,13 +91,18 @@ export default function FrontDeskPage() {
         items: lines.map(l => ({ description: l.description, quantity: l.quantity, unit_price: l.unit_price, service_type_id: l.service_type_id })),
       });
       const invoiceId = inv?.id ?? inv?.invoice?.id;
+      if (!invoiceId) throw new Error("Invoice not created");
       if (welfare && fundShare > 0 && chosen.fund) {
-        await applyFund.mutateAsync({ invoiceId, patientId: patient.id, fund: chosen.fund, amount: fundShare, department: visit });
+        try {
+          // Trigger validates fund balance, posts GL, and updates invoice paid/balance/status
+          await applyFund.mutateAsync({ invoiceId, patientId: patient.id, fund: chosen.fund, amount: fundShare, department: visit });
+        } catch (fe) {
+          await supabase.from("invoices").update({ status: "cancelled" } as any).eq("id", invoiceId).select();
+          throw fe;
+        }
       }
       if (patientShare > 0) {
         await recordPayment.mutateAsync({ invoiceId, amount: patientShare, paymentMethodId: method, billingSessionId: session?.id });
-      } else {
-        await supabase.from("invoices").update({ status: "paid" } as any).eq("id", invoiceId).select();
       }
       toast.success(t("done"));
       setLastInvoice(invoiceId); setLines([]);
