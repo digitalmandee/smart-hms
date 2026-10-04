@@ -10,6 +10,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { StatusBadge } from "@/components/StatusBadge";
+import { PortalAccessCard } from "@/components/patients/PortalAccessCard";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { usePatient } from "@/hooks/usePatients";
 import { useMedicalHistory } from "@/hooks/useMedicalHistory";
@@ -586,6 +587,9 @@ export function PatientDetailPage() {
 
             <TabsContent value="overview">
               <div className="grid gap-6">
+                {patient?.id && (
+                  <PortalAccessCard patientId={patient.id} defaultEmail={(patient as any).email} phone={(patient as any).phone} />
+                )}
                 {/* Quick Stats */}
                 <div className="grid gap-4 grid-cols-2 md:grid-cols-5">
                   <Card>
