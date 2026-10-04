@@ -1047,7 +1047,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
     ? null
     : (ROLE_SIDEBAR_CONFIG[primaryRole] || ROLE_SIDEBAR_CONFIG.default);
   
-  const sidebarConfig = rawSidebarConfig && orgFacilityType
+  const sidebarConfig = rawSidebarConfig
     ? { items: filterSidebarByFacilityType(rawSidebarConfig.items, orgFacilityType) }
     : rawSidebarConfig;
 
@@ -1069,9 +1069,16 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
     });
   };
 
+  const HIDDEN_DB_NAMES = ["radiology", "surgery", "surgeries", "operation theatre", "operation theater", "ot", "ot charges", "ot roster", "surgeon fee templates", "surgery schedule", "pre-anesthesia", "anesthesia", "pacs"];
+  const hideDbItems = (items: typeof dbMenuItems): typeof dbMenuItems =>
+    items
+      .filter(i => !(i.path && GLOBALLY_HIDDEN_PREFIXES.some(p => i.path!.startsWith(p))) && !HIDDEN_DB_NAMES.includes((i.name || "").toLowerCase()))
+      .map(i => (i.children?.length ? { ...i, children: hideDbItems(i.children) } : i))
+      .filter(i => i.path || !i.children || i.children.length > 0 || (i as any).children === undefined);
+
   // Convert static config to menu items format for rendering
   const menuItems = usesDatabaseMenus 
-    ? applyDbLabelOverrides(dbMenuItems)
+    ? hideDbItems(applyDbLabelOverrides(dbMenuItems))
     : (sidebarConfig?.items.map((item, index) => ({
         id: `role-menu-${index}`,
         code: item.path || `menu-${index}`,
