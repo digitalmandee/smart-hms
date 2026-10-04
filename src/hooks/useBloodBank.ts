@@ -963,19 +963,23 @@ export function useRecordTestResults() {
       results: Record<string, string>;
       allNegative: boolean;
     }) => {
-      // Update blood unit status
+      // Screening applies to every component bag made from the same donation
       const newStatus: BloodUnitStatus = allNegative ? 'available' : 'discarded';
-      const { error: unitError } = await db
-        .from("blood_inventory")
-        .update({ status: newStatus })
-        .eq("id", unitId);
+      const testCols = {
+        hiv_tested: !!results.hiv, hbsag_tested: !!results.hbv, hcv_tested: !!results.hcv,
+        vdrl_tested: !!results.syphilis, malaria_tested: !!results.malaria,
+        all_tests_negative: allNegative, tested_at: new Date().toISOString(),
+        ...(allNegative ? {} : { discard_reason: 'failed_screening', discarded_at: new Date().toISOString() }),
+      };
+      let q = db.from("blood_inventory").update({ status: newStatus, ...testCols });
+      q = donationId ? q.eq("donation_id", donationId).eq("status", "quarantine") : q.eq("id", unitId);
+      const { error: unitError } = await q;
       if (unitError) throw unitError;
 
-      // Update donation testing info
       if (donationId) {
         await db.from("blood_donations").update({
           testing_status: allNegative ? 'completed' : 'reactive',
-          screening_result: JSON.stringify(results),
+          screening_result: results,
         }).eq("id", donationId);
       }
 
@@ -1049,11 +1053,15 @@ export function useDiscardBloodUnit() {
 
   return useMutation({
     mutationFn: async ({ unitId, reason, notes }: { unitId: string; reason: string; notes?: string }) => {
+      const { data: auth } = await supabase.auth.getUser();
       const { data, error } = await db
         .from("blood_inventory")
-        .update({ 
-          status: 'discarded' as BloodUnitStatus,
-          storage_location: `Discarded: ${reason}${notes ? ' - ' + notes : ''}`,
+        .update({
+          status: (reason === 'expired' ? 'expired' : 'discarded') as BloodUnitStatus,
+          discard_reason: reason,
+          discarded_at: new Date().toISOString(),
+          discarded_by: auth?.user?.id ?? null,
+          ...(notes ? { notes } : {}),
         })
         .eq("id", unitId)
         .select();
