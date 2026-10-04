@@ -19911,16 +19911,20 @@ export type Database = {
           created_at: string
           created_by: string | null
           date_of_birth: string | null
+          earning_members: number | null
           email: string | null
           emergency_contact_name: string | null
           emergency_contact_phone: string | null
           emergency_contact_relation: string | null
+          family_members: number | null
           father_husband_name: string | null
           first_name: string
           gender: Database["public"]["Enums"]["gender"] | null
           guardian_name: string | null
           guardian_phone: string | null
           guardian_relation: string | null
+          head_occupation: string | null
+          housing_status: string | null
           id: string
           insurance_id: string | null
           insurance_provider: string | null
@@ -19928,11 +19932,13 @@ export type Database = {
           is_welfare: boolean
           last_name: string | null
           marital_status: Database["public"]["Enums"]["marital_status"] | null
+          monthly_income: number | null
           nafath_request_id: string | null
           nafath_verified: boolean | null
           nafath_verified_at: string | null
           national_id: string | null
           nationality: string | null
+          needs_welfare: boolean
           notes: string | null
           number_of_children: number | null
           occupation: string | null
@@ -19941,6 +19947,7 @@ export type Database = {
           patient_number: string
           phone: string | null
           postal_code: string | null
+          preferred_fund: string | null
           preferred_language: string | null
           profile_photo_url: string | null
           qr_code: string | null
@@ -19948,9 +19955,13 @@ export type Database = {
           referred_by: string | null
           religion: string | null
           secondary_phone: string | null
+          suggested_coverage_pct: number | null
           updated_at: string
           welfare_coverage_pct: number
           welfare_fund: string | null
+          welfare_notes: string | null
+          welfare_referral: string | null
+          zakat_eligible: boolean | null
         }
         Insert: {
           address?: string | null
@@ -19960,16 +19971,20 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           date_of_birth?: string | null
+          earning_members?: number | null
           email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relation?: string | null
+          family_members?: number | null
           father_husband_name?: string | null
           first_name: string
           gender?: Database["public"]["Enums"]["gender"] | null
           guardian_name?: string | null
           guardian_phone?: string | null
           guardian_relation?: string | null
+          head_occupation?: string | null
+          housing_status?: string | null
           id?: string
           insurance_id?: string | null
           insurance_provider?: string | null
@@ -19977,11 +19992,13 @@ export type Database = {
           is_welfare?: boolean
           last_name?: string | null
           marital_status?: Database["public"]["Enums"]["marital_status"] | null
+          monthly_income?: number | null
           nafath_request_id?: string | null
           nafath_verified?: boolean | null
           nafath_verified_at?: string | null
           national_id?: string | null
           nationality?: string | null
+          needs_welfare?: boolean
           notes?: string | null
           number_of_children?: number | null
           occupation?: string | null
@@ -19990,6 +20007,7 @@ export type Database = {
           patient_number: string
           phone?: string | null
           postal_code?: string | null
+          preferred_fund?: string | null
           preferred_language?: string | null
           profile_photo_url?: string | null
           qr_code?: string | null
@@ -19997,9 +20015,13 @@ export type Database = {
           referred_by?: string | null
           religion?: string | null
           secondary_phone?: string | null
+          suggested_coverage_pct?: number | null
           updated_at?: string
           welfare_coverage_pct?: number
           welfare_fund?: string | null
+          welfare_notes?: string | null
+          welfare_referral?: string | null
+          zakat_eligible?: boolean | null
         }
         Update: {
           address?: string | null
@@ -20009,16 +20031,20 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           date_of_birth?: string | null
+          earning_members?: number | null
           email?: string | null
           emergency_contact_name?: string | null
           emergency_contact_phone?: string | null
           emergency_contact_relation?: string | null
+          family_members?: number | null
           father_husband_name?: string | null
           first_name?: string
           gender?: Database["public"]["Enums"]["gender"] | null
           guardian_name?: string | null
           guardian_phone?: string | null
           guardian_relation?: string | null
+          head_occupation?: string | null
+          housing_status?: string | null
           id?: string
           insurance_id?: string | null
           insurance_provider?: string | null
@@ -20026,11 +20052,13 @@ export type Database = {
           is_welfare?: boolean
           last_name?: string | null
           marital_status?: Database["public"]["Enums"]["marital_status"] | null
+          monthly_income?: number | null
           nafath_request_id?: string | null
           nafath_verified?: boolean | null
           nafath_verified_at?: string | null
           national_id?: string | null
           nationality?: string | null
+          needs_welfare?: boolean
           notes?: string | null
           number_of_children?: number | null
           occupation?: string | null
@@ -20039,6 +20067,7 @@ export type Database = {
           patient_number?: string
           phone?: string | null
           postal_code?: string | null
+          preferred_fund?: string | null
           preferred_language?: string | null
           profile_photo_url?: string | null
           qr_code?: string | null
@@ -20046,9 +20075,13 @@ export type Database = {
           referred_by?: string | null
           religion?: string | null
           secondary_phone?: string | null
+          suggested_coverage_pct?: number | null
           updated_at?: string
           welfare_coverage_pct?: number
           welfare_fund?: string | null
+          welfare_notes?: string | null
+          welfare_referral?: string | null
+          zakat_eligible?: boolean | null
         }
         Relationships: [
           {
