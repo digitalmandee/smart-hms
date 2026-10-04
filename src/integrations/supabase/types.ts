@@ -28629,6 +28629,7 @@ export type Database = {
         Args: { _organization_id: string }
         Returns: Json
       }
+      bb_camp_expense_reverse: { Args: { p_id: string }; Returns: undefined }
       check_donor_eligibility: {
         Args: {
           _answers?: Json

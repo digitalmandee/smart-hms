@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.post_blood_camp_expense_to_journal() FROM PUBLIC, anon, authenticated;
