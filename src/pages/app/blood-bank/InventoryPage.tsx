@@ -276,6 +276,7 @@ export default function InventoryPage() {
                   <SelectItem value="contaminated">Contaminated</SelectItem>
                   <SelectItem value="damaged">Damaged</SelectItem>
                   <SelectItem value="reactive">Reactive (Failed Testing)</SelectItem>
+                  <SelectItem value="transfusion_reaction">Transfusion reaction</SelectItem>
                   <SelectItem value="other">Other</SelectItem>
                 </SelectContent>
               </Select>
