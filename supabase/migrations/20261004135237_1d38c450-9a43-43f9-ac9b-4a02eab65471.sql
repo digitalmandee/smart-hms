@@ -1,0 +1,1 @@
+UPDATE public.organizations SET logo_url='https://smart-hms.lovable.app/__l5e/assets-v1/bd5b0ed7-e4d9-411c-b21a-dad5685d5615/adf-official-logo.png' WHERE name='Aleem Dar Foundation';
