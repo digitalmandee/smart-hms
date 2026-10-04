@@ -28281,6 +28281,10 @@ export type Database = {
           session_token: string
         }[]
       }
+      create_lab_order_invoice: {
+        Args: { p_lab_order_id: string }
+        Returns: string
+      }
       enqueue_whatsapp_notification: {
         Args: { p_patient_id: string; p_payload: Json; p_template: string }
         Returns: undefined

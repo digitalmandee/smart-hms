@@ -132,7 +132,7 @@ export function useCreateLabOrder() {
     mutationFn: async ({
       labOrder,
       items,
-      createInvoice = false,
+      createInvoice = true,
       organizationId,
     }: {
       labOrder: {
@@ -200,70 +200,19 @@ export function useCreateLabOrder() {
         }
       }
 
-      // Create invoice if requested
+      // Create a real patient bill for the lab order (priced from service list, linked atomically)
       let invoice = null;
-      if (createInvoice && organizationId && items.length > 0) {
-        const today = new Date();
-        const dateStr = today.toISOString().slice(0, 10).replace(/-/g, "");
-        const randomSuffix = Math.floor(Math.random() * 1000).toString().padStart(3, "0");
-        const invoiceNumber = `LAB-${dateStr}-${randomSuffix}`;
-
-        const subtotal = items.reduce((sum, item) => sum + (item.price || 0), 0);
-
-        const { data: invoiceData, error: invoiceError } = await supabase
-          .from("invoices")
-          .insert({
-            invoice_number: invoiceNumber,
-            patient_id: labOrder.patient_id,
-            branch_id: labOrder.branch_id,
-            organization_id: organizationId,
-            discount_amount: 0,
-            tax_amount: 0,
-            total_amount: subtotal,
-            balance_amount: subtotal,
-            paid_amount: 0,
-            status: "pending",
-            notes: `Invoice for Lab Order ${order.order_number}`,
-            created_by: labOrder.ordered_by,
-            department: 'lab',
-          } as any)
-          .select()
-          .single();
-
+      if (createInvoice && items.length > 0) {
+        const { data: invoiceId, error: invoiceError } = await (supabase as any).rpc(
+          "create_lab_order_invoice",
+          { p_lab_order_id: order.id }
+        );
         if (invoiceError) {
           labLogger.error("Failed to create invoice", invoiceError, { orderId: order.id });
           throw new Error(`Failed to create invoice: ${invoiceError.message}`);
         }
-        
-        invoice = invoiceData;
-
-        // Create invoice items
-        const invoiceItems = items.map((item) => ({
-          invoice_id: invoice.id,
-          description: item.test_name,
-          quantity: 1,
-          unit_price: item.price || 0,
-          discount_percent: 0,
-          total_price: item.price || 0,
-          service_type_id: item.service_type_id || null,
-        }));
-
-        const { error: invoiceItemsError } = await supabase.from("invoice_items").insert(invoiceItems);
-        
-        if (invoiceItemsError) {
-          labLogger.error("Failed to create invoice items", invoiceItemsError, { invoiceId: invoice.id });
-          throw new Error(`Failed to create invoice items: ${invoiceItemsError.message}`);
-        }
-
-        // Update lab order with invoice reference
-        const { error: linkError } = await (supabase as any)
-          .from("lab_orders")
-          .update({ invoice_id: invoice.id })
-          .eq("id", order.id);
-          
-        if (linkError) {
-          labLogger.error("Failed to link invoice to lab order", linkError, { orderId: order.id, invoiceId: invoice.id });
-        }
+        const { data: inv } = await supabase.from("invoices").select("*").eq("id", invoiceId).maybeSingle();
+        invoice = inv;
       }
 
       labLogger.info("Lab order created", { 
