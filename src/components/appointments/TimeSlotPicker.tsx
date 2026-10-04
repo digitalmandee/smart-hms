@@ -2,6 +2,7 @@ import { useEffect } from 'react';
 import { useAvailableSlots } from '@/hooks/useDoctors';
 import { cn } from '@/lib/utils';
 import { Clock } from 'lucide-react';
+import { useTranslation } from '@/lib/i18n';
 import { Skeleton } from '@/components/ui/skeleton';
 
 interface TimeSlotPickerProps {
@@ -35,7 +36,7 @@ export function TimeSlotPicker({
     return (
       <div className="p-6 text-center text-muted-foreground border rounded-lg bg-muted/50">
         <Clock className="h-8 w-8 mx-auto mb-2 opacity-50" />
-        <p>Select a doctor and date to see available slots</p>
+        <p>{t('appointments.selectDoctorDateSlots' as any)}</p>
       </div>
     );
   }
