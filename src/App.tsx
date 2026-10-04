@@ -47,6 +47,7 @@ const BlogIndex = React.lazy(() => import("./pages/BlogIndex"));
 const BlogPost = React.lazy(() => import("./pages/BlogPost"));
 const PortalLayout = React.lazy(() => import("./layouts/PortalLayout").then(m => ({ default: m.PortalLayout })));
 const PortalLoginPage = React.lazy(() => import("./pages/portal/PortalLoginPage"));
+const PortalResetPasswordPage = React.lazy(() => import("./pages/portal/PortalResetPasswordPage"));
 const PortalDashboardPage = React.lazy(() => import("./pages/portal/PortalDashboardPage"));
 const PortalAppointmentsPage = React.lazy(() => import("./pages/portal/PortalAppointmentsPage"));
 const PortalLabResultsPage = React.lazy(() => import("./pages/portal/PortalLabResultsPage"));
@@ -814,6 +815,7 @@ function App() {
               <Route path="/blog/:slug" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><BlogPost /></React.Suspense>} />
 
               {/* Patient Portal (Chunk 7) */}
+              <Route path="/reset-password" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><PortalResetPasswordPage /></React.Suspense>} />
               <Route path="/portal/login" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><PortalLoginPage /></React.Suspense>} />
               <Route path="/portal" element={<React.Suspense fallback={<div className="flex items-center justify-center min-h-screen">Loading...</div>}><PortalLayout /></React.Suspense>}>
                 <Route index element={<Navigate to="/portal/dashboard" replace />} />

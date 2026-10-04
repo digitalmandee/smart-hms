@@ -3,12 +3,14 @@ import { useQuery } from "@tanstack/react-query";
 import { supabase } from "@/integrations/supabase/client";
 import { Calendar, FlaskConical, Pill, FileText, ArrowRight } from "lucide-react";
 import { useTranslation } from "@/lib/i18n";
+import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
 
 type Ctx = { patientId: string };
 
 export default function PortalDashboardPage() {
   const { patientId } = useOutletContext<Ctx>();
   const { t } = useTranslation();
+  const { formatCurrency } = useCurrencyFormatter();
 
   const { data: patient } = useQuery({
     queryKey: ["portal-patient", patientId],
@@ -28,7 +30,16 @@ export default function PortalDashboardPage() {
         supabase.from("prescriptions").select("id", { count: "exact", head: true }).eq("patient_id", patientId),
         supabase.from("invoices").select("id", { count: "exact", head: true }).eq("patient_id", patientId).neq("status", "paid"),
       ]);
+      const [{ data: invs }, { count: pendingLabs }, { data: ready }] = await Promise.all([
+        supabase.from("invoices").select("total_amount, paid_amount, status").eq("patient_id", patientId).neq("status", "cancelled"),
+        (supabase as any).from("lab_orders").select("id", { count: "exact", head: true }).eq("patient_id", patientId).eq("is_published", false),
+        (supabase as any).from("lab_orders").select("order_number, published_at").eq("patient_id", patientId).eq("is_published", true).order("published_at", { ascending: false }).limit(1),
+      ]);
+      const owed = ((invs ?? []) as any[]).reduce((s, i) => s + Math.max(Number(i.total_amount ?? 0) - Number(i.paid_amount ?? 0), 0), 0);
       return {
+        owed,
+        pendingLabs: pendingLabs ?? 0,
+        latestReady: ((ready ?? []) as any[])[0] ?? null,
         appointments: appts.count ?? 0,
         labs: labs.count ?? 0,
         rx: rx.count ?? 0,
@@ -36,6 +47,12 @@ export default function PortalDashboardPage() {
       };
     },
   });
+
+  const summary = [
+    { to: "/portal/invoices", label: t("portal.dash.outstanding" as any), value: formatCurrency(counts?.owed ?? 0) },
+    { to: "/portal/lab-results", label: t("portal.dash.pending_results" as any), value: String(counts?.pendingLabs ?? 0) },
+    { to: "/portal/lab-results", label: t("portal.dash.ready" as any), value: counts?.latestReady?.order_number ?? "-" },
+  ];
 
   const cards = [
     { to: "/portal/appointments", icon: Calendar, label: t("portal.nav.appointments" as any), value: counts?.appointments ?? 0, sub: t("portal.upcoming" as any) },
@@ -53,6 +70,15 @@ export default function PortalDashboardPage() {
         {patient?.patient_number && (
           <p className="text-sm text-muted-foreground">{t("portal.mrn" as any)}: {patient.patient_number}</p>
         )}
+      </div>
+
+      <div className="grid sm:grid-cols-3 gap-4">
+        {summary.map((c) => (
+          <Link key={c.label} to={c.to} className="bg-card border rounded-lg p-4 hover:border-primary transition-colors">
+            <div className="text-xs text-muted-foreground">{c.label}</div>
+            <div className="mt-1 text-2xl font-bold">{c.value}</div>
+          </Link>
+        ))}
       </div>
 
       <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-4">
