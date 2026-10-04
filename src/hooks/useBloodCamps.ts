@@ -32,18 +32,39 @@ export function useBloodCamp(id?: string) {
     queryKey: ["blood-camp", id],
     enabled: !!id,
     queryFn: async () => {
-      const [camp, staff, transport, donations, units] = await Promise.all([
+      const [camp, staff, transport, donations, units, expenses] = await Promise.all([
         db.from("blood_camps").select("*").eq("id", id).maybeSingle(),
         db.from("blood_camp_staff").select("*").eq("camp_id", id).order("created_at"),
         db.from("blood_camp_transport").select("*").eq("camp_id", id).order("created_at"),
         db.from("blood_donations").select("*, donor:blood_donors(id, first_name, last_name, donor_number, blood_group, phone)").eq("camp_id", id).order("created_at"),
-        db.from("blood_inventory").select("id, status, component_type, discard_reason").eq("camp_id", id),
+        db.from("blood_inventory").select("id, status, component_type, discard_reason, invoice_id").eq("camp_id", id),
+        db.from("blood_camp_expenses").select("*").eq("camp_id", id).order("created_at"),
       ]);
-      for (const r of [camp, staff, transport, donations, units]) if (r.error) throw r.error;
+      for (const r of [camp, staff, transport, donations, units, expenses]) if (r.error) throw r.error;
+      // Income: each linked invoice's total split across all bags billed on it
+      const unitRows = units.data || [];
+      const invIds = [...new Set(unitRows.map((u: any) => u.invoice_id).filter(Boolean))] as string[];
+      let income = 0;
+      if (invIds.length) {
+        const [inv, shared] = await Promise.all([
+          db.from("invoices").select("id, total_amount, status").in("id", invIds),
+          db.from("blood_inventory").select("id, invoice_id").in("invoice_id", invIds),
+        ]);
+        if (inv.error) throw inv.error;
+        const perInv: Record<string, number> = {};
+        for (const s of shared.data || []) perInv[s.invoice_id] = (perInv[s.invoice_id] || 0) + 1;
+        for (const i of inv.data || []) {
+          if (i.status === "cancelled") continue;
+          const mine = unitRows.filter((u: any) => u.invoice_id === i.id).length;
+          income += (Number(i.total_amount) || 0) * mine / Math.max(1, perInv[i.id] || mine);
+        }
+      }
       return {
         camp: camp.data as BloodCamp | null,
         staff: staff.data || [], transport: transport.data || [],
-        donations: donations.data || [], units: units.data || [],
+        donations: donations.data || [], units: unitRows,
+        expenses: (expenses.data || []) as { id: string; category: string; amount: number; notes: string | null }[],
+        income,
       };
     },
   });
@@ -71,7 +92,7 @@ export function useSaveCamp() {
   });
 }
 
-export function useCampRow(table: "blood_camp_staff" | "blood_camp_transport") {
+export function useCampRow(table: "blood_camp_staff" | "blood_camp_transport" | "blood_camp_expenses") {
   const inv = useInvalidate();
   const { profile } = useAuth();
   return useMutation({
