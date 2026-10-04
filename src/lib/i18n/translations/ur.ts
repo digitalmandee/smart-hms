@@ -1115,6 +1115,8 @@ export const ur: Record<TranslationKey, string> = {
   "reception.appointmentsList": "ملاقاتوں کی فہرست",
   "reception.aiIntake": "AI مریض انٹیک",
   "reception.aiGuided": "AI گائیڈڈ انٹیک",
+  "reception.frontDesk": "فرنٹ ڈیسک",
+  "reception.frontDeskDesc": "مریض، وزٹ اور ادائیگی ایک اسکرین پر",
 
   // Missing DB menu item names for sidebar
   "nav.walkInPatient": "واک ان مریض",

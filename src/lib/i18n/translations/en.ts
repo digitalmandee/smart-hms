@@ -1112,6 +1112,8 @@ export const en = {
   "reception.appointmentsList": "Appointments list",
   "reception.aiIntake": "AI Patient Intake",
   "reception.aiGuided": "AI-guided intake",
+  "reception.frontDesk": "Front Desk",
+  "reception.frontDeskDesc": "Patient, visit and payment on one screen",
 
   // Missing DB menu item names for sidebar
   "nav.walkInPatient": "Walk-in Patient",

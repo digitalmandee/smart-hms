@@ -158,7 +158,7 @@ export const WELFARE_MENU: SidebarMenuItem = {
     { name: "Front Desk", path: "/app/reception/front-desk", icon: "UserCheck" },
     { name: "Donations Dashboard", path: "/app/donations", icon: "LayoutDashboard" },
     { name: "Donors", path: "/app/donations/donors", icon: "Users" },
-    { name: "Record Donation", path: "/app/donations/record", icon: "HandCoins" },
+    { name: "Record Donation", path: "/app/donations/record", icon: "Wallet" },
     { name: "Fund Balances", path: "/app/donations/funds", icon: "Wallet" },
     { name: "Welfare Report", path: "/app/donations/welfare-report", icon: "FileBarChart" },
     { name: "Campaigns", path: "/app/donations/campaigns", icon: "Target" },
