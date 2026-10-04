@@ -22,23 +22,35 @@ export default function PortalInvoicesPage() {
   const qc = useQueryClient();
   const { formatCurrency } = useCurrencyFormatter();
   const [params, setParams] = useSearchParams();
-  const [tab, setTab] = useState<"all" | "lab">("all");
+  const [tab, setTab] = useState<"all" | "opd" | "lab">("all");
   const openId = params.get("open");
 
   const { data: rows, isLoading } = useQuery({
     queryKey: ["portal-invoices", patientId],
     queryFn: async () => {
-      const [{ data, error }, { data: labs }] = await Promise.all([
+      const [{ data, error }, { data: labs }, { data: funds }] = await Promise.all([
         supabase.from("invoices")
           .select("id, invoice_number, invoice_date, total_amount, paid_amount, status, notes")
           .eq("patient_id", patientId)
           .order("invoice_date", { ascending: false })
           .limit(100),
         (supabase as any).from("lab_orders").select("invoice_id").eq("patient_id", patientId).not("invoice_id", "is", null),
+        (supabase as any).from("fund_utilizations").select("id, invoice_id, fund, department, amount").eq("patient_id", patientId),
       ]);
       if (error) throw error;
       const labIds = new Set(((labs ?? []) as any[]).map((l) => l.invoice_id));
-      return (data ?? []).map((i: any) => ({ ...i, isLab: labIds.has(i.id) || String(i.invoice_number ?? "").startsWith("LAB-") }));
+      const byInv = new Map<string, any[]>();
+      ((funds ?? []) as any[]).forEach((f) => {
+        if (!f.invoice_id) return;
+        byInv.set(f.invoice_id, [...(byInv.get(f.invoice_id) ?? []), f]);
+      });
+      return (data ?? []).map((i: any) => {
+        const num = String(i.invoice_number ?? "");
+        const isLab = labIds.has(i.id) || num.startsWith("LAB-");
+        const f = byInv.get(i.id) ?? [];
+        const isIpd = num.startsWith("IPD-") || f.some((x) => String(x.department ?? "").toLowerCase() === "ipd");
+        return { ...i, isLab, isOpd: !isLab && !isIpd, funds: f, covered: f.reduce((s, x) => s + Number(x.amount ?? 0), 0) };
+      });
     },
   });
 
@@ -67,7 +79,7 @@ export default function PortalInvoicesPage() {
     },
   });
 
-  const list = (rows ?? []).filter((r: any) => tab === "all" || r.isLab);
+  const list = (rows ?? []).filter((r: any) => tab === "all" || (tab === "lab" ? r.isLab : r.isOpd));
   const open = rows?.find((r: any) => r.id === openId);
   const setOpen = (id: string | null) => {
     const p = new URLSearchParams(params);
@@ -75,6 +87,13 @@ export default function PortalInvoicesPage() {
     setParams(p, { replace: true });
   };
   const welfareNote = (notes?: string | null) => (notes ?? "").match(/\[Welfare:[^\]]*\]/g);
+  const sum = (k: (r: any) => number) => (rows ?? []).reduce((s: number, r: any) => s + k(r), 0);
+  const totals = {
+    billed: sum((r) => Number(r.total_amount ?? 0)),
+    covered: sum((r) => r.covered),
+    self: sum((r) => Math.max(Number(r.paid_amount ?? 0) - r.covered, 0)),
+    owed: sum((r) => Math.max(Number(r.total_amount ?? 0) - Number(r.paid_amount ?? 0), 0)),
+  };
 
   return (
     <div className="space-y-4">
@@ -83,10 +102,26 @@ export default function PortalInvoicesPage() {
         <Tabs value={tab} onValueChange={(v) => setTab(v as any)}>
           <TabsList>
             <TabsTrigger value="all">{t("portal.inv.all" as any)}</TabsTrigger>
+            <TabsTrigger value="opd">{t("portal.inv.opd" as any)}</TabsTrigger>
             <TabsTrigger value="lab">{t("portal.inv.lab" as any)}</TabsTrigger>
           </TabsList>
         </Tabs>
       </div>
+      {(rows ?? []).length > 0 && (
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+          {([
+            ["billed", totals.billed, ""],
+            ["covered", totals.covered, "text-primary"],
+            ["you_paid", totals.self, ""],
+            ["owed", totals.owed, totals.owed > 0 ? "text-destructive" : ""],
+          ] as const).map(([k, v, c]) => (
+            <div key={k} className="border rounded-lg p-3 bg-card text-start">
+              <p className="text-xs text-muted-foreground">{t(`portal.inv.${k}` as any)}</p>
+              <p className={cn("text-lg font-semibold", c)}>{formatCurrency(v)}</p>
+            </div>
+          ))}
+        </div>
+      )}
       <p className="text-xs text-muted-foreground">{t("portal.inv.live" as any)}</p>
 
       {isLoading && <p className="text-muted-foreground">{t("common.loading" as any)}</p>}
@@ -114,6 +149,12 @@ export default function PortalInvoicesPage() {
                   {t("portal.total" as any)}: {formatCurrency(total)} · {t("portal.paid" as any)}: {formatCurrency(paid)} ·{" "}
                   <span className={balance > 0 ? "text-destructive font-medium" : ""}>{t("portal.balance" as any)}: {formatCurrency(balance)}</span>
                 </div>
+                {inv.covered > 0 && (
+                  <div className={cn("text-xs mt-1 flex items-center gap-1 text-primary", rtl && "flex-row-reverse")}>
+                    <HeartHandshake className="h-3 w-3" />
+                    {t("portal.inv.covered" as any)}: {formatCurrency(inv.covered)} ({total > 0 ? Math.round((inv.covered / total) * 100) : 0}%)
+                  </div>
+                )}
               </div>
               <Badge variant={payStatusVariant[ps]}>{t(`portal.status.${ps}` as any)}</Badge>
             </button>
@@ -144,10 +185,23 @@ export default function PortalInvoicesPage() {
                 <div><p className="text-muted-foreground">{t("portal.paid" as any)}</p><p className="font-semibold">{formatCurrency(Number(open.paid_amount ?? 0))}</p></div>
                 <div><p className="text-muted-foreground">{t("portal.balance" as any)}</p><p className="font-semibold">{formatCurrency(Math.max(Number(open.total_amount ?? 0) - Number(open.paid_amount ?? 0), 0))}</p></div>
               </div>
-              {welfareNote(open.notes) && (
+              {(open.funds?.length > 0 || welfareNote(open.notes)) && (
                 <div className="rounded-md border p-3 text-sm space-y-1">
                   <div className={cn("flex items-center gap-2 font-medium", rtl && "flex-row-reverse")}><HeartHandshake className="h-4 w-4 text-primary" />{t("portal.inv.welfare" as any)}</div>
-                  {welfareNote(open.notes)!.map((w, i) => <p key={i} className="text-muted-foreground">{w.replace(/^\[Welfare:\s*|\]$/g, "")}</p>)}
+                  {open.funds?.length > 0 ? (
+                    <>
+                      {open.funds.map((f: any) => (
+                        <div key={f.id} className={cn("flex justify-between", rtl && "flex-row-reverse")}>
+                          <span className="capitalize">{String(f.fund).replace(/_/g, " ")}</span>
+                          <span className="font-medium">{formatCurrency(Number(f.amount))}</span>
+                        </div>
+                      ))}
+                      <div className={cn("flex justify-between text-muted-foreground", rtl && "flex-row-reverse")}>
+                        <span>{t("portal.inv.you_paid" as any)}</span>
+                        <span>{formatCurrency(Math.max(Number(open.paid_amount ?? 0) - open.covered, 0))}</span>
+                      </div>
+                    </>
+                  ) : welfareNote(open.notes)!.map((w, i) => <p key={i} className="text-muted-foreground">{w.replace(/^\[Welfare:\s*|\]$/g, "")}</p>)}
                 </div>
               )}
               <div>
