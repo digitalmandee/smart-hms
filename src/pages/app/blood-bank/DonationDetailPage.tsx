@@ -97,7 +97,7 @@ export default function DonationDetailPage() {
                   {COMPONENTS.map((c) => (
                     <label key={c} className={`flex items-center gap-3 rounded-md border p-3 cursor-pointer ${row}`}>
                       <Checkbox checked={components.includes(c)}
-                        onCheckedChange={(v) => setComponents((cs) => v === true ? [...cs.filter((x) => x !== "whole_blood"), c].filter((x, j, a) => c === "whole_blood" ? x === "whole_blood" : a.indexOf(x) === j) : cs.filter((x) => x !== c))} />
+                        onCheckedChange={(v) => setComponents((cs) => v !== true ? cs.filter((x) => x !== c) : c === "whole_blood" ? [c] : [...cs.filter((x) => x !== "whole_blood" && x !== c), c])} />
                       <span className="text-sm">{tt(`c_${c}`)}</span>
                     </label>
                   ))}
