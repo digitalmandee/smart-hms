@@ -120,7 +120,9 @@ export interface CrossMatchTest {
   organization_id: string;
   branch_id: string;
   request_id: string;
-  blood_unit_id: string;
+  unit_id?: string | null;
+  /** @deprecated use unit_id */
+  blood_unit_id?: string;
   patient_id: string;
   test_number: string | null;
   patient_blood_group: BloodGroupType;
@@ -142,14 +144,24 @@ export interface BloodTransfusion {
   branch_id: string;
   transfusion_number: string;
   request_id: string | null;
-  blood_unit_id: string;
+  unit_id: string | null;
+  /** @deprecated use unit_id */
+  blood_unit_id?: string;
   cross_match_id: string | null;
   patient_id: string;
-  admission_id: string | null;
+  admission_id?: string | null;
   status: TransfusionStatus;
+  scheduled_at?: string | null;
   started_at: string | null;
   completed_at: string | null;
-  volume_transfused_ml: number | null;
+  stopped_at?: string | null;
+  stop_reason?: string | null;
+  volume_transfused_ml?: number | null;
+  pre_temp?: number | null; pre_pulse?: number | null; pre_bp?: string | null; pre_resp_rate?: number | null;
+  mid_temp?: number | null; mid_pulse?: number | null; mid_bp?: string | null; mid_resp_rate?: number | null; mid_recorded_at?: string | null;
+  post_temp?: number | null; post_pulse?: number | null; post_bp?: string | null; post_resp_rate?: number | null;
+  invoice_id?: string | null;
+  notes?: string | null;
   created_at: string;
   patient?: {
     id: string;
@@ -839,50 +851,7 @@ export function useCreateTransfusion() {
         .single();
       if (error) throw error;
 
-      // Reserve blood unit when transfusion is created
-      if (transfusion.blood_unit_id) {
-        await db.from("blood_inventory").update({ status: 'reserved' }).eq("id", transfusion.blood_unit_id);
-      }
-
-      return data;
-    },
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["blood-transfusions"] });
-      queryClient.invalidateQueries({ queryKey: ["blood-inventory"] });
-      queryClient.invalidateQueries({ queryKey: ["blood-stock"] });
-      toast.success("Transfusion scheduled");
-    },
-    onError: (error: Error) => {
-      toast.error(`Failed to schedule transfusion: ${error.message}`);
-    },
-  });
-}
-
-export function useUpdateTransfusion() {
-  const queryClient = useQueryClient();
-
-  return useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<BloodTransfusion> & { id: string }) => {
-      const { data, error } = await db
-        .from("blood_transfusions")
-        .update(updates)
-        .eq("id", id)
-        .select()
-        .single();
-      if (error) throw error;
-
-      // Auto-update blood unit status based on transfusion status
-      if (data?.blood_unit_id && updates.status) {
-        let unitStatus: BloodUnitStatus | null = null;
-        if (updates.status === 'in_progress') unitStatus = 'issued';
-        else if (updates.status === 'completed') unitStatus = 'transfused';
-        else if (updates.status === 'stopped') unitStatus = 'transfused';
-
-        if (unitStatus) {
-          await db.from("blood_inventory").update({ status: unitStatus }).eq("id", data.blood_unit_id);
-        }
-      }
-
+      // Bag status, request status and thalassemia visits are kept in step by database triggers.
       return data;
     },
     onSuccess: () => {
