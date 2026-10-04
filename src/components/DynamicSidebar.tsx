@@ -1048,7 +1048,7 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
     : (ROLE_SIDEBAR_CONFIG[primaryRole] || ROLE_SIDEBAR_CONFIG.default);
   
   const sidebarConfig = rawSidebarConfig
-    ? { items: filterSidebarByFacilityType(rawSidebarConfig.items, orgFacilityType) }
+    ? { items: filterSidebarByFacilityType(rawSidebarConfig.items, orgFacilityType, isSuperAdmin ? "super_admin" : primaryRole) }
     : rawSidebarConfig;
 
   // Label overrides for DB menu items based on facility type

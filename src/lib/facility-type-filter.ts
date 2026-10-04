@@ -141,6 +141,10 @@ export const GLOBALLY_HIDDEN_PREFIXES = [
   "/app/hr/emergency-roster",
   "/app/settings/ksa",
   "/app/settings/kiosk",
+  "/app/assets",
+  "/app/housekeeping",
+  "/app/ipd/housekeeping",
+  "/app/accounts/receivables?tab=insurance",
 ];
 const GLOBALLY_HIDDEN_NAMES = [
   "radiology", "surgery", "surgeries", "operation theatre", "operation theater", "ot",
@@ -148,10 +152,10 @@ const GLOBALLY_HIDDEN_NAMES = [
   "anesthesia", "pacs", "imaging", "emergency", "dialysis", "dental", "insurance", "nphies",
   "gynecology", "gynecology & obstetrics", "obstetrics", "maternity", "clinic on wheels", "mobile units",
   "kiosk", "kiosks", "ksa compliance", "ksa integrations", "wasfaty", "tatmeen", "nafath", "telemedicine",
-  "home care", "kitchen", "emergency roster",
+  "home care", "kitchen", "emergency roster", "asset management", "housekeeping", "insurance aging",
 ];
 
-// Welfare / donation menu added for every facility
+// Welfare / donation module — full menu only for admin & finance roles
 export const WELFARE_MENU: SidebarMenuItem = {
   name: "Donations & Welfare", path: "", icon: "HeartHandshake",
   children: [
@@ -165,9 +169,15 @@ export const WELFARE_MENU: SidebarMenuItem = {
   ],
 } as SidebarMenuItem;
 
+/** Roles that see the full dedicated Donations & Welfare module */
+export const WELFARE_ADMIN_ROLES = ["super_admin", "org_admin", "branch_admin", "accountant", "finance_manager"];
+/** Roles that only get the Front Desk (welfare patient intake + billing) */
+export const WELFARE_FRONTDESK_ROLES = ["receptionist"];
+
 export function filterSidebarByFacilityType(
   items: SidebarMenuItem[],
-  facilityType: string | null | undefined
+  facilityType: string | null | undefined,
+  role?: string | null
 ): SidebarMenuItem[] {
   const blockedPrefixes = [...GLOBALLY_HIDDEN_PREFIXES, ...((facilityType && BLOCKED_PREFIXES[facilityType]) || [])];
   const labelOverrides = facilityType ? LABEL_OVERRIDES[facilityType] : undefined;
@@ -183,9 +193,15 @@ export function filterSidebarByFacilityType(
     } as SidebarMenuItem;
     filtered.splice(Math.min(1, filtered.length), 0, thalMenu);
   }
-  const hasWelfare = JSON.stringify(filtered).includes("/app/donations/funds");
-  if (!hasWelfare && facilityType !== "warehouse" && facilityType !== "pharmacy") {
-    filtered.splice(Math.min(2, filtered.length), 0, WELFARE_MENU);
+  if (facilityType === "warehouse" || facilityType === "pharmacy") return filtered;
+  const json = JSON.stringify(filtered);
+  if (!role || WELFARE_ADMIN_ROLES.includes(role)) {
+    if (!json.includes("/app/donations/funds")) filtered.splice(Math.min(2, filtered.length), 0, WELFARE_MENU);
+  } else if (WELFARE_FRONTDESK_ROLES.includes(role)) {
+    if (!json.includes("/app/reception/front-desk")) {
+      filtered.splice(Math.min(1, filtered.length), 0,
+        { name: "Front Desk", path: "/app/reception/front-desk", icon: "UserCheck" } as SidebarMenuItem);
+    }
   }
   return filtered;
 }
