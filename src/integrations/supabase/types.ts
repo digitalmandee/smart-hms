@@ -2405,6 +2405,193 @@ export type Database = {
           },
         ]
       }
+      blood_camp_staff: {
+        Row: {
+          camp_id: string
+          created_at: string
+          id: string
+          name: string
+          organization_id: string
+          phone: string | null
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          camp_id: string
+          created_at?: string
+          id?: string
+          name: string
+          organization_id?: string
+          phone?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Update: {
+          camp_id?: string
+          created_at?: string
+          id?: string
+          name?: string
+          organization_id?: string
+          phone?: string | null
+          role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blood_camp_staff_camp_id_fkey"
+            columns: ["camp_id"]
+            isOneToOne: false
+            referencedRelation: "blood_camps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blood_camp_transport: {
+        Row: {
+          arrival_temp: number | null
+          arrived_at: string | null
+          bag_count: number | null
+          camp_id: string
+          carrier: string | null
+          created_at: string
+          departed_at: string | null
+          departure_temp: number | null
+          flag_reason: string | null
+          flagged: boolean
+          id: string
+          organization_id: string
+          updated_at: string
+        }
+        Insert: {
+          arrival_temp?: number | null
+          arrived_at?: string | null
+          bag_count?: number | null
+          camp_id: string
+          carrier?: string | null
+          created_at?: string
+          departed_at?: string | null
+          departure_temp?: number | null
+          flag_reason?: string | null
+          flagged?: boolean
+          id?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Update: {
+          arrival_temp?: number | null
+          arrived_at?: string | null
+          bag_count?: number | null
+          camp_id?: string
+          carrier?: string | null
+          created_at?: string
+          departed_at?: string | null
+          departure_temp?: number | null
+          flag_reason?: string | null
+          flagged?: boolean
+          id?: string
+          organization_id?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "blood_camp_transport_camp_id_fkey"
+            columns: ["camp_id"]
+            isOneToOne: false
+            referencedRelation: "blood_camps"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      blood_camps: {
+        Row: {
+          address: string | null
+          bags_sent: number | null
+          branch_id: string | null
+          camp_date: string
+          camp_number: string | null
+          closed_at: string | null
+          closed_by: string | null
+          closing_notes: string | null
+          contact_person: string | null
+          contact_phone: string | null
+          created_at: string
+          created_by: string | null
+          end_time: string | null
+          id: string
+          in_charge: string | null
+          kits_notes: string | null
+          latitude: number | null
+          location: string | null
+          longitude: number | null
+          name: string
+          organiser: string | null
+          organization_id: string
+          received_at: string | null
+          start_time: string | null
+          status: string
+          target_bags: number | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          bags_sent?: number | null
+          branch_id?: string | null
+          camp_date?: string
+          camp_number?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closing_notes?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          end_time?: string | null
+          id?: string
+          in_charge?: string | null
+          kits_notes?: string | null
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          name: string
+          organiser?: string | null
+          organization_id?: string
+          received_at?: string | null
+          start_time?: string | null
+          status?: string
+          target_bags?: number | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          bags_sent?: number | null
+          branch_id?: string | null
+          camp_date?: string
+          camp_number?: string | null
+          closed_at?: string | null
+          closed_by?: string | null
+          closing_notes?: string | null
+          contact_person?: string | null
+          contact_phone?: string | null
+          created_at?: string
+          created_by?: string | null
+          end_time?: string | null
+          id?: string
+          in_charge?: string | null
+          kits_notes?: string | null
+          latitude?: number | null
+          location?: string | null
+          longitude?: number | null
+          name?: string
+          organiser?: string | null
+          organization_id?: string
+          received_at?: string | null
+          start_time?: string | null
+          status?: string
+          target_bags?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       blood_component_shelf_life: {
         Row: {
           component_type: Database["public"]["Enums"]["blood_component_type"]
@@ -2434,6 +2621,7 @@ export type Database = {
           bag_number: string | null
           blood_pressure: string | null
           branch_id: string
+          camp_id: string | null
           collected_by: string | null
           components_prepared: boolean
           created_at: string | null
@@ -2452,6 +2640,8 @@ export type Database = {
           processed_by: string | null
           pulse_rate: number | null
           questionnaire: Json | null
+          received_reason: string | null
+          received_status: string | null
           rejection_reason: string | null
           screening_notes: string | null
           screening_passed: boolean | null
@@ -2466,6 +2656,7 @@ export type Database = {
           bag_number?: string | null
           blood_pressure?: string | null
           branch_id: string
+          camp_id?: string | null
           collected_by?: string | null
           components_prepared?: boolean
           created_at?: string | null
@@ -2484,6 +2675,8 @@ export type Database = {
           processed_by?: string | null
           pulse_rate?: number | null
           questionnaire?: Json | null
+          received_reason?: string | null
+          received_status?: string | null
           rejection_reason?: string | null
           screening_notes?: string | null
           screening_passed?: boolean | null
@@ -2498,6 +2691,7 @@ export type Database = {
           bag_number?: string | null
           blood_pressure?: string | null
           branch_id?: string
+          camp_id?: string | null
           collected_by?: string | null
           components_prepared?: boolean
           created_at?: string | null
@@ -2516,6 +2710,8 @@ export type Database = {
           processed_by?: string | null
           pulse_rate?: number | null
           questionnaire?: Json | null
+          received_reason?: string | null
+          received_status?: string | null
           rejection_reason?: string | null
           screening_notes?: string | null
           screening_passed?: boolean | null
@@ -2532,6 +2728,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_donations_camp_id_fkey"
+            columns: ["camp_id"]
+            isOneToOne: false
+            referencedRelation: "blood_camps"
             referencedColumns: ["id"]
           },
           {
@@ -2695,6 +2898,7 @@ export type Database = {
           all_tests_negative: boolean | null
           blood_group: Database["public"]["Enums"]["blood_group_type"]
           branch_id: string
+          camp_id: string | null
           collection_date: string
           component_type: Database["public"]["Enums"]["blood_component_type"]
           created_at: string | null
@@ -2725,6 +2929,7 @@ export type Database = {
           all_tests_negative?: boolean | null
           blood_group: Database["public"]["Enums"]["blood_group_type"]
           branch_id: string
+          camp_id?: string | null
           collection_date: string
           component_type?: Database["public"]["Enums"]["blood_component_type"]
           created_at?: string | null
@@ -2755,6 +2960,7 @@ export type Database = {
           all_tests_negative?: boolean | null
           blood_group?: Database["public"]["Enums"]["blood_group_type"]
           branch_id?: string
+          camp_id?: string | null
           collection_date?: string
           component_type?: Database["public"]["Enums"]["blood_component_type"]
           created_at?: string | null
@@ -2787,6 +2993,13 @@ export type Database = {
             columns: ["branch_id"]
             isOneToOne: false
             referencedRelation: "branches"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "blood_inventory_camp_id_fkey"
+            columns: ["camp_id"]
+            isOneToOne: false
+            referencedRelation: "blood_camps"
             referencedColumns: ["id"]
           },
           {
@@ -28533,6 +28746,10 @@ export type Database = {
       }
       post_monthly_depreciation_per_asset: {
         Args: { _month: number; _organization_id: string; _year: number }
+        Returns: Json
+      }
+      receive_camp_bags: {
+        Args: { _accepted: string[]; _camp_id: string; _rejected?: Json }
         Returns: Json
       }
       set_org_language: {
