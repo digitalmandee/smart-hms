@@ -6,6 +6,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
 import { FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { WELFARE_FUNDS, useWelfareT } from "@/lib/welfare/i18n";
 import { useCountryConfig } from "@/contexts/CountryConfigContext";
 
 const DICT = {
@@ -43,6 +44,7 @@ export function useWelfareDict() {
 export function WelfareAssessmentSection({ form }: { form: UseFormReturn<any> }) {
   const d = useWelfareDict();
   const needs = form.watch("needs_welfare");
+  const wt = useWelfareT();
 
   const sel = (name: string, label: string, opts: [string, string][]) => (
     <FormField control={form.control} name={name} render={({ field }) => (
@@ -95,7 +97,13 @@ export function WelfareAssessmentSection({ form }: { form: UseFormReturn<any> })
             )} />
             {sel("housing_status", d.housing, [["own", d.own], ["rented", d.rented], ["none", d.none]])}
             {sel("zakat_eligible", d.zakat, [["yes", d.yes], ["no", d.no]])}
-            {sel("preferred_fund", d.fund, [["zakat", d.fZakat], ["sadaqah", d.fSadaqah], ["any", d.fAny]])}
+            <FormField control={form.control} name="preferred_fund" render={({ field }) => (
+              <FormItem><FormLabel>{d.fund}</FormLabel>
+                <Select onValueChange={field.onChange} value={field.value || "any"}>
+                  <FormControl><SelectTrigger><SelectValue /></SelectTrigger></FormControl>
+                  <SelectContent>{WELFARE_FUNDS.map((f) => <SelectItem key={f} value={f}>{wt(f)}</SelectItem>)}</SelectContent>
+                </Select></FormItem>
+            )} />
             {num("suggested_coverage_pct", d.coverage, { max: 100 })}
             {sel("welfare_referral", d.referral, [["self", d.rSelf], ["ngo", d.rNgo], ["mosque", d.rMosque], ["doctor", d.rDoctor]])}
             <FormField control={form.control} name="welfare_notes" render={({ field }) => (
