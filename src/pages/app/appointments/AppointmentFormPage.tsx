@@ -38,7 +38,6 @@ import { PrintableTokenSlip } from '@/components/clinic/PrintableTokenSlip';
 import { usePrint } from '@/hooks/usePrint';
 import { Clock, Users, CheckCircle, Printer, Banknote } from 'lucide-react';
 import { useTranslation } from '@/lib/i18n';
-import { AppointmentInsuranceCheck } from '@/components/appointments/AppointmentInsuranceCheck';
 
 
 const appointmentSchema = z.object({
@@ -604,13 +603,13 @@ export default function AppointmentFormPage() {
       />
 
       <Form {...form}>
-        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
-          <div className="grid gap-6 lg:grid-cols-2">
+        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+          <div className="grid gap-4 lg:grid-cols-3 items-start">
             {/* Left Column */}
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Patient Selection */}
               <Card>
-                <CardHeader>
+                <CardHeader className="py-3">
                   <CardTitle>{t('apptForm.patient')}</CardTitle>
                 </CardHeader>
                 <CardContent>
@@ -634,15 +633,59 @@ export default function AppointmentFormPage() {
                 </CardContent>
               </Card>
 
-              {/* Insurance Check */}
-              <AppointmentInsuranceCheck patientId={selectedPatient?.id} />
+              {/* Additional Info */}
+              <Card>
+                <CardHeader className="py-3">
+                  <CardTitle>{t('apptForm.additionalInfo')}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-3 pt-0">
+                  <FormField
+                    control={form.control}
+                    name="chief_complaint"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('apptForm.chiefComplaint')}</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            rows={2}
+                            placeholder={t('apptForm.chiefComplaintPlaceholder')}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
 
+                  <FormField
+                    control={form.control}
+                    name="notes"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>{t('apptForm.notesOptional')}</FormLabel>
+                        <FormControl>
+                          <Textarea
+                            rows={2}
+                            placeholder={t('apptForm.notesPlaceholder')}
+                            {...field}
+                          />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                </CardContent>
+              </Card>
+            </div>
+
+            {/* Middle Column */}
+            <div className="space-y-4">
               {/* Appointment Details */}
               <Card>
-                <CardHeader>
+                <CardHeader className="py-3">
                   <CardTitle>{t('apptForm.appointmentDetails')}</CardTitle>
                 </CardHeader>
-                <CardContent className="space-y-4">
+                <CardContent className="space-y-3 pt-0">
                   <FormField
                     control={form.control}
                     name="branch_id"
@@ -741,14 +784,14 @@ export default function AppointmentFormPage() {
             </div>
 
             {/* Right Column */}
-            <div className="space-y-6">
+            <div className="space-y-4">
               {/* Time Slot Selection - Only for scheduled/follow-up */}
               {requiresTimeSlot ? (
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="py-3">
                     <CardTitle>{t('apptForm.selectTimeSlot')}</CardTitle>
                   </CardHeader>
-                  <CardContent>
+                  <CardContent className="pt-0 lg:max-h-[calc(100vh-18rem)] overflow-y-auto">
                     <FormField
                       control={form.control}
                       name="appointment_time"
@@ -771,13 +814,13 @@ export default function AppointmentFormPage() {
                 </Card>
               ) : (
                 <Card>
-                  <CardHeader>
+                  <CardHeader className="py-3">
                     <CardTitle className="flex items-center gap-2">
                       <Users className="h-5 w-5" />
                       {appointmentType === 'walk_in' ? t('apptForm.walkInTitle') : t('apptForm.emergencyTitle')}
                     </CardTitle>
                   </CardHeader>
-                  <CardContent className="space-y-4">
+                  <CardContent className="space-y-3 pt-0">
                     <div className="flex items-center gap-3 p-4 bg-muted/50 rounded-lg">
                       <Clock className="h-8 w-8 text-primary" />
                       <div>
@@ -806,47 +849,6 @@ export default function AppointmentFormPage() {
                 </Card>
               )}
 
-              {/* Additional Info */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>{t('apptForm.additionalInfo')}</CardTitle>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  <FormField
-                    control={form.control}
-                    name="chief_complaint"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('apptForm.chiefComplaint')}</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder={t('apptForm.chiefComplaintPlaceholder')}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-
-                  <FormField
-                    control={form.control}
-                    name="notes"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>{t('apptForm.notesOptional')}</FormLabel>
-                        <FormControl>
-                          <Textarea
-                            placeholder={t('apptForm.notesPlaceholder')}
-                            {...field}
-                          />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
             </div>
           </div>
 
