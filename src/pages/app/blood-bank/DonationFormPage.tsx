@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { useNavigate, useSearchParams } from "react-router-dom";
+import { useState } from "react";
+import { useNavigate, useSearchParams, Link } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -7,308 +7,216 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Checkbox } from "@/components/ui/checkbox";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
-} from "@/components/ui/select";
-import { ArrowLeft, Save, Loader2, Search, UserPlus } from "lucide-react";
-import { 
-  useBloodDonors,
-  useBloodDonor,
-  useCreateDonation,
-  type DonationStatus,
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { ArrowLeft, Save, Loader2, Search, UserPlus, ShieldCheck, ShieldX } from "lucide-react";
+import { toast } from "sonner";
+import {
+  useBloodDonors, useBloodDonor, useCreateDonation,
+  checkDonorEligibility, deferBloodDonor, type EligibilityResult,
 } from "@/hooks/useBloodBank";
 import { BloodGroupBadge } from "@/components/blood-bank/BloodGroupBadge";
-import { Link } from "react-router-dom";
+import { useBBT, QUESTION_KEYS } from "@/lib/blood-bank/i18n";
 
-const donationTypes = [
-  { value: 'voluntary', label: 'Voluntary' },
-  { value: 'replacement', label: 'Replacement' },
-  { value: 'directed', label: 'Directed' },
-  { value: 'autologous', label: 'Autologous' },
-];
+const donationTypes = ["voluntary", "replacement", "directed", "autologous", "double_rbc"];
 
 export default function DonationFormPage() {
   const navigate = useNavigate();
+  const { tt, rtl } = useBBT();
   const [searchParams] = useSearchParams();
-  const preselectedDonorId = searchParams.get('donorId');
-  
-  const [donorSearch, setDonorSearch] = useState('');
-  const [selectedDonorId, setSelectedDonorId] = useState<string | null>(preselectedDonorId);
-  
+  const [donorSearch, setDonorSearch] = useState("");
+  const [selectedDonorId, setSelectedDonorId] = useState<string | null>(searchParams.get("donorId"));
   const { data: donors, isLoading: loadingDonors } = useBloodDonors({ search: donorSearch });
-  const { data: selectedDonor } = useBloodDonor(selectedDonorId || '');
+  const { data: selectedDonor } = useBloodDonor(selectedDonorId || "");
   const createDonation = useCreateDonation();
 
   const [formData, setFormData] = useState({
-    donation_date: new Date().toISOString().split('T')[0],
+    donation_date: new Date().toISOString().split("T")[0],
     donation_time: new Date().toTimeString().slice(0, 5),
-    donation_type: 'voluntary',
-    hemoglobin_reading: '',
-    bag_number: '',
-    volume_collected_ml: '',
-    screening_passed: false,
-    notes: '',
+    donation_type: "voluntary",
+    hemoglobin: "", weight: "", blood_pressure: "", pulse_rate: "", temperature: "",
+    bag_number: "", volume_ml: "450", notes: "",
   });
+  const [answers, setAnswers] = useState<Record<string, boolean>>({ feeling_well: true });
+  const [eligibility, setEligibility] = useState<EligibilityResult | null>(null);
+  const [checking, setChecking] = useState(false);
+  const set = (k: string, v: string) => { setFormData((f) => ({ ...f, [k]: v })); setEligibility(null); };
+
+  const runCheck = async () => {
+    if (!selectedDonorId) return null;
+    setChecking(true);
+    try {
+      const r = await checkDonorEligibility({
+        donorId: selectedDonorId,
+        hemoglobin: formData.hemoglobin ? parseFloat(formData.hemoglobin) : null,
+        weight: formData.weight ? parseFloat(formData.weight) : null,
+        donationType: formData.donation_type, answers,
+      });
+      setEligibility(r);
+      return r;
+    } catch (e: any) { toast.error(e.message); return null; } finally { setChecking(false); }
+  };
+
+  const handleDefer = async () => {
+    if (!selectedDonorId || !eligibility) return;
+    const days = eligibility.defer_days || 30;
+    try {
+      await deferBloodDonor(selectedDonorId, eligibility.reasons.map((r) => tt(`r_${r}`)).join("; "), days);
+      toast.success(tt("deferredFor", { n: days }));
+      navigate("/app/blood-bank/donors");
+    } catch (e: any) { toast.error(e.message); }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
-    if (!selectedDonorId) {
-      return;
-    }
-
+    if (!selectedDonorId) return;
+    const r = eligibility ?? (await runCheck());
+    if (!r?.eligible) return;
     try {
       await createDonation.mutateAsync({
         donor_id: selectedDonorId,
         donation_date: formData.donation_date,
         donation_time: formData.donation_time,
         donation_type: formData.donation_type,
-        hemoglobin_reading: formData.hemoglobin_reading ? parseFloat(formData.hemoglobin_reading) : null,
+        hemoglobin_level: formData.hemoglobin ? parseFloat(formData.hemoglobin) : null,
+        blood_pressure: formData.blood_pressure || null,
+        pulse_rate: formData.pulse_rate ? parseInt(formData.pulse_rate) : null,
+        temperature: formData.temperature ? parseFloat(formData.temperature) : null,
         bag_number: formData.bag_number || null,
-        volume_collected_ml: formData.volume_collected_ml ? parseInt(formData.volume_collected_ml) : null,
-        screening_result: formData.screening_passed ? 'passed' : 'pending',
-        status: 'registered' as DonationStatus,
-      });
-      navigate('/app/blood-bank/donations');
-    } catch (error) {
-      // Error handled in hook
-    }
+        volume_ml: formData.volume_ml ? parseInt(formData.volume_ml) : null,
+        screening_passed: true,
+        questionnaire: answers,
+        notes: formData.notes || null,
+        status: "screening",
+      } as any);
+      navigate("/app/blood-bank/donations");
+    } catch { /* toast in hook */ }
   };
 
-  const isLoading = createDonation.isPending;
+  const row = rtl ? "flex-row-reverse" : "";
+  const field = (k: keyof typeof formData, label: string, type = "text", extra: any = {}) => (
+    <div className="space-y-2">
+      <Label htmlFor={k} className={rtl ? "block text-end" : ""}>{label}</Label>
+      <Input id={k} type={type} value={formData[k]} onChange={(e) => set(k, e.target.value)} {...extra} />
+    </div>
+  );
 
   return (
-    <div className="space-y-6">
-      <PageHeader
-        title="Start New Donation"
-        description="Register a blood donation"
-        actions={
-          <Button variant="outline" onClick={() => navigate('/app/blood-bank/donations')}>
-            <ArrowLeft className="h-4 w-4 mr-2" />
-            Back to Donations
-          </Button>
-        }
-      />
+    <div className="space-y-6" dir={rtl ? "rtl" : "ltr"}>
+      <PageHeader title={tt("startDonation")} description={tt("startDonationDesc")}
+        actions={<Button variant="outline" onClick={() => navigate("/app/blood-bank/donations")}><ArrowLeft className="h-4 w-4 me-2" />{tt("backToDonations")}</Button>} />
 
       <form onSubmit={handleSubmit} className="space-y-6">
         <Card>
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <CardTitle>Donor Selection</CardTitle>
-              <Link to="/app/blood-bank/donors/new">
-                <Button type="button" variant="outline" size="sm">
-                  <UserPlus className="h-4 w-4 mr-2" />
-                  Register New Donor
-                </Button>
-              </Link>
+            <div className={`flex items-center justify-between ${row}`}>
+              <CardTitle>{tt("donorSelection")}</CardTitle>
+              <Link to="/app/blood-bank/donors/new"><Button type="button" variant="outline" size="sm"><UserPlus className="h-4 w-4 me-2" />{tt("registerDonor")}</Button></Link>
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
             {selectedDonor ? (
-              <div className="flex items-center justify-between p-4 bg-muted rounded-lg">
-                <div>
-                  <p className="font-medium">
-                    {selectedDonor.first_name} {selectedDonor.last_name}
-                  </p>
-                  <p className="text-sm text-muted-foreground">
-                    {selectedDonor.donor_number} • {selectedDonor.phone}
-                  </p>
-                  {selectedDonor.last_donation_date && (
-                    <p className="text-xs text-muted-foreground mt-1">
-                      Last donation: {selectedDonor.last_donation_date}
-                    </p>
-                  )}
+              <div className={`flex items-center justify-between p-4 bg-muted rounded-lg ${row}`}>
+                <div className={rtl ? "text-end" : ""}>
+                  <p className="font-medium">{selectedDonor.first_name} {selectedDonor.last_name}</p>
+                  <p className="text-sm text-muted-foreground">{selectedDonor.donor_number} • {selectedDonor.phone}</p>
+                  {selectedDonor.last_donation_date && <p className="text-xs text-muted-foreground mt-1">{tt("lastDonation")}: {selectedDonor.last_donation_date}</p>}
                 </div>
-                <div className="flex items-center gap-2">
+                <div className={`flex items-center gap-2 ${row}`}>
                   <BloodGroupBadge group={selectedDonor.blood_group} size="lg" />
-                  <Button 
-                    type="button" 
-                    variant="outline" 
-                    size="sm"
-                    onClick={() => setSelectedDonorId(null)}
-                  >
-                    Change
-                  </Button>
+                  <Button type="button" variant="outline" size="sm" onClick={() => { setSelectedDonorId(null); setEligibility(null); }}>{tt("change")}</Button>
                 </div>
               </div>
             ) : (
               <div className="space-y-3">
                 <div className="relative">
-                  <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <Input
-                    placeholder="Search donors by name, phone, or donor number..."
-                    value={donorSearch}
-                    onChange={(e) => setDonorSearch(e.target.value)}
-                    className="pl-9"
-                  />
+                  <Search className="absolute start-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                  <Input placeholder={tt("searchDonors")} value={donorSearch} onChange={(e) => setDonorSearch(e.target.value)} className="ps-9" />
                 </div>
                 {donorSearch && donors && donors.length > 0 && (
                   <div className="border rounded-lg max-h-48 overflow-y-auto">
-                    {donors.filter(d => d.status === 'active').slice(0, 5).map((donor) => (
-                      <div
-                        key={donor.id}
-                        className="p-3 hover:bg-muted cursor-pointer border-b last:border-b-0"
-                        onClick={() => {
-                          setSelectedDonorId(donor.id);
-                          setDonorSearch('');
-                        }}
-                      >
-                        <div className="flex items-center justify-between">
-                          <div>
-                            <p className="font-medium">
-                              {donor.first_name} {donor.last_name}
-                            </p>
-                            <p className="text-sm text-muted-foreground">
-                              {donor.donor_number} • {donor.total_donations} donations
-                            </p>
-                          </div>
-                          <BloodGroupBadge group={donor.blood_group} />
+                    {donors.filter((d) => d.status === "active" || d.status === "deferred").slice(0, 6).map((donor) => (
+                      <div key={donor.id} className={`p-3 hover:bg-muted cursor-pointer border-b last:border-b-0 flex items-center justify-between ${row}`}
+                        onClick={() => { setSelectedDonorId(donor.id); setDonorSearch(""); setEligibility(null); }}>
+                        <div className={rtl ? "text-end" : ""}>
+                          <p className="font-medium">{donor.first_name} {donor.last_name}</p>
+                          <p className="text-sm text-muted-foreground">{donor.donor_number} • {donor.total_donations} {tt("donations")}</p>
                         </div>
+                        <BloodGroupBadge group={donor.blood_group} />
                       </div>
                     ))}
                   </div>
                 )}
-                {donorSearch && donors?.filter(d => d.status === 'active').length === 0 && !loadingDonors && (
-                  <p className="text-sm text-muted-foreground">No active donors found</p>
-                )}
+                {donorSearch && donors?.length === 0 && !loadingDonors && <p className="text-sm text-muted-foreground">{tt("noActiveDonors")}</p>}
               </div>
             )}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Donation Details</CardTitle>
-          </CardHeader>
-          <CardContent className="grid gap-4 md:grid-cols-2">
+          <CardHeader><CardTitle className={rtl ? "text-end" : ""}>{tt("donationDetails")}</CardTitle></CardHeader>
+          <CardContent className="grid gap-4 md:grid-cols-3">
+            {field("donation_date", tt("donationDate") + " *", "date", { required: true })}
+            {field("donation_time", tt("donationTime"), "time")}
             <div className="space-y-2">
-              <Label htmlFor="donation_date">Donation Date *</Label>
-              <Input
-                id="donation_date"
-                type="date"
-                value={formData.donation_date}
-                onChange={(e) => setFormData({ ...formData, donation_date: e.target.value })}
-                required
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="donation_time">Donation Time</Label>
-              <Input
-                id="donation_time"
-                type="time"
-                value={formData.donation_time}
-                onChange={(e) => setFormData({ ...formData, donation_time: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="donation_type">Donation Type *</Label>
-              <Select 
-                value={formData.donation_type} 
-                onValueChange={(v) => setFormData({ ...formData, donation_type: v })}
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {donationTypes.map((t) => (
-                    <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>
-                  ))}
-                </SelectContent>
+              <Label className={rtl ? "block text-end" : ""}>{tt("donationType")} *</Label>
+              <Select value={formData.donation_type} onValueChange={(v) => set("donation_type", v)}>
+                <SelectTrigger><SelectValue /></SelectTrigger>
+                <SelectContent>{donationTypes.map((v) => <SelectItem key={v} value={v}>{tt(`t_${v}`)}</SelectItem>)}</SelectContent>
               </Select>
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="hemoglobin_reading">Hemoglobin (g/dL)</Label>
-              <Input
-                id="hemoglobin_reading"
-                type="number"
-                step="0.1"
-                min="10"
-                max="20"
-                placeholder="e.g., 13.5"
-                value={formData.hemoglobin_reading}
-                onChange={(e) => setFormData({ ...formData, hemoglobin_reading: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="bag_number">Bag Number</Label>
-              <Input
-                id="bag_number"
-                placeholder="Blood bag number"
-                value={formData.bag_number}
-                onChange={(e) => setFormData({ ...formData, bag_number: e.target.value })}
-              />
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="volume_collected_ml">Volume Collected (ml)</Label>
-              <Input
-                id="volume_collected_ml"
-                type="number"
-                min="300"
-                max="500"
-                placeholder="e.g., 450"
-                value={formData.volume_collected_ml}
-                onChange={(e) => setFormData({ ...formData, volume_collected_ml: e.target.value })}
-              />
-            </div>
+            {field("hemoglobin", tt("hb") + " *", "number", { step: "0.1", min: "5", max: "22", required: true })}
+            {field("weight", tt("weight") + " *", "number", { step: "0.1", min: "20", max: "250", required: true })}
+            {field("blood_pressure", tt("bp"), "text", { placeholder: "120/80" })}
+            {field("pulse_rate", tt("pulse"), "number")}
+            {field("temperature", tt("temp"), "number", { step: "0.1" })}
+            {field("bag_number", tt("bagNumber"))}
+            {field("volume_ml", tt("volume"), "number", { min: "200", max: "500" })}
           </CardContent>
         </Card>
 
         <Card>
-          <CardHeader>
-            <CardTitle>Pre-Donation Screening</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            <div className="flex items-start space-x-3">
-              <Checkbox
-                id="screening_passed"
-                checked={formData.screening_passed}
-                onCheckedChange={(checked) => setFormData({ ...formData, screening_passed: checked === true })}
-              />
-              <div className="grid gap-1.5 leading-none">
-                <label
-                  htmlFor="screening_passed"
-                  className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                >
-                  Pre-Donation Screening Passed
-                </label>
-                <p className="text-sm text-muted-foreground">
-                  Confirm that the donor has passed all pre-donation health screening requirements
-                </p>
-              </div>
-            </div>
-            <div className="space-y-2">
-              <Label htmlFor="notes">Notes</Label>
-              <Textarea
-                id="notes"
-                value={formData.notes}
-                onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-                placeholder="Any additional notes about the donation"
-                rows={3}
-              />
+          <CardHeader><CardTitle className={rtl ? "text-end" : ""}>{tt("questionnaire")}</CardTitle></CardHeader>
+          <CardContent className="grid gap-3 md:grid-cols-2">
+            {QUESTION_KEYS.map((q) => (
+              <label key={q} className={`flex items-start gap-3 rounded-md border p-3 cursor-pointer ${row}`}>
+                <Checkbox checked={!!answers[q]} onCheckedChange={(c) => { setAnswers((a) => ({ ...a, [q]: c === true })); setEligibility(null); }} />
+                <span className={`text-sm ${rtl ? "text-end" : ""}`}>{tt(`q_${q}`)}</span>
+              </label>
+            ))}
+            <div className="md:col-span-2 space-y-2">
+              <Label className={rtl ? "block text-end" : ""}>{tt("notes")}</Label>
+              <Textarea rows={2} value={formData.notes} onChange={(e) => set("notes", e.target.value)} />
             </div>
           </CardContent>
         </Card>
 
-        <div className="flex justify-end gap-4">
-          <Button type="button" variant="outline" onClick={() => navigate('/app/blood-bank/donations')}>
-            Cancel
+        {eligibility && (
+          eligibility.eligible ? (
+            <Alert><ShieldCheck className="h-4 w-4" /><AlertTitle>{tt("eligible")}</AlertTitle></Alert>
+          ) : (
+            <Alert variant="destructive">
+              <ShieldX className="h-4 w-4" />
+              <AlertTitle>{tt("notEligible")}</AlertTitle>
+              <AlertDescription>
+                <ul className="list-disc ps-5 mt-1">{eligibility.reasons.map((r) => <li key={r}>{tt(`r_${r}`)}</li>)}</ul>
+                {eligibility.defer_days > 0 && (
+                  <Button type="button" size="sm" variant="outline" className="mt-3" onClick={handleDefer}>
+                    {tt("deferDonor")} ({eligibility.defer_days})
+                  </Button>
+                )}
+              </AlertDescription>
+            </Alert>
+          )
+        )}
+
+        <div className={`flex justify-end gap-3 ${row}`}>
+          <Button type="button" variant="outline" onClick={() => navigate("/app/blood-bank/donations")}>{tt("cancel")}</Button>
+          <Button type="button" variant="secondary" disabled={!selectedDonorId || checking} onClick={runCheck}>
+            {checking ? <Loader2 className="h-4 w-4 me-2 animate-spin" /> : <ShieldCheck className="h-4 w-4 me-2" />}{tt("checkEligibility")}
           </Button>
-          <Button type="submit" disabled={isLoading || !selectedDonorId}>
-            {isLoading ? (
-              <>
-                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                Registering...
-              </>
-            ) : (
-              <>
-                <Save className="h-4 w-4 mr-2" />
-                Start Donation
-              </>
-            )}
+          <Button type="submit" disabled={createDonation.isPending || !selectedDonorId || (eligibility ? !eligibility.eligible : false)}>
+            {createDonation.isPending ? <><Loader2 className="h-4 w-4 me-2 animate-spin" />{tt("saving")}</> : <><Save className="h-4 w-4 me-2" />{tt("startBtn")}</>}
           </Button>
         </div>
       </form>

@@ -120,7 +120,9 @@ export interface CrossMatchTest {
   organization_id: string;
   branch_id: string;
   request_id: string;
-  blood_unit_id: string;
+  unit_id?: string | null;
+  /** @deprecated use unit_id */
+  blood_unit_id?: string;
   patient_id: string;
   test_number: string | null;
   patient_blood_group: BloodGroupType;
@@ -142,14 +144,24 @@ export interface BloodTransfusion {
   branch_id: string;
   transfusion_number: string;
   request_id: string | null;
-  blood_unit_id: string;
+  unit_id: string | null;
+  /** @deprecated use unit_id */
+  blood_unit_id?: string;
   cross_match_id: string | null;
   patient_id: string;
-  admission_id: string | null;
+  admission_id?: string | null;
   status: TransfusionStatus;
+  scheduled_at?: string | null;
   started_at: string | null;
   completed_at: string | null;
-  volume_transfused_ml: number | null;
+  stopped_at?: string | null;
+  stop_reason?: string | null;
+  volume_transfused_ml?: number | null;
+  pre_temp?: number | null; pre_pulse?: number | null; pre_bp?: string | null; pre_resp_rate?: number | null;
+  mid_temp?: number | null; mid_pulse?: number | null; mid_bp?: string | null; mid_resp_rate?: number | null; mid_recorded_at?: string | null;
+  post_temp?: number | null; post_pulse?: number | null; post_bp?: string | null; post_resp_rate?: number | null;
+  invoice_id?: string | null;
+  notes?: string | null;
   created_at: string;
   patient?: {
     id: string;
@@ -338,12 +350,11 @@ export function useCreateDonation() {
           ...donation,
           organization_id: profile!.organization_id!,
           branch_id: profile!.branch_id!,
-          created_by: profile!.id,
+          collected_by: profile!.id,
         })
-        .select()
-        .single();
+        .select();
       if (error) throw error;
-      return data;
+      return data?.[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["blood-donations"] });
@@ -360,39 +371,24 @@ export function useUpdateDonation() {
   const { profile } = useAuth();
 
   return useMutation({
-    mutationFn: async ({ id, ...updates }: Partial<BloodDonation> & { id: string }) => {
+    mutationFn: async ({ id, components, ...updates }: Partial<BloodDonation> & { id: string; components?: BloodComponentType[] }) => {
       const { data, error } = await db
         .from("blood_donations")
         .update(updates)
         .eq("id", id)
         .select(`*, donor:blood_donors(id, blood_group)`)
-        .single();
+        .maybeSingle();
       if (error) throw error;
 
-      // Auto-create blood_inventory record when donation is completed
-      if (updates.status === 'completed' && data?.donor?.blood_group) {
-        const collectionDate = data.donation_date || new Date().toISOString().split('T')[0];
-        const expiryDate = new Date(collectionDate);
-        expiryDate.setDate(expiryDate.getDate() + 35); // 35-day shelf life for whole blood
-
-        const { error: invError } = await db
-          .from("blood_inventory")
-          .insert({
-            organization_id: data.organization_id,
-            branch_id: data.branch_id,
-            donation_id: data.id,
-            blood_group: data.donor.blood_group,
-            component_type: 'whole_blood',
-            volume_ml: data.volume_collected_ml || 450,
-            collection_date: collectionDate,
-            expiry_date: expiryDate.toISOString().split('T')[0],
-            bag_number: data.bag_number,
-            status: 'quarantine',
-            created_by: profile?.id,
-          });
-        if (invError) {
-          console.error('Failed to auto-create inventory unit:', invError);
-          toast.error('Donation completed but failed to create inventory unit');
+      // Split into components (each with its own shelf life, starting in quarantine)
+      if (updates.status === 'completed') {
+        const { error: splitError } = await db.rpc("split_blood_donation", {
+          _donation_id: id,
+          _components: components && components.length ? components : ['whole_blood'],
+        });
+        if (splitError) {
+          console.error('Failed to prepare components:', splitError);
+          toast.error(`Donation completed but components were not created: ${splitError.message}`);
         }
       }
 
@@ -850,16 +846,9 @@ export function useCreateTransfusion() {
           organization_id: profile!.organization_id!,
           branch_id: profile!.branch_id!,
         })
-        .select()
-        .single();
+        .select();
       if (error) throw error;
-
-      // Reserve blood unit when transfusion is created
-      if (transfusion.blood_unit_id) {
-        await db.from("blood_inventory").update({ status: 'reserved' }).eq("id", transfusion.blood_unit_id);
-      }
-
-      return data;
+      return data?.[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["blood-transfusions"] });
@@ -882,27 +871,15 @@ export function useUpdateTransfusion() {
         .from("blood_transfusions")
         .update(updates)
         .eq("id", id)
-        .select()
-        .single();
+        .select();
       if (error) throw error;
-
-      // Auto-update blood unit status based on transfusion status
-      if (data?.blood_unit_id && updates.status) {
-        let unitStatus: BloodUnitStatus | null = null;
-        if (updates.status === 'in_progress') unitStatus = 'issued';
-        else if (updates.status === 'completed') unitStatus = 'transfused';
-        else if (updates.status === 'stopped') unitStatus = 'transfused';
-
-        if (unitStatus) {
-          await db.from("blood_inventory").update({ status: unitStatus }).eq("id", data.blood_unit_id);
-        }
-      }
-
-      return data;
+      // Bag status, request completion and thalassemia visits are kept in step by database triggers.
+      return data?.[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["blood-transfusions"] });
       queryClient.invalidateQueries({ queryKey: ["blood-inventory"] });
+      queryClient.invalidateQueries({ queryKey: ["blood-requests"] });
       queryClient.invalidateQueries({ queryKey: ["blood-stock"] });
       toast.success("Transfusion updated");
     },
@@ -910,6 +887,46 @@ export function useUpdateTransfusion() {
       toast.error(`Failed to update transfusion: ${error.message}`);
     },
   });
+}
+
+// =============================================
+// ISSUE / ELIGIBILITY (server-side rules)
+// =============================================
+
+export function useIssueBloodUnits() {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: async (requestId: string) => {
+      const { data, error } = await db.rpc("issue_blood_units", { _request_id: requestId });
+      if (error) throw error;
+      return data as { issued: number; invoice_id: string | null; total: number };
+    },
+    onSuccess: () => {
+      ["blood-requests", "blood-inventory", "blood-transfusions", "blood-stock", "invoices"].forEach((k) =>
+        queryClient.invalidateQueries({ queryKey: [k] }));
+    },
+  });
+}
+
+export interface EligibilityResult { eligible: boolean; reasons: string[]; defer_days: number }
+
+export async function checkDonorEligibility(args: {
+  donorId: string; hemoglobin?: number | null; weight?: number | null; donationType?: string; answers?: Record<string, boolean>;
+}): Promise<EligibilityResult> {
+  const { data, error } = await db.rpc("check_donor_eligibility", {
+    _donor_id: args.donorId,
+    _hemoglobin: args.hemoglobin ?? null,
+    _weight: args.weight ?? null,
+    _donation_type: args.donationType || "whole_blood",
+    _answers: args.answers || {},
+  });
+  if (error) throw error;
+  return data as EligibilityResult;
+}
+
+export async function deferBloodDonor(donorId: string, reason: string, days: number) {
+  const { error } = await db.rpc("defer_blood_donor", { _donor_id: donorId, _reason: reason, _days: days });
+  if (error) throw error;
 }
 
 // =============================================
@@ -945,19 +962,23 @@ export function useRecordTestResults() {
       results: Record<string, string>;
       allNegative: boolean;
     }) => {
-      // Update blood unit status
+      // Screening applies to every component bag made from the same donation
       const newStatus: BloodUnitStatus = allNegative ? 'available' : 'discarded';
-      const { error: unitError } = await db
-        .from("blood_inventory")
-        .update({ status: newStatus })
-        .eq("id", unitId);
+      const testCols = {
+        hiv_tested: !!results.hiv, hbsag_tested: !!results.hbv, hcv_tested: !!results.hcv,
+        vdrl_tested: !!results.syphilis, malaria_tested: !!results.malaria,
+        all_tests_negative: allNegative, tested_at: new Date().toISOString(),
+        ...(allNegative ? {} : { discard_reason: 'failed_screening', discarded_at: new Date().toISOString() }),
+      };
+      let q = db.from("blood_inventory").update({ status: newStatus, ...testCols });
+      q = donationId ? q.eq("donation_id", donationId).eq("status", "quarantine") : q.eq("id", unitId);
+      const { error: unitError } = await q;
       if (unitError) throw unitError;
 
-      // Update donation testing info
       if (donationId) {
         await db.from("blood_donations").update({
           testing_status: allNegative ? 'completed' : 'reactive',
-          screening_result: JSON.stringify(results),
+          screening_result: results,
         }).eq("id", donationId);
       }
 
@@ -1031,11 +1052,15 @@ export function useDiscardBloodUnit() {
 
   return useMutation({
     mutationFn: async ({ unitId, reason, notes }: { unitId: string; reason: string; notes?: string }) => {
+      const { data: auth } = await supabase.auth.getUser();
       const { data, error } = await db
         .from("blood_inventory")
-        .update({ 
-          status: 'discarded' as BloodUnitStatus,
-          storage_location: `Discarded: ${reason}${notes ? ' - ' + notes : ''}`,
+        .update({
+          status: (reason === 'expired' ? 'expired' : 'discarded') as BloodUnitStatus,
+          discard_reason: reason,
+          discarded_at: new Date().toISOString(),
+          discarded_by: auth?.user?.id ?? null,
+          ...(notes ? { notes } : {}),
         })
         .eq("id", unitId)
         .select();
