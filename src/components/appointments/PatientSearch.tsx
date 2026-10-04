@@ -6,6 +6,7 @@ import { Card } from '@/components/ui/card';
 import { supabase } from '@/integrations/supabase/client';
 import { useAuth } from '@/contexts/AuthContext';
 import { QuickPatientModal } from './QuickPatientModal';
+import { useTranslation } from '@/lib/i18n';
 
 interface Patient {
   id: string;
@@ -24,6 +25,7 @@ interface PatientSearchProps {
 }
 
 export function PatientSearch({ onSelect, onCreateNew, selectedPatient }: PatientSearchProps) {
+  const { t } = useTranslation();
   const [searchTerm, setSearchTerm] = useState('');
   const [results, setResults] = useState<Patient[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -101,7 +103,7 @@ export function PatientSearch({ onSelect, onCreateNew, selectedPatient }: Patien
       <div className="relative">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <Input
-          placeholder="Search by name, MR number, or phone..."
+          placeholder={t('appointments.searchPatientPh' as any)}
           value={searchTerm}
           onChange={(e) => {
             setSearchTerm(e.target.value);

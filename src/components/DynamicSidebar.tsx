@@ -456,6 +456,12 @@ export const SIDEBAR_NAME_TO_KEY: Record<string, TranslationKey> = {
   // Donation Management
   "Donation Management": "nav.donationManagement",
   "Record Donation": "nav.recordDonation",
+  "Donations & Welfare": "nav.donationsWelfare",
+  "Front Desk": "nav.frontDesk",
+  "Donations Dashboard": "nav.donationsDashboard",
+  "Fund Balances": "nav.fundBalances",
+  "Welfare Report": "nav.welfareReport",
+  "Campaigns": "nav.donationCampaigns",
   "Recurring Schedules": "nav.recurringSchedules",
 
   // Misc

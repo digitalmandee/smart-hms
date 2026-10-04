@@ -1,0 +1,2 @@
+ALTER TABLE public.journal_entries DROP CONSTRAINT journal_entries_reference_type_check;
+ALTER TABLE public.journal_entries ADD CONSTRAINT journal_entries_reference_type_check CHECK (reference_type IS NULL OR reference_type = ANY (ARRAY['invoice','payment','expense','payroll','pos_transaction','patient_deposit','credit_note','grn','donation','vendor_payment','stock_adjustment','shipment','manual','opening_balance','cpv','crv','bpv','brv','surgery','invoice_cancellation','write_off','depreciation','bank_deposit','fund_utilization']::text[]));

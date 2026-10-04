@@ -1,0 +1,1 @@
+GRANT EXECUTE ON FUNCTION public.set_org_language(text, text[]) TO authenticated;

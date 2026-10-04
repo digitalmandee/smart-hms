@@ -1013,7 +1013,7 @@ export function PatientFormPage() {
                 onCheckedChange={(checked) => setPrintCardAfterSave(checked === true)}
               />
               <label htmlFor="printCard" className="text-sm text-muted-foreground cursor-pointer">
-                Print patient ID card after saving
+                {t("common.printIdAfterSave" as any)}
               </label>
             </div>
             
