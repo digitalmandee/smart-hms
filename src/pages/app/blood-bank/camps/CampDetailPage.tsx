@@ -17,6 +17,7 @@ import { useBloodCamp, useSaveCamp, useCampRow, useReceiveCampBags } from "@/hoo
 import { useCampT } from "@/lib/blood-bank/camp-i18n";
 import { BloodGroupBadge } from "@/components/blood-bank/BloodGroupBadge";
 import { campStatusVariant } from "./CampsListPage";
+import { CampMoney } from "./CampMoney";
 
 const ROLES = ["doctor", "phlebotomist", "nurse", "driver", "volunteer"];
 const REJECT_REASONS = ["damaged", "missing", "cold_chain", "clotted", "underfilled"];
@@ -267,6 +268,8 @@ export default function CampDetailPage() {
             <Card><CardHeader><CardTitle className={end}>{tc("deferralReasons")}</CardTitle></CardHeader>
               <CardContent className={`flex flex-wrap gap-2 ${row}`}>{deferralReasons.map(([r, n]) => <Badge key={r} variant="outline">{r} × {n}</Badge>)}</CardContent></Card>
           )}
+          <CampMoney campId={camp.id} locked={camp.status === "received"} expenses={data?.expenses || []} income={data?.income || 0}
+            collected={stats.collected} usable={stats.stock + stats.issued} issued={stats.issued} tc={tc} rtl={rtl} />
         </TabsContent>
       </Tabs>
     </div>

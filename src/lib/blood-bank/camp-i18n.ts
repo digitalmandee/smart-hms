@@ -21,6 +21,10 @@ const en: Dict = {
   r_pending: "Awaiting receipt", r_accepted: "Accepted", r_rejected: "Rejected",
   accepted: "Accepted", rejectedBags: "Rejected", failedTests: "Failed tests", discarded: "Discarded", issued: "Issued to patients", inStock: "In stock",
   costPerBag: "Cost per bag", campCost: "Camp cost", deferralReasons: "Deferral reasons", thankDonors: "Thank donors (WhatsApp)",
+  expenses: "Camp expenses", addExpense: "Add expense", amount: "Amount", notes: "Notes", category: "Type", totalExpenses: "Total expenses",
+  costPerCollected: "Cost per bag collected", costPerUsable: "Cost per usable bag", income: "Income from issued bags",
+  profit: "Profit / loss", profitPerIssued: "Profit per bag issued", byType: "Expenses by type", lockedNote: "Expenses are locked after the camp is received",
+  ex_transport: "Transport / vehicle", ex_staff: "Staff allowance", ex_refreshments: "Donor refreshments", ex_bags: "Bags & kits", ex_venue: "Tent / venue", ex_publicity: "Publicity", ex_other: "Other",
   thankMsg: "Thank you {name} for donating blood at {camp}. You can donate again after {date}.", processBag: "Process",
   goTesting: "Go to blood testing",
 };
@@ -44,6 +48,10 @@ const ur: Dict = {
   r_pending: "وصولی باقی", r_accepted: "قبول", r_rejected: "مسترد",
   accepted: "قبول شدہ", rejectedBags: "مسترد", failedTests: "ٹیسٹ میں ناکام", discarded: "ضائع", issued: "مریضوں کو جاری", inStock: "اسٹاک میں",
   costPerBag: "فی بیگ لاگت", campCost: "کیمپ کی لاگت", deferralReasons: "مؤخر کرنے کی وجوہات", thankDonors: "عطیہ دہندگان کا شکریہ (واٹس ایپ)",
+  expenses: "کیمپ کے اخراجات", addExpense: "خرچ شامل کریں", amount: "رقم", notes: "نوٹس", category: "قسم", totalExpenses: "کل اخراجات",
+  costPerCollected: "فی جمع شدہ بیگ لاگت", costPerUsable: "فی قابل استعمال بیگ لاگت", income: "جاری کردہ بیگز سے آمدنی",
+  profit: "منافع / نقصان", profitPerIssued: "فی جاری بیگ منافع", byType: "قسم کے لحاظ سے اخراجات", lockedNote: "کیمپ وصول ہونے کے بعد اخراجات مقفل ہیں",
+  ex_transport: "ٹرانسپورٹ / گاڑی", ex_staff: "عملے کا الاؤنس", ex_refreshments: "عطیہ دہندگان کے لیے ریفریشمنٹ", ex_bags: "بیگز اور کٹس", ex_venue: "خیمہ / جگہ", ex_publicity: "تشہیر", ex_other: "دیگر",
   thankMsg: "{name}، {camp} میں خون کا عطیہ دینے کا شکریہ۔ آپ {date} کے بعد دوبارہ عطیہ دے سکتے ہیں۔", processBag: "پروسیس کریں",
   goTesting: "بلڈ ٹیسٹنگ پر جائیں",
 };
@@ -67,6 +75,10 @@ const ar: Dict = {
   r_pending: "بانتظار الاستلام", r_accepted: "مقبول", r_rejected: "مرفوض",
   accepted: "مقبولة", rejectedBags: "مرفوضة", failedTests: "فشلت في الفحص", discarded: "متلفة", issued: "صُرفت للمرضى", inStock: "في المخزون",
   costPerBag: "التكلفة لكل كيس", campCost: "تكلفة الحملة", deferralReasons: "أسباب التأجيل", thankDonors: "شكر المتبرعين (واتساب)",
+  expenses: "مصاريف الحملة", addExpense: "إضافة مصروف", amount: "المبلغ", notes: "ملاحظات", category: "النوع", totalExpenses: "إجمالي المصاريف",
+  costPerCollected: "التكلفة لكل كيس مجموع", costPerUsable: "التكلفة لكل كيس صالح", income: "الإيراد من الأكياس المصروفة",
+  profit: "الربح / الخسارة", profitPerIssued: "الربح لكل كيس مصروف", byType: "المصاريف حسب النوع", lockedNote: "المصاريف مقفلة بعد استلام الحملة",
+  ex_transport: "النقل / المركبة", ex_staff: "بدل الموظفين", ex_refreshments: "ضيافة المتبرعين", ex_bags: "الأكياس والمستلزمات", ex_venue: "الخيمة / المكان", ex_publicity: "الدعاية", ex_other: "أخرى",
   thankMsg: "شكرًا {name} على تبرعك بالدم في {camp}. يمكنك التبرع مجددًا بعد {date}.", processBag: "معالجة",
   goTesting: "الانتقال إلى فحص الدم",
 };
