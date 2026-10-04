@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.validate_fund_utilization() FROM PUBLIC, anon, authenticated;
