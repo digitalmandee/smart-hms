@@ -19809,9 +19809,13 @@ export type Database = {
       patient_portal_accounts: {
         Row: {
           created_at: string
+          created_by: string | null
           id: string
+          is_active: boolean
+          last_login_at: string | null
           nafath_verified: boolean
           nafath_verified_at: string | null
+          organization_id: string | null
           patient_id: string
           preferred_language: string
           updated_at: string
@@ -19819,9 +19823,13 @@ export type Database = {
         }
         Insert: {
           created_at?: string
+          created_by?: string | null
           id?: string
+          is_active?: boolean
+          last_login_at?: string | null
           nafath_verified?: boolean
           nafath_verified_at?: string | null
+          organization_id?: string | null
           patient_id: string
           preferred_language?: string
           updated_at?: string
@@ -19829,9 +19837,13 @@ export type Database = {
         }
         Update: {
           created_at?: string
+          created_by?: string | null
           id?: string
+          is_active?: boolean
+          last_login_at?: string | null
           nafath_verified?: boolean
           nafath_verified_at?: string | null
+          organization_id?: string | null
           patient_id?: string
           preferred_language?: string
           updated_at?: string
@@ -28407,6 +28419,7 @@ export type Database = {
         }
         Returns: string
       }
+      portal_touch_login: { Args: never; Returns: undefined }
       post_monthly_depreciation_per_asset: {
         Args: { _month: number; _organization_id: string; _year: number }
         Returns: Json
