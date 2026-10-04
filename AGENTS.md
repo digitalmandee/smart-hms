@@ -1,0 +1,2 @@
+- Donation category = `financial_donations.purpose`; fund spending on patient bills is recorded only in `fund_utilizations`, whose trigger posts the GL and updates invoice paid amounts — keeps fund balances and ledger in one source.
+- Hidden modules are controlled centrally by `GLOBALLY_HIDDEN_PREFIXES`/names in `src/lib/facility-type-filter.ts` (static and DB menus) — so features can be re-enabled without deleting code.
