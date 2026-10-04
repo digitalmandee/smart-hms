@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { format } from "date-fns";
 import { Clock, Users, Volume2, VolumeX, RefreshCw, Sun, Moon, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { LOGO_ICON_URL } from "@/components/brand/HealthOS24Logo";
 import { formatTokenDisplay } from "@/lib/opd-token";
 import { supabase } from "@/integrations/supabase/client";
 import { OPDDepartmentSelector } from "@/components/opd/OPDDepartmentSelector";
@@ -186,9 +187,7 @@ const TokenKioskPage = () => {
       {/* Header */}
       <div className="flex items-center justify-between mb-8">
         <div className="flex items-center gap-4">
-          {organization?.logo_url && (
-            <img src={organization.logo_url} alt="" className="h-12 w-12 object-contain rounded-lg" />
-          )}
+          <img src={LOGO_ICON_URL} alt="HealthOS24" className="h-12 w-12 object-contain rounded-lg" />
           <div>
             <h1 className={cn(
               "text-3xl lg:text-4xl font-bold tracking-tight",

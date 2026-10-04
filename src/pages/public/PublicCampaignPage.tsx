@@ -6,6 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Heart, Users, CalendarDays, Target } from "lucide-react";
 import { differenceInDays, format } from "date-fns";
+import { LOGO_ICON_URL } from "@/components/brand/HealthOS24Logo";
 
 export default function PublicCampaignPage() {
   const { orgSlug, campaignNumber } = useParams<{ orgSlug: string; campaignNumber: string }>();
@@ -81,13 +82,7 @@ export default function PublicCampaignPage() {
       {/* Org Header */}
       <div className="bg-card border-b">
         <div className="max-w-lg mx-auto px-4 py-4 flex items-center gap-3">
-          {org.logo_url ? (
-            <img src={org.logo_url} alt={org.name} className="h-10 w-10 rounded-md object-contain" />
-          ) : (
-            <div className="h-10 w-10 rounded-md bg-primary/10 flex items-center justify-center">
-              <Heart className="h-5 w-5 text-primary" />
-            </div>
-          )}
+          <img src={LOGO_ICON_URL} alt="HealthOS24" className="h-10 w-10 rounded-md object-contain" />
           <div>
             <p className="font-semibold text-sm">{org.name}</p>
             <p className="text-xs text-muted-foreground">Fundraising Campaign</p>
