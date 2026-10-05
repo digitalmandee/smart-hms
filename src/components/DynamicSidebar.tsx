@@ -1,3 +1,5 @@
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { OfflineIndicator } from "@/components/offline/OfflineIndicator";
 import { LOGO_ICON_URL } from "@/components/brand/HealthOS24Logo";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
@@ -1280,6 +1282,12 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
 
       {/* User Menu */}
       <div className="border-t border-sidebar-border p-3">
+        {!isCollapsed && (
+          <div className={cn("flex items-center justify-between gap-2 mb-3", isRTL && "flex-row-reverse")}>
+            <LanguageSwitcher />
+            <OfflineIndicator />
+          </div>
+        )}
           <div
           className={cn(
             "flex items-center gap-3",
