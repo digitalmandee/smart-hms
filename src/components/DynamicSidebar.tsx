@@ -1280,6 +1280,12 @@ export const DynamicSidebar = ({ isCollapsed = false, onToggle, showDesktopToggl
 
       {/* User Menu */}
       <div className="border-t border-sidebar-border p-3">
+        {!isCollapsed && (
+          <div className={cn("flex items-center justify-between gap-2 mb-3", isRTL && "flex-row-reverse")}>
+            <LanguageSwitcher />
+            <OfflineIndicator />
+          </div>
+        )}
           <div
           className={cn(
             "flex items-center gap-3",

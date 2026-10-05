@@ -85,8 +85,8 @@ export const DashboardLayout = () => {
 
       {/* Main Content */}
       <main className="flex-1 overflow-y-auto">
-        {/* Top bar with language switcher */}
-        <div className={cn("flex items-center gap-3 px-6 pt-3 pb-0", isRTL ? "justify-start flex-row-reverse" : "justify-end")}>
+        {/* Language switcher lives in the sidebar footer on desktop; shown here only when sidebar is a drawer */}
+        <div className={cn("lg:hidden flex items-center gap-3 px-6 pt-3 pb-0", isRTL ? "justify-start flex-row-reverse" : "justify-end")}>
           <OfflineIndicator />
           <LanguageSwitcher />
         </div>
