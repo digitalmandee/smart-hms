@@ -1,3 +1,5 @@
+import { LanguageSwitcher } from "@/components/LanguageSwitcher";
+import { OfflineIndicator } from "@/components/offline/OfflineIndicator";
 import { LOGO_ICON_URL } from "@/components/brand/HealthOS24Logo";
 import { useState, useEffect } from "react";
 import { useNavigate, useLocation, Link } from "react-router-dom";
