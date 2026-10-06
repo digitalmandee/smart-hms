@@ -56,7 +56,7 @@ export default function CrossMatchFormPage() {
   // ABO/Rh compatibility: red cells/whole blood follow donor→recipient rules,
   // plasma/cryo follow reverse rules, platelets accept any ABO (same RhD preferred)
   const inventory = (() => {
-    if (!selectedRequest || !allAvailable) return [] as typeof allAvailable extends (infer U)[] | undefined ? U[] : never;
+    if (!selectedRequest || !allAvailable) return [];
     const pg = String(selectedRequest.blood_group);
     const pAbo = pg.replace(/[+-]/, ''); const pNeg = pg.endsWith('-');
     const comp = selectedRequest.component_type;
@@ -65,7 +65,7 @@ export default function CrossMatchFormPage() {
       if (comp === 'fresh_frozen_plasma' || comp === 'cryoprecipitate') {
         return dAbo === 'AB' || dAbo === pAbo || pAbo === 'O';
       }
-      if (comp === 'platelet_concentrate') return !pNeg || dNeg || true;
+      if (comp === 'platelet_concentrate') return true;
       const rhOk = !pNeg || dNeg;
       const aboOk = dAbo === 'O' || dAbo === pAbo || pAbo === 'AB';
       return rhOk && aboOk;
