@@ -9,16 +9,24 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Trash2 } from "lucide-react";
 import { useCampRow } from "@/hooks/useBloodCamps";
 import { useCurrencyFormatter } from "@/hooks/useCurrencyFormatter";
+import { useQuery } from "@tanstack/react-query";
+import { supabase } from "@/integrations/supabase/client";
 
 const EXPENSE_TYPES = ["transport", "staff", "refreshments", "bags", "venue", "publicity", "other"];
 
 export function CampMoney({ campId, locked, expenses, income, collected, usable, issued, tc, rtl }: {
-  campId: string; locked: boolean; expenses: { id: string; category: string; amount: number; notes: string | null }[];
+  campId: string; locked: boolean; expenses: { id: string; category: string; amount: number; notes: string | null; payment_method?: string; bank_account_id?: string | null }[];
   income: number; collected: number; usable: number; issued: number; tc: (k: string) => string; rtl: boolean;
 }) {
   const { formatCurrency } = useCurrencyFormatter();
   const m = useCampRow("blood_camp_expenses");
-  const [ex, setEx] = useState({ category: "transport", amount: "", notes: "" });
+  const [ex, setEx] = useState({ category: "transport", amount: "", notes: "", payment_method: "cash", bank_account_id: "" });
+  const { data: banks = [] } = useQuery({ queryKey: ["bank-accounts-active"], queryFn: async () => {
+    const { data } = await (supabase as any).from("bank_accounts").select("id, bank_name, account_number").eq("is_active", true).order("bank_name");
+    return (data || []) as { id: string; bank_name: string; account_number: string | null }[];
+  } });
+  const bankName = (id?: string | null) => banks.find((b) => b.id === id)?.bank_name || "";
+  const needBank = ex.payment_method === "bank" && !ex.bank_account_id;
   const end = rtl ? "text-end" : ""; const row = rtl ? "flex-row-reverse" : "";
   const total = expenses.reduce((s, e) => s + Number(e.amount || 0), 0);
   const profit = income - total;
@@ -33,7 +41,8 @@ export function CampMoney({ campId, locked, expenses, income, collected, usable,
   const add = async () => {
     const amount = Number(ex.amount);
     if (!(amount > 0)) return;
-    await m.mutateAsync({ camp_id: campId, category: ex.category, amount, notes: ex.notes || null });
+    if (needBank) return;
+    await m.mutateAsync({ camp_id: campId, category: ex.category, amount, notes: ex.notes || null, payment_method: ex.payment_method, bank_account_id: ex.payment_method === "bank" ? ex.bank_account_id : null });
     setEx({ ...ex, amount: "", notes: "" });
   };
   return (
@@ -58,20 +67,36 @@ export function CampMoney({ campId, locked, expenses, income, collected, usable,
                 </Select></div>
               <div className="space-y-1 w-32"><Label className={`block ${end}`}>{tc("amount")}</Label>
                 <Input type="number" min="0" value={ex.amount} onChange={(e) => setEx({ ...ex, amount: e.target.value })} /></div>
+              <div className="space-y-1 w-40"><Label className={`block ${end}`}>{tc("paidBy")}</Label>
+                <Select value={ex.payment_method} onValueChange={(v) => setEx({ ...ex, payment_method: v })}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent><SelectItem value="cash">{tc("pm_cash")}</SelectItem><SelectItem value="bank">{tc("pm_bank")}</SelectItem></SelectContent>
+                </Select></div>
+              {ex.payment_method === "bank" && (
+                <div className="space-y-1 w-52"><Label className={`block ${end}`}>{tc("bankAccount")}</Label>
+                  <Select value={ex.bank_account_id || "__none__"} onValueChange={(v) => setEx({ ...ex, bank_account_id: v === "__none__" ? "" : v })}>
+                    <SelectTrigger><SelectValue /></SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="__none__" disabled>{banks.length ? tc("chooseBank") : tc("noBanks")}</SelectItem>
+                      {banks.map((b) => <SelectItem key={b.id} value={b.id}>{b.bank_name}{b.account_number ? ` • ${b.account_number.slice(-4)}` : ""}</SelectItem>)}
+                    </SelectContent>
+                  </Select></div>
+              )}
               <div className="space-y-1 flex-1 min-w-40"><Label className={`block ${end}`}>{tc("notes")}</Label>
                 <Input value={ex.notes} onChange={(e) => setEx({ ...ex, notes: e.target.value })} /></div>
-              <Button onClick={add} disabled={m.isPending || !(Number(ex.amount) > 0)}>{tc("addExpense")}</Button>
+              <Button onClick={add} disabled={m.isPending || !(Number(ex.amount) > 0) || needBank}>{tc("addExpense")}</Button>
             </div>
           )}
           {expenses.length > 0 && (
             <Table>
               <TableHeader><TableRow>
-                <TableHead className={end}>{tc("category")}</TableHead><TableHead className={end}>{tc("amount")}</TableHead><TableHead className={end}>{tc("notes")}</TableHead><TableHead />
+                <TableHead className={end}>{tc("category")}</TableHead><TableHead className={end}>{tc("amount")}</TableHead><TableHead className={end}>{tc("paidBy")}</TableHead><TableHead className={end}>{tc("notes")}</TableHead><TableHead />
               </TableRow></TableHeader>
               <TableBody>{expenses.map((e) => (
                 <TableRow key={e.id}>
                   <TableCell className={end}>{tc(`ex_${e.category}`)}</TableCell>
                   <TableCell className={end}>{formatCurrency(Number(e.amount))}</TableCell>
+                  <TableCell className={end}>{e.payment_method === "bank" ? `${tc("pm_bank")}${bankName(e.bank_account_id) ? ` (${bankName(e.bank_account_id)})` : ""}` : tc("pm_cash")}</TableCell>
                   <TableCell className={end}>{e.notes || "-"}</TableCell>
                   <TableCell>{!locked && <Button size="icon" variant="ghost" onClick={() => m.mutate({ _delete: e.id })}><Trash2 className="h-4 w-4" /></Button>}</TableCell>
                 </TableRow>))}

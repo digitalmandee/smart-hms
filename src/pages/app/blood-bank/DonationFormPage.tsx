@@ -64,6 +64,16 @@ export default function DonationFormPage() {
     const days = eligibility.defer_days || 30;
     try {
       await deferBloodDonor(selectedDonorId, eligibility.reasons.map((r) => tt(`r_${r}`)).join("; "), days);
+      if (campId) {
+        // Keep a record of the deferral on the camp so camp stats and reasons are complete
+        await createDonation.mutateAsync({
+          donor_id: selectedDonorId, donation_date: formData.donation_date, donation_time: formData.donation_time,
+          donation_type: formData.donation_type,
+          hemoglobin_level: formData.hemoglobin ? parseFloat(formData.hemoglobin) : null,
+          questionnaire: answers, status: "rejected", rejection_reason: "deferred", camp_id: campId,
+          notes: formData.notes || null,
+        } as any);
+      }
       toast.success(tt("deferredFor", { n: days }));
       navigate(campId ? backTo : "/app/blood-bank/donors");
     } catch (e: any) { toast.error(e.message); }

@@ -187,7 +187,7 @@ export default function CampDetailPage() {
               <CardTitle>{tc("tabDonors")}</CardTitle>
               <div className={`flex gap-2 ${row}`}>
               {Object.values(picked).some(Boolean) && <Button variant="outline" onClick={() => printFor(data!.donations.filter((d: any) => picked[d.id]))}><Printer className="h-4 w-4 me-2" />{tc("printSelected")}</Button>}
-              {data!.donations.length > 0 && <Button variant="outline" onClick={() => printFor(data!.donations.filter((d: any) => d.status !== "rejected"))}><Printer className="h-4 w-4 me-2" />{tc("printAll")}</Button>}
+              {data!.donations.length > 0 && <Button variant="outline" onClick={() => printFor(data!.donations.filter((d: any) => d.status !== "rejected" && d.eligibility_passed !== false))}><Printer className="h-4 w-4 me-2" />{tc("printAll")}</Button>}
               {camp.status === "ongoing" && <Link to={`/app/blood-bank/donations/new?campId=${camp.id}`}><Button><UserPlus className="h-4 w-4 me-2" />{tc("registerDonor")}</Button></Link>}
               </div>
             </div></CardHeader>
@@ -206,8 +206,8 @@ export default function CampDetailPage() {
                       <TableCell className={end}>{d.bag_number || "-"}</TableCell>
                       <TableCell className={end}>{d.volume_ml ?? "-"}</TableCell>
                       <TableCell className={end}>{d.donation_time?.slice(0, 5)}</TableCell>
-                      <TableCell className={end}><Badge variant={d.received_status === "rejected" ? "destructive" : d.received_status === "accepted" ? "default" : "outline"}>{tc(`r_${d.received_status || "pending"}`)}</Badge></TableCell>
-                      <TableCell className={`whitespace-nowrap ${end}`}><Button size="icon" variant="ghost" title={tc("printLabel")} onClick={() => printFor([d])}><Printer className="h-4 w-4" /></Button>{d.received_status === "accepted" && d.donor?.phone && <Button size="icon" variant="ghost" title={tc("thankDonors")} onClick={() => thank(d)}><MessageCircle className="h-4 w-4" /></Button>}</TableCell>
+                      <TableCell className={end}>{d.eligibility_passed === false ? <Badge variant="secondary">{tc("deferred")}</Badge> : <Badge variant={d.received_status === "rejected" ? "destructive" : d.received_status === "accepted" ? "default" : "outline"}>{tc(`r_${d.received_status || "pending"}`)}</Badge>}</TableCell>
+                      <TableCell className={`whitespace-nowrap ${end}`}>{d.eligibility_passed !== false && <Button size="icon" variant="ghost" title={tc("printLabel")} onClick={() => printFor([d])}><Printer className="h-4 w-4" /></Button>}{d.received_status === "accepted" && d.donor?.phone && <Button size="icon" variant="ghost" title={tc("thankDonors")} onClick={() => thank(d)}><MessageCircle className="h-4 w-4" /></Button>}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>

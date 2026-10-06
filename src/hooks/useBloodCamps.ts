@@ -63,7 +63,7 @@ export function useBloodCamp(id?: string) {
         camp: camp.data as BloodCamp | null,
         staff: staff.data || [], transport: transport.data || [],
         donations: donations.data || [], units: unitRows,
-        expenses: (expenses.data || []) as { id: string; category: string; amount: number; notes: string | null }[],
+        expenses: (expenses.data || []) as { id: string; category: string; amount: number; notes: string | null; payment_method?: string; bank_account_id?: string | null }[],
         income,
       };
     },

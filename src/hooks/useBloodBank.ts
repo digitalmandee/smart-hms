@@ -590,7 +590,7 @@ export function useBloodRequests(filters?: { status?: BloodRequestStatus; priori
           patient:patients(id, first_name, last_name, patient_number, blood_group)
         `)
         .eq("organization_id", profile!.organization_id!)
-        .order("requested_at", { ascending: false });
+        .order("created_at", { ascending: false });
 
       if (filters?.status) {
         query = query.eq("status", filters.status);
@@ -625,7 +625,7 @@ export function usePendingRequests() {
         .eq("organization_id", profile!.organization_id!)
         .in("status", ["pending", "processing", "cross_matching"])
         .order("priority", { ascending: true })
-        .order("requested_at", { ascending: true });
+        .order("created_at", { ascending: true });
       if (error) throw error;
       return data as BloodRequest[];
     },

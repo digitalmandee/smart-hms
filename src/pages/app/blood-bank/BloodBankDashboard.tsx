@@ -20,6 +20,7 @@ import { RequestCard } from "@/components/blood-bank/RequestCard";
 import { DonationStatusBadge } from "@/components/blood-bank/DonationStatusBadge";
 import { BloodGroupBadge } from "@/components/blood-bank/BloodGroupBadge";
 import { ExpiryAlertBanner } from "@/components/blood-bank/ExpiryAlertBanner";
+import { BloodFlowPanel } from "@/components/blood-bank/BloodFlowPanel";
 
 import { useTranslation } from "@/lib/i18n";
 
@@ -111,6 +112,8 @@ export default function BloodBankDashboard() {
           </>
         )}
       </div>
+
+      <BloodFlowPanel />
 
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Blood Stock Overview */}
