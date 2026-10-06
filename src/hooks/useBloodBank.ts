@@ -646,11 +646,10 @@ export function useCreateBloodRequest() {
           organization_id: profile!.organization_id!,
           branch_id: profile!.branch_id!,
           requested_by: profile!.id,
-        })
-        .select()
-        .single();
+        } as any)
+        .select();
       if (error) throw error;
-      return data;
+      return data?.[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["blood-requests"] });
