@@ -51,11 +51,33 @@ export default function CrossMatchFormPage() {
   
   const selectedRequest = allRequests.find(r => r.id === selectedRequestId);
   
-  const { data: inventory } = useBloodInventory({ 
-    status: 'available', 
-    bloodGroup: selectedRequest?.blood_group,
-    componentType: selectedRequest?.component_type,
-  });
+  const { data: allAvailable } = useBloodInventory({ status: 'available' });
+
+  // ABO/Rh compatibility: red cells/whole blood follow donor→recipient rules,
+  // plasma/cryo follow reverse rules, platelets accept any ABO (same RhD preferred)
+  const inventory = (() => {
+    if (!selectedRequest || !allAvailable) return [];
+    const pg = String(selectedRequest.blood_group);
+    const pAbo = pg.replace(/[+-]/, ''); const pNeg = pg.endsWith('-');
+    const comp = selectedRequest.component_type;
+    const ok = (dg: string) => {
+      const dAbo = dg.replace(/[+-]/, ''); const dNeg = dg.endsWith('-');
+      if (comp === 'fresh_frozen_plasma' || comp === 'cryoprecipitate') {
+        return dAbo === 'AB' || dAbo === pAbo || pAbo === 'O';
+      }
+      if (comp === 'platelet_concentrate') return true;
+      const rhOk = !pNeg || dNeg;
+      const aboOk = dAbo === 'O' || dAbo === pAbo || pAbo === 'AB';
+      return rhOk && aboOk;
+    };
+    const today = new Date().toISOString().slice(0, 10);
+    return allAvailable
+      .filter(u => (!comp || u.component_type === comp) && u.expiry_date >= today && ok(String(u.blood_group)))
+      .sort((a, b) => {
+        const ea = String(a.blood_group) === pg ? 0 : 1; const eb = String(b.blood_group) === pg ? 0 : 1;
+        return ea - eb || a.expiry_date.localeCompare(b.expiry_date);
+      });
+  })();
 
   const createCrossMatch = useCreateCrossMatch();
 
