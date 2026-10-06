@@ -75,7 +75,7 @@ export default function DonationFormPage() {
     const r = eligibility ?? (await runCheck());
     if (!r?.eligible) return;
     try {
-      await createDonation.mutateAsync({
+      const created: any = await createDonation.mutateAsync({
         donor_id: selectedDonorId,
         donation_date: formData.donation_date,
         donation_time: formData.donation_time,
@@ -92,7 +92,7 @@ export default function DonationFormPage() {
         status: campId ? "collecting" : "screening",
         camp_id: campId || null,
       } as any);
-      navigate(backTo);
+      navigate(campId && created?.id ? `${backTo}?print=${created.id}` : backTo);
     } catch { /* toast in hook */ }
   };
 

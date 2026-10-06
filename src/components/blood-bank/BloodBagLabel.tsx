@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import { BloodGroupBadge } from "./BloodGroupBadge";
 import { useTranslation, useDirection } from "@/lib/i18n";
+import { useCampT } from "@/lib/blood-bank/camp-i18n";
 import { format, parseISO } from "date-fns";
 import type { BloodInventory } from "@/hooks/useBloodBank";
 
@@ -27,6 +28,7 @@ export function BloodBagLabel({ unit, showDownload = true }: BloodBagLabelProps)
   const labelRef = useRef<HTMLDivElement>(null);
   const { t } = useTranslation();
   const dir = useDirection();
+  const { tc } = useCampT();
 
   useEffect(() => {
     if (barcodeRef.current) {
@@ -90,6 +92,9 @@ export function BloodBagLabel({ unit, showDownload = true }: BloodBagLabelProps)
             label={t("bb.expiryDate")}
             value={format(parseISO(unit.expiry_date), "dd/MM/yyyy")}
           />
+          {(unit as any).camp_id && (
+            <LabelField label={tc("lbl_camp")} value={(unit as any).camp?.name || "✓"} />
+          )}
           {unit.bag_number && (
             <LabelField label={t("bb.bagNumber")} value={unit.bag_number} />
           )}
