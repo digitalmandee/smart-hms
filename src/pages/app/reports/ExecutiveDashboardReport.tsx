@@ -1,3 +1,4 @@
+import { isModuleHidden } from "@/lib/facility-type-filter";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -309,6 +310,7 @@ export default function ExecutiveDashboardReport() {
                 <p className="text-xs mt-1">{summary.lab.pendingOrders} pending ({summary.lab.urgentPending} urgent)</p>
               </div>
 
+              {!isModuleHidden("/app/radiology") && (
               <div className="p-4 rounded-lg border cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/app/radiology/reports")}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2"><Scan className="h-4 w-4 text-indigo-600" /><span className="font-medium">Radiology</span></div>
@@ -317,8 +319,9 @@ export default function ExecutiveDashboardReport() {
                 <p className="text-2xl font-bold">{summary.radiology.ordersProcessed}</p>
                 <p className="text-xs text-muted-foreground">Orders Processed</p>
                 <p className="text-xs mt-1">{summary.radiology.pendingInterpretations} pending</p>
-              </div>
+              </div>)}
 
+              {!isModuleHidden("/app/ot") && (
               <div className="p-4 rounded-lg border cursor-pointer hover:border-primary/50 transition-colors" onClick={() => navigate("/app/ot/reports")}>
                 <div className="flex items-center justify-between mb-2">
                   <div className="flex items-center gap-2"><Scissors className="h-4 w-4 text-rose-600" /><span className="font-medium">Surgery/OT</span></div>
@@ -327,7 +330,7 @@ export default function ExecutiveDashboardReport() {
                 <p className="text-2xl font-bold">{summary.surgery.completed}</p>
                 <p className="text-xs text-muted-foreground">Surgeries Completed</p>
                 <p className="text-xs mt-1">{summary.surgery.scheduled} scheduled</p>
-              </div>
+              </div>)}
             </div>
           </CardContent>
         </Card>

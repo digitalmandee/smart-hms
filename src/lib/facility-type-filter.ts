@@ -205,3 +205,8 @@ export function filterSidebarByFacilityType(
   }
   return filtered;
 }
+
+/** True when a module path is switched off globally (used to hide dashboard widgets too). */
+export function isModuleHidden(path: string): boolean {
+  return GLOBALLY_HIDDEN_PREFIXES.some((p) => path === p || path.startsWith(p + "/") || path.startsWith(p + "?"));
+}

@@ -113,9 +113,10 @@ export default function DoctorMobileDashboard() {
             onClick={() => navigate('/app/appointments')}
           />
           <MobileStatsCard
-            title="Pending Surgeries"
-            value={stats?.pendingSurgeries || 0}
+            title="Lab Results"
+            value={stats?.labResults || 0}
             icon={<Activity className="h-5 w-5" />}
+            onClick={() => navigate('/app/lab')}
           />
         </div>
 

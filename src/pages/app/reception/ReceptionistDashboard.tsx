@@ -1,3 +1,4 @@
+import { isModuleHidden } from "@/lib/facility-type-filter";
 import { Calendar, UserPlus, Clock, Users, Scissors } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { ModernPageHeader } from "@/components/ModernPageHeader";
@@ -41,10 +42,10 @@ export default function ReceptionistDashboard() {
               <Calendar className="h-4 w-4 me-2" />
               {t("reception.schedule")}
             </Button>
-            <Button variant="outline" onClick={() => navigate("/app/ot/surgeries")}>
+            {!isModuleHidden("/app/ot") && <Button variant="outline" onClick={() => navigate("/app/ot/surgeries")}>
               <Scissors className="h-4 w-4 me-2" />
               {t("reception.allSurgeries")}
-            </Button>
+            </Button>}
             <Button onClick={() => navigate("/app/patients/new")}>
               <UserPlus className="h-4 w-4 me-2" />
               {t("reception.newPatient")}
@@ -118,8 +119,8 @@ export default function ReceptionistDashboard() {
           </CardContent>
         </Card>
 
-        <PendingSurgeryRequestsCard maxItems={4} />
-        <UpcomingSurgeriesCard maxItems={4} />
+        {!isModuleHidden("/app/ot") && <PendingSurgeryRequestsCard maxItems={4} />}
+        {!isModuleHidden("/app/ot") && <UpcomingSurgeriesCard maxItems={4} />}
 
         <Card className="transition-all hover:shadow-lg">
           <CardHeader className="pb-3">

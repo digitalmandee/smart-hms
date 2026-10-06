@@ -1,3 +1,4 @@
+import { isModuleHidden } from "@/lib/facility-type-filter";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/contexts/AuthContext";
@@ -135,7 +136,7 @@ export const DashboardPage = () => {
     if (hasAdminRole) return;
 
     for (const role of roles) {
-      const redirectPath = ROLE_DASHBOARD_MAP[role];
+      const redirectPath = ROLE_DASHBOARD_MAP[role] && !isModuleHidden(ROLE_DASHBOARD_MAP[role]) ? ROLE_DASHBOARD_MAP[role] : undefined;
       if (redirectPath) {
         setIsRedirecting(true);
         navigate(redirectPath, { replace: true });
@@ -370,7 +371,7 @@ export const DashboardPage = () => {
       {isClinical && (
         <div className="grid gap-6 lg:grid-cols-2">
           <PharmacyAlertsWidget />
-          <NphiesDashboardCard />
+          {!isModuleHidden("/app/insurance") && <NphiesDashboardCard />}
         </div>
       )}
       {isClinical && (
