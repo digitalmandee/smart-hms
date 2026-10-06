@@ -214,7 +214,7 @@ export function PatientBloodHistory({ patientId }: PatientBloodHistoryProps) {
                     <div>
                       <p className="font-medium text-sm">{request.request_number}</p>
                       <p className="text-xs text-muted-foreground">
-                        {request.units_requested} unit(s) • {format(new Date(request.requested_at), "MMM dd, yyyy")}
+                        {request.units_requested} unit(s) • {format(new Date((request.requested_at || request.created_at)), "MMM dd, yyyy")}
                       </p>
                     </div>
                   </div>

@@ -46,7 +46,8 @@ export default function CrossMatchFormPage() {
   
   const { data: requests } = useBloodRequests({ status: 'processing' });
   const { data: pendingRequests } = useBloodRequests({ status: 'cross_matching' });
-  const allRequests = [...(requests || []), ...(pendingRequests || [])];
+  const { data: newRequests } = useBloodRequests({ status: 'pending' });
+  const allRequests = [...(newRequests || []), ...(requests || []), ...(pendingRequests || [])];
   
   const selectedRequest = allRequests.find(r => r.id === selectedRequestId);
   

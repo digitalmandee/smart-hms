@@ -84,10 +84,10 @@ export default function BloodRequestFormPage() {
         component_type: formData.component_type,
         units_requested: formData.units_requested,
         priority: formData.priority,
-        indication: formData.indication || null,
+        clinical_indication: formData.indication || null,
         required_by: formData.required_by || null,
         requesting_department: formData.requesting_department || null,
-      });
+      } as any);
       navigate('/app/blood-bank/requests');
     } catch (error) {
       // Error handled in hook

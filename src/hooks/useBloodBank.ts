@@ -590,7 +590,7 @@ export function useBloodRequests(filters?: { status?: BloodRequestStatus; priori
           patient:patients(id, first_name, last_name, patient_number, blood_group)
         `)
         .eq("organization_id", profile!.organization_id!)
-        .order("requested_at", { ascending: false });
+        .order("created_at", { ascending: false });
 
       if (filters?.status) {
         query = query.eq("status", filters.status);
@@ -625,7 +625,7 @@ export function usePendingRequests() {
         .eq("organization_id", profile!.organization_id!)
         .in("status", ["pending", "processing", "cross_matching"])
         .order("priority", { ascending: true })
-        .order("requested_at", { ascending: true });
+        .order("created_at", { ascending: true });
       if (error) throw error;
       return data as BloodRequest[];
     },
@@ -646,11 +646,10 @@ export function useCreateBloodRequest() {
           organization_id: profile!.organization_id!,
           branch_id: profile!.branch_id!,
           requested_by: profile!.id,
-        })
-        .select()
-        .single();
+        } as any)
+        .select();
       if (error) throw error;
-      return data;
+      return data?.[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["blood-requests"] });
@@ -730,14 +729,21 @@ export function useCreateCrossMatch() {
       const { data, error } = await db
         .from("cross_match_tests")
         .insert({
-          ...test,
+          // Only real table columns; the trigger holds/release the bag based on the result
           organization_id: profile!.organization_id!,
-          branch_id: profile!.branch_id!,
+          request_id: test.request_id,
+          unit_id: (test as any).unit_id || (test as any).blood_unit_id,
+          tested_by: profile!.id,
+          major_cross_match: test.major_cross_match,
+          minor_cross_match: test.minor_cross_match,
+          antibody_screen: (test as any).antibody_screen,
+          overall_result: test.overall_result,
+          valid_until: test.valid_until,
+          notes: (test as any).notes ?? null,
         })
-        .select()
-        .single();
+        .select();
       if (error) throw error;
-      return data;
+      return data?.[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cross-match-tests"] });

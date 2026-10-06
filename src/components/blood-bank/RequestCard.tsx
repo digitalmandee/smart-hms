@@ -127,7 +127,7 @@ export function RequestCard({ request, onProcess, onView, compact = false }: Req
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <Clock className="h-3.5 w-3.5" />
-            {format(parseISO(request.requested_at), "MMM d, h:mm a")}
+            {format(parseISO((request.requested_at || request.created_at)), "MMM d, h:mm a")}
           </div>
           <div className="flex gap-2">
             {onView && (

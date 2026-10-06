@@ -27,6 +27,7 @@ const en: Dict = {
   ex_transport: "Transport / vehicle", ex_staff: "Staff allowance", ex_refreshments: "Donor refreshments", ex_bags: "Bags & kits", ex_venue: "Tent / venue", ex_publicity: "Publicity", ex_other: "Other",
   thankMsg: "Thank you {name} for donating blood at {camp}. You can donate again after {date}.", processBag: "Process",
   goTesting: "Go to blood testing",
+  paidBy: "Paid by", pm_cash: "Cash", pm_bank: "Bank transfer", bankAccount: "Bank account", chooseBank: "Choose bank account", noBanks: "No bank accounts set up",
   printLabel: "Print label", printAll: "Print all labels", printSelected: "Print selected", scanBag: "Scan bag barcode", scanHint: "Scan or type the barcode and press Enter", notFound: "Bag not found in this camp", lbl_pending: "Pending", lbl_sample: "Sample", lbl_collected: "Collected", lbl_donor: "Donor", lbl_camp: "Camp",
 };
 const ur: Dict = {
@@ -55,6 +56,7 @@ const ur: Dict = {
   ex_transport: "ٹرانسپورٹ / گاڑی", ex_staff: "عملے کا الاؤنس", ex_refreshments: "عطیہ دہندگان کے لیے ریفریشمنٹ", ex_bags: "بیگز اور کٹس", ex_venue: "خیمہ / جگہ", ex_publicity: "تشہیر", ex_other: "دیگر",
   thankMsg: "{name}، {camp} میں خون کا عطیہ دینے کا شکریہ۔ آپ {date} کے بعد دوبارہ عطیہ دے سکتے ہیں۔", processBag: "پروسیس کریں",
   goTesting: "بلڈ ٹیسٹنگ پر جائیں",
+  paidBy: "ادائیگی کا طریقہ", pm_cash: "نقد", pm_bank: "بینک ٹرانسفر", bankAccount: "بینک اکاؤنٹ", chooseBank: "بینک اکاؤنٹ منتخب کریں", noBanks: "کوئی بینک اکاؤنٹ نہیں",
   printLabel: "لیبل پرنٹ کریں", printAll: "تمام لیبل پرنٹ کریں", printSelected: "منتخب پرنٹ کریں", scanBag: "بیگ بارکوڈ اسکین کریں", scanHint: "بارکوڈ اسکین یا ٹائپ کریں اور Enter دبائیں", notFound: "یہ بیگ اس کیمپ میں نہیں ملا", lbl_pending: "زیر التوا", lbl_sample: "نمونہ", lbl_collected: "جمع", lbl_donor: "عطیہ دہندہ", lbl_camp: "کیمپ",
 };
 const ar: Dict = {
@@ -83,6 +85,7 @@ const ar: Dict = {
   ex_transport: "النقل / المركبة", ex_staff: "بدل الموظفين", ex_refreshments: "ضيافة المتبرعين", ex_bags: "الأكياس والمستلزمات", ex_venue: "الخيمة / المكان", ex_publicity: "الدعاية", ex_other: "أخرى",
   thankMsg: "شكرًا {name} على تبرعك بالدم في {camp}. يمكنك التبرع مجددًا بعد {date}.", processBag: "معالجة",
   goTesting: "الانتقال إلى فحص الدم",
+  paidBy: "طريقة الدفع", pm_cash: "نقدًا", pm_bank: "تحويل بنكي", bankAccount: "الحساب البنكي", chooseBank: "اختر الحساب البنكي", noBanks: "لا توجد حسابات بنكية",
   printLabel: "طباعة الملصق", printAll: "طباعة كل الملصقات", printSelected: "طباعة المحدد", scanBag: "مسح باركود الكيس", scanHint: "امسح أو اكتب الباركود ثم اضغط Enter", notFound: "الكيس غير موجود في هذه الحملة", lbl_pending: "قيد الانتظار", lbl_sample: "عينة", lbl_collected: "الجمع", lbl_donor: "المتبرع", lbl_camp: "الحملة",
 };
 const D: Record<string, Dict> = { en, ur, ar };

@@ -16,7 +16,8 @@ import {
   ExternalLink
 } from "lucide-react";
 import { format } from "date-fns";
-import { useBloodRequests, useCrossMatchTests, useUpdateBloodRequest, type BloodRequestStatus } from "@/hooks/useBloodBank";
+import { useBloodRequests, useCrossMatchTests, useUpdateBloodRequest, useIssueBloodUnits, type BloodRequestStatus } from "@/hooks/useBloodBank";
+import { toast } from "sonner";
 import { BloodGroupBadge } from "@/components/blood-bank/BloodGroupBadge";
 
 const statusConfig: Record<BloodRequestStatus, { label: string; color: string; icon: any }> = {
@@ -51,6 +52,16 @@ export default function BloodRequestDetailPage() {
   const { data: requests, isLoading } = useBloodRequests();
   const { data: crossMatches } = useCrossMatchTests({ requestId: id });
   const updateRequest = useUpdateBloodRequest();
+  const issueUnits = useIssueBloodUnits();
+  const handleIssue = async () => {
+    if (!id) return;
+    try {
+      const r = await issueUnits.mutateAsync(id);
+      toast.success(`Issued ${r?.issued ?? 0} bag(s)${r?.invoice_id ? " and created the bill" : ""}`);
+    } catch (e: any) {
+      toast.error(String(e?.message || e).includes("NO_MATCHED_UNITS") ? "No cross-matched bags are held for this request" : (e?.message || "Could not issue blood"));
+    }
+  };
   
   const request = requests?.find(r => r.id === id);
 
@@ -157,15 +168,15 @@ export default function BloodRequestDetailPage() {
                 )}
               </div>
               
-              {request.indication && (
+              {((request as any).clinical_indication || request.indication) && (
                 <div className="pt-4 border-t">
                   <p className="text-sm text-muted-foreground mb-1">Clinical Indication</p>
-                  <p className="text-sm">{request.indication}</p>
+                  <p className="text-sm">{(request as any).clinical_indication || request.indication}</p>
                 </div>
               )}
 
               <div className="pt-4 border-t text-xs text-muted-foreground">
-                <p>Requested: {format(new Date(request.requested_at), "MMM dd, yyyy HH:mm")}</p>
+                <p>Requested: {format(new Date((request.requested_at || request.created_at)), "MMM dd, yyyy HH:mm")}</p>
               </div>
             </CardContent>
           </Card>
@@ -291,8 +302,8 @@ export default function BloodRequestDetailPage() {
               {request.status === 'ready' && (
                 <Button 
                   className="w-full" 
-                  onClick={() => handleStatusUpdate('issued')}
-                  disabled={updateRequest.isPending}
+                  onClick={handleIssue}
+                  disabled={issueUnits.isPending}
                 >
                   Issue Blood
                 </Button>

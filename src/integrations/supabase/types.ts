@@ -2408,6 +2408,7 @@ export type Database = {
       blood_camp_expenses: {
         Row: {
           amount: number
+          bank_account_id: string | null
           camp_id: string
           category: string
           created_at: string
@@ -2415,10 +2416,12 @@ export type Database = {
           id: string
           notes: string | null
           organization_id: string
+          payment_method: string
           updated_at: string
         }
         Insert: {
           amount?: number
+          bank_account_id?: string | null
           camp_id: string
           category?: string
           created_at?: string
@@ -2426,10 +2429,12 @@ export type Database = {
           id?: string
           notes?: string | null
           organization_id?: string
+          payment_method?: string
           updated_at?: string
         }
         Update: {
           amount?: number
+          bank_account_id?: string | null
           camp_id?: string
           category?: string
           created_at?: string
@@ -2437,9 +2442,17 @@ export type Database = {
           id?: string
           notes?: string | null
           organization_id?: string
+          payment_method?: string
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "blood_camp_expenses_bank_account_id_fkey"
+            columns: ["bank_account_id"]
+            isOneToOne: false
+            referencedRelation: "bank_accounts"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "blood_camp_expenses_camp_id_fkey"
             columns: ["camp_id"]
