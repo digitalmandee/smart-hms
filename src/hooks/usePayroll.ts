@@ -385,7 +385,7 @@ export function useMyPayslips() {
         .from("employees")
         .select("id")
         .eq("profile_id", user.id)
-        .single();
+        .maybeSingle();
       
       if (empError || !employee) {
         return [];
@@ -690,7 +690,7 @@ export function usePayrollStats() {
         .select("*")
         .eq("month", currentMonth)
         .eq("year", currentYear)
-        .single();
+        .maybeSingle();
       
       if (error && error.code !== "PGRST116") throw error;
       

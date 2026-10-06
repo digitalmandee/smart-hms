@@ -160,7 +160,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Purchase Requests", path: "/app/inventory/purchase-requests", icon: "FileInput" },
           { name: "Purchase Orders", path: "/app/inventory/purchase-orders", icon: "FileEdit" },
           { name: "GRN", path: "/app/inventory/grn", icon: "PackageCheck" },
-          { name: "Stock Adjustments", path: "/app/inventory/adjustments", icon: "SlidersHorizontal" },
+          { name: "Stock Adjustments", path: "/app/inventory/stock-adjustments", icon: "SlidersHorizontal" },
           { name: "Reorder Alerts", path: "/app/inventory/reorder-alerts", icon: "AlertTriangle" },
           { name: "Reports", path: "/app/inventory/reports", icon: "BarChart3" },
         ]
@@ -217,7 +217,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Expense Management", path: "/app/accounts/expenses", icon: "Receipt" },
           { name: "Bank Accounts", path: "/app/accounts/bank-accounts", icon: "Building" },
           { name: "Bank Reconciliation", path: "/app/accounts/bank-reconciliation", icon: "CheckSquare" },
-          { name: "Cash to Bank", path: "/app/accounts/cash-to-bank", icon: "ArrowRight" },
+          { name: "Cash to Bank", path: "/app/accounts/cash-to-bank-report", icon: "ArrowRight" },
           { name: "Reports", path: "/app/accounts/reports", icon: "PieChart" },
         ]
       },
@@ -290,8 +290,8 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
           { name: "Branch Comparison", path: "/app/reports/branches", icon: "BarChart3" },
           { name: "Day-End Summary", path: "/app/reports/day-end-summary", icon: "Receipt" },
           { name: "Department Revenue", path: "/app/reports/department-revenue", icon: "TrendingUp" },
-          { name: "Shift-Wise Collections", path: "/app/reports/shift-wise-collection", icon: "Clock" },
-          { name: "Executive Dashboard", path: "/app/reports/executive-dashboard", icon: "LayoutDashboard" },
+          { name: "Shift-Wise Collections", path: "/app/reports/shift-collection", icon: "Clock" },
+          { name: "Executive Dashboard", path: "/app/reports/executive", icon: "LayoutDashboard" },
           { name: "OPD Departments", path: "/app/reports/opd-departments", icon: "Building2" },
         ]
       },
@@ -1253,7 +1253,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "Bank Accounts", path: "/app/accounts/bank-accounts", icon: "Building" },
           { name: "Bank Reconciliation", path: "/app/accounts/bank-reconciliation", icon: "CheckSquare" },
-          { name: "Cash to Bank", path: "/app/accounts/cash-to-bank", icon: "ArrowRight" },
+          { name: "Cash to Bank", path: "/app/accounts/cash-to-bank-report", icon: "ArrowRight" },
           { name: "Budgets", path: "/app/accounts/budgets", icon: "PieChart" },
         ]
       },
@@ -1285,11 +1285,11 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "",
         icon: "Landmark",
         children: [
-          { name: "Credit/Debit Notes", path: "/app/accounts/credit-debit-notes", icon: "FileText" },
+          { name: "Credit/Debit Notes", path: "/app/accounts/credit-notes", icon: "FileText" },
           { name: "Fixed Assets", path: "/app/accounts/fixed-assets", icon: "Package" },
           { name: "Patient Deposits", path: "/app/accounts/patient-deposits", icon: "Wallet" },
           { name: "Cost Centers", path: "/app/accounts/cost-centers", icon: "Target" },
-          { name: "Fiscal Periods", path: "/app/accounts/fiscal-periods", icon: "Calendar" },
+          { name: "Fiscal Periods", path: "/app/accounts/period-management", icon: "Calendar" },
           { name: "Year-End Closing", path: "/app/accounts/year-end-closing", icon: "Lock" },
           { name: "Recurring Entries", path: "/app/accounts/recurring-entries", icon: "RefreshCw" },
           { name: "PDC Register", path: "/app/accounts/pdc-register", icon: "FileCheck" },
@@ -1381,7 +1381,7 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         children: [
           { name: "Bank Accounts", path: "/app/accounts/bank-accounts", icon: "Building" },
           { name: "Bank Reconciliation", path: "/app/accounts/bank-reconciliation", icon: "CheckSquare" },
-          { name: "Cash to Bank", path: "/app/accounts/cash-to-bank", icon: "ArrowRight" },
+          { name: "Cash to Bank", path: "/app/accounts/cash-to-bank-report", icon: "ArrowRight" },
           { name: "Budgets", path: "/app/accounts/budgets", icon: "PieChart" },
         ]
       },
@@ -1413,11 +1413,11 @@ export const ROLE_SIDEBAR_CONFIG: Record<string, SidebarConfig> = {
         path: "",
         icon: "Landmark",
         children: [
-          { name: "Credit/Debit Notes", path: "/app/accounts/credit-debit-notes", icon: "FileText" },
+          { name: "Credit/Debit Notes", path: "/app/accounts/credit-notes", icon: "FileText" },
           { name: "Fixed Assets", path: "/app/accounts/fixed-assets", icon: "Package" },
           { name: "Patient Deposits", path: "/app/accounts/patient-deposits", icon: "Wallet" },
           { name: "Cost Centers", path: "/app/accounts/cost-centers", icon: "Target" },
-          { name: "Fiscal Periods", path: "/app/accounts/fiscal-periods", icon: "Calendar" },
+          { name: "Fiscal Periods", path: "/app/accounts/period-management", icon: "Calendar" },
           { name: "Year-End Closing", path: "/app/accounts/year-end-closing", icon: "Lock" },
           { name: "Recurring Entries", path: "/app/accounts/recurring-entries", icon: "RefreshCw" },
           { name: "PDC Register", path: "/app/accounts/pdc-register", icon: "FileCheck" },

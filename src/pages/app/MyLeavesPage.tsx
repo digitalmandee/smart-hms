@@ -101,7 +101,7 @@ export default function MyLeavesPage() {
         .from("employees")
         .select("id, first_name, last_name, organization_id")
         .eq("profile_id", user.id)
-        .single();
+        .maybeSingle();
       if (error) throw error;
       return data;
     },

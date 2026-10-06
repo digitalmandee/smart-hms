@@ -118,8 +118,9 @@ async function fetchSessionsForDate(branchId: string, startOfDay: string, endOfD
 async function fetchPaymentsForDate(branchId: string, startOfDay: string, endOfDay: string) {
   const result = await (supabase as any)
     .from('payments')
-    .select('amount, payment_method_id, created_at, invoice_id')
-    .eq('branch_id', branchId)
+    // payments has no branch_id column — scope by the linked invoice's branch
+    .select('amount, payment_method_id, created_at, invoice_id, invoice:invoices!payments_invoice_id_fkey!inner(branch_id)')
+    .eq('invoice.branch_id', branchId)
     .gte('created_at', startOfDay)
     .lte('created_at', endOfDay);
   

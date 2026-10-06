@@ -25,7 +25,8 @@ export function usePatientStatement(patientId: string) {
 
       const [invRes, payRes, depRes] = await Promise.all([
         sb.from("invoices").select("id, invoice_number, invoice_date, total_amount, status, notes").eq("patient_id", patientId).eq("organization_id", profile.organization_id).neq("status", "cancelled").order("invoice_date", { ascending: true }),
-        sb.from("payments").select("id, reference_number, payment_date, amount, invoice_id").eq("patient_id", patientId).eq("organization_id", profile.organization_id).order("payment_date", { ascending: true }),
+        // payments has no patient_id/organization_id — scope through the linked invoice
+        sb.from("payments").select("id, reference_number, payment_date, amount, invoice_id, invoice:invoices!payments_invoice_id_fkey!inner(patient_id, organization_id)").eq("invoice.patient_id", patientId).eq("invoice.organization_id", profile.organization_id).order("payment_date", { ascending: true }),
         sb.from("patient_deposits").select("id, reference_number, created_at, amount, type, status, notes").eq("patient_id", patientId).eq("organization_id", profile.organization_id).eq("status", "completed").order("created_at", { ascending: true }),
       ]);
 

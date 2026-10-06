@@ -62,7 +62,7 @@ export default function MyPayslipsPage() {
           designation:designations(name)
         `)
         .eq("profile_id", user.id)
-        .single();
+        .maybeSingle();
       return data;
     },
     enabled: !!user?.id,
