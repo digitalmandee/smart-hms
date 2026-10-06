@@ -90,6 +90,9 @@ export function BloodBagLabel({ unit, showDownload = true }: BloodBagLabelProps)
             label={t("bb.expiryDate")}
             value={format(parseISO(unit.expiry_date), "dd/MM/yyyy")}
           />
+          {(unit as any).camp_id && (
+            <LabelField label={t("bb.camp") === "bb.camp" ? "Camp" : t("bb.camp")} value={(unit as any).camp?.name || (unit as any).donation?.donation_number || "✓"} />
+          )}
           {unit.bag_number && (
             <LabelField label={t("bb.bagNumber")} value={unit.bag_number} />
           )}

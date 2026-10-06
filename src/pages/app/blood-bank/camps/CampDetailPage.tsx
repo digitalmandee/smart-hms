@@ -1,5 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
-import { useNavigate, useParams, Link } from "react-router-dom";
+import { useNavigate, useParams, Link, useSearchParams } from "react-router-dom";
+import { Checkbox } from "@/components/ui/checkbox";
+import { printCampLabels } from "@/lib/blood-bank/printCampLabels";
 import { PageHeader } from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -10,7 +12,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { ArrowLeft, Play, Lock, UserPlus, Trash2, Truck, CheckCircle2, AlertTriangle, MessageCircle } from "lucide-react";
+import { ArrowLeft, Play, Lock, UserPlus, Trash2, Truck, CheckCircle2, AlertTriangle, MessageCircle, Printer, ScanLine } from "lucide-react";
 import { toast } from "sonner";
 import { addDays, format } from "date-fns";
 import { useBloodCamp, useSaveCamp, useCampRow, useReceiveCampBags } from "@/hooks/useBloodCamps";
@@ -38,8 +40,23 @@ export default function CampDetailPage() {
   const [member, setMember] = useState({ name: "", role: "phlebotomist", phone: "" });
   const [trip, setTrip] = useState({ departed_at: "", departure_temp: "", arrived_at: "", arrival_temp: "", carrier: "", bag_count: "" });
   const [decision, setDecision] = useState<Record<string, string>>({}); // id -> "accept" | reason
+  const [picked, setPicked] = useState<Record<string, boolean>>({});
+  const [scan, setScan] = useState("");
+  const [sp, setSp] = useSearchParams();
   const camp = data?.camp;
   useEffect(() => { if (camp) setForm(camp); }, [camp]);
+  const printFor = (list: any[]) => camp && printCampLabels(list.map((d: any) => ({
+    code: d.donation_number || d.bag_number || d.id.slice(0, 8), bag: d.bag_number, group: d.donor?.blood_group,
+    donor: d.donor?.donor_number, date: d.donation_date, time: d.donation_time, volume: d.volume_ml,
+  })), { campName: camp.name, campNumber: camp.camp_number, rtl, tc });
+  useEffect(() => {
+    const pid = sp.get("print");
+    if (!pid || !data?.donations) return;
+    const d = data.donations.find((x: any) => x.id === pid);
+    if (d) printFor([d]);
+    sp.delete("print"); setSp(sp, { replace: true });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data, sp]);
 
   const stats = useMemo(() => {
     const d = data?.donations || []; const u = data?.units || [];
@@ -168,24 +185,29 @@ export default function CampDetailPage() {
           <Card>
             <CardHeader><div className={`flex items-center justify-between ${row}`}>
               <CardTitle>{tc("tabDonors")}</CardTitle>
+              <div className={`flex gap-2 ${row}`}>
+              {Object.values(picked).some(Boolean) && <Button variant="outline" onClick={() => printFor(data!.donations.filter((d: any) => picked[d.id]))}><Printer className="h-4 w-4 me-2" />{tc("printSelected")}</Button>}
+              {data!.donations.length > 0 && <Button variant="outline" onClick={() => printFor(data!.donations.filter((d: any) => d.status !== "rejected"))}><Printer className="h-4 w-4 me-2" />{tc("printAll")}</Button>}
               {camp.status === "ongoing" && <Link to={`/app/blood-bank/donations/new?campId=${camp.id}`}><Button><UserPlus className="h-4 w-4 me-2" />{tc("registerDonor")}</Button></Link>}
+              </div>
             </div></CardHeader>
             <CardContent className="p-0">
               <Table>
                 <TableHeader><TableRow>
-                  <TableHead className={end}>{tc("donor")}</TableHead><TableHead className={end}>{tc("group")}</TableHead><TableHead className={end}>{tc("bag")}</TableHead>
+                  <TableHead className="w-8" /><TableHead className={end}>{tc("donor")}</TableHead><TableHead className={end}>{tc("group")}</TableHead><TableHead className={end}>{tc("bag")}</TableHead>
                   <TableHead className={end}>{tc("volume")}</TableHead><TableHead className={end}>{tc("time")}</TableHead><TableHead className={end}>{tc("status")}</TableHead><TableHead />
                 </TableRow></TableHeader>
                 <TableBody>
                   {data!.donations.map((d: any) => (
                     <TableRow key={d.id}>
+                      <TableCell><Checkbox checked={!!picked[d.id]} onCheckedChange={(v) => setPicked({ ...picked, [d.id]: !!v })} /></TableCell>
                       <TableCell className={end}><Link className="underline" to={`/app/blood-bank/donations/${d.id}`}>{d.donor?.first_name} {d.donor?.last_name}</Link></TableCell>
                       <TableCell>{d.donor?.blood_group && <BloodGroupBadge group={d.donor.blood_group} />}</TableCell>
                       <TableCell className={end}>{d.bag_number || "-"}</TableCell>
                       <TableCell className={end}>{d.volume_ml ?? "-"}</TableCell>
                       <TableCell className={end}>{d.donation_time?.slice(0, 5)}</TableCell>
                       <TableCell className={end}><Badge variant={d.received_status === "rejected" ? "destructive" : d.received_status === "accepted" ? "default" : "outline"}>{tc(`r_${d.received_status || "pending"}`)}</Badge></TableCell>
-                      <TableCell>{d.received_status === "accepted" && d.donor?.phone && <Button size="icon" variant="ghost" title={tc("thankDonors")} onClick={() => thank(d)}><MessageCircle className="h-4 w-4" /></Button>}</TableCell>
+                      <TableCell className={`whitespace-nowrap ${end}`}><Button size="icon" variant="ghost" title={tc("printLabel")} onClick={() => printFor([d])}><Printer className="h-4 w-4" /></Button>{d.received_status === "accepted" && d.donor?.phone && <Button size="icon" variant="ghost" title={tc("thankDonors")} onClick={() => thank(d)}><MessageCircle className="h-4 w-4" /></Button>}</TableCell>
                     </TableRow>
                   ))}
                 </TableBody>
@@ -232,6 +254,18 @@ export default function CampDetailPage() {
                 {stats.accepted > 0 && <Link to="/app/blood-bank/testing"><Button variant="outline">{tc("goTesting")}</Button></Link>}</div>
             ) : (
               <>
+                <div className={`flex items-center gap-2 max-w-md ${row}`}>
+                  <ScanLine className="h-5 w-5 text-muted-foreground shrink-0" />
+                  <Input autoFocus dir="ltr" placeholder={tc("scanHint")} aria-label={tc("scanBag")} value={scan} onChange={(e) => setScan(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key !== "Enter") return;
+                      const v = scan.trim().toLowerCase(); if (!v) return;
+                      const d = pending.find((x: any) => [x.donation_number, x.bag_number].some((c) => (c || "").toLowerCase() === v));
+                      if (d) { setDecision((p) => ({ ...p, [d.id]: "accept" })); toast.success(`${d.bag_number || d.donation_number} ✓`); }
+                      else toast.error(tc("notFound"));
+                      setScan("");
+                    }} />
+                </div>
                 <Table><TableBody>
                   {pending.map((d: any) => (
                     <TableRow key={d.id}>
