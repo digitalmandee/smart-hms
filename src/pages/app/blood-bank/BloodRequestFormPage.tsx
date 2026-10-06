@@ -85,6 +85,8 @@ export default function BloodRequestFormPage() {
         units_requested: formData.units_requested,
         priority: formData.priority,
         clinical_indication: formData.indication || null,
+      } as any);
+      if (false) ({
         required_by: formData.required_by || null,
         requesting_department: formData.requesting_department || null,
       });
