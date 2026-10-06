@@ -13,7 +13,7 @@ export function useDepartmentDistribution() {
           department_id,
           departments!employees_department_id_fkey(id, name)
         `)
-        .eq("is_active", true);
+        .eq("employment_status", "active");
 
       if (error) throw error;
 
@@ -96,8 +96,8 @@ export function useLeaveDistribution(year: number) {
       const endDate = `${year}-12-31`;
 
       const { data, error } = await (supabase as any)
-        .from("leave_applications")
-        .select("leave_type, id")
+        .from("leave_requests")
+        .select("id, leave_type:leave_type_id(code, name)")
         .eq("status", "approved")
         .gte("start_date", startDate)
         .lte("start_date", endDate);
@@ -107,7 +107,7 @@ export function useLeaveDistribution(year: number) {
       // Group by leave type
       const typeCounts: Record<string, number> = {};
       data?.forEach((leave: any) => {
-        const type = leave.leave_type || "other";
+        const type = leave.leave_type?.code?.toLowerCase() || leave.leave_type?.name || "other";
         typeCounts[type] = (typeCounts[type] || 0) + 1;
       });
 
@@ -142,7 +142,7 @@ export function useLeaveStats(year: number) {
 
       // Total approved leaves this year
       const { count: totalApproved } = await (supabase as any)
-        .from("leave_applications")
+        .from("leave_requests")
         .select("*", { count: "exact", head: true })
         .eq("status", "approved")
         .gte("start_date", startDate)
@@ -150,13 +150,13 @@ export function useLeaveStats(year: number) {
 
       // Pending approvals
       const { count: pendingApprovals } = await (supabase as any)
-        .from("leave_applications")
+        .from("leave_requests")
         .select("*", { count: "exact", head: true })
         .eq("status", "pending");
 
       // Approved this month
       const { count: approvedThisMonth } = await (supabase as any)
-        .from("leave_applications")
+        .from("leave_requests")
         .select("*", { count: "exact", head: true })
         .eq("status", "approved")
         .gte("start_date", monthStart)

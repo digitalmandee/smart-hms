@@ -98,7 +98,7 @@ export default function VatReturnPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("goods_received_notes")
-        .select("id, grn_number, received_date, total_amount, tax_amount")
+        .select("id, grn_number, received_date, invoice_amount")
         .eq("organization_id", profile!.organization_id!)
         .gte("received_date", startStr)
         .lte("received_date", endStr);

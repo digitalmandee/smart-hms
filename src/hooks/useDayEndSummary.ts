@@ -82,7 +82,8 @@ export function useDayEndSummary(date: Date, branchId?: string) {
           id, total_price, invoice_id,
           service_type:service_types(id, category, name)
         `)
-        .eq("organization_id", orgId);
+        // invoice_items has no organization_id — limit to today's invoices
+        .in("invoice_id", ((invoicesRes.data || []) as any[]).map((i: any) => i.id).concat(["00000000-0000-0000-0000-000000000000"]));
 
       // 3. Fetch payments made today with invoice info for credit recovery tracking
       // @ts-ignore - Supabase types cause deep instantiation error
@@ -90,9 +91,10 @@ export function useDayEndSummary(date: Date, branchId?: string) {
         .from("payments")
         .select(`
           id, amount, payment_method_id, created_at, invoice_id,
-          invoice:invoices!payments_invoice_id_fkey(id, created_at, organization_id)
+          invoice:invoices!payments_invoice_id_fkey!inner(id, created_at, organization_id)
         `)
-        .eq("organization_id", orgId)
+        // payments has no organization_id — scope through the linked invoice
+        .eq("invoice.organization_id", orgId)
         .gte("created_at", startDate)
         .lte("created_at", endDate);
 

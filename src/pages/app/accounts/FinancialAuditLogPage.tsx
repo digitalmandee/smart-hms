@@ -43,7 +43,7 @@ export default function FinancialAuditLogPage() {
         .select(`
           id, action, entity_type, entity_id, old_values, new_values,
           created_at, ip_address, user_agent,
-          user:profiles!audit_logs_user_id_fkey(id, first_name, last_name)
+          user:profiles!audit_logs_user_id_fkey(id, full_name)
         `)
         .gte("created_at", fromDate)
         .order("created_at", { ascending: false })
@@ -65,7 +65,7 @@ export default function FinancialAuditLogPage() {
   const filteredLogs = logs?.filter(log => {
     if (!search) return true;
     const s = search.toLowerCase();
-    const userName = `${log.user?.first_name || ""} ${log.user?.last_name || ""}`.toLowerCase();
+    const userName = (log.user?.full_name || "").toLowerCase();
     return (
       log.entity_type?.toLowerCase().includes(s) ||
       log.action?.toLowerCase().includes(s) ||
@@ -225,7 +225,7 @@ export default function FinancialAuditLogPage() {
                           {format(parseISO(log.created_at), "dd MMM yyyy HH:mm:ss")}
                         </TableCell>
                         <TableCell className="whitespace-nowrap">
-                          {log.user ? `${log.user.first_name} ${log.user.last_name}` : "System"}
+                          {log.user?.full_name || "System"}
                         </TableCell>
                         <TableCell>{getActionBadge(log.action)}</TableCell>
                         <TableCell>

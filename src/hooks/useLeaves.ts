@@ -136,7 +136,6 @@ export function useLeaveRequests(filters?: {
           *,
           employee:employee_id(id, first_name, last_name, employee_number, department:department_id(id, name)),
           leave_type:leave_type_id(id, name, code, color),
-          approved_by_profile:approved_by(id, full_name),
           approver_1_profile:approver_1_id(id, full_name),
           approver_2_profile:approver_2_id(id, full_name)
         `)
