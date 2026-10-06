@@ -168,10 +168,10 @@ export default function BloodRequestDetailPage() {
                 )}
               </div>
               
-              {request.indication && (
+              {((request as any).clinical_indication || request.indication) && (
                 <div className="pt-4 border-t">
                   <p className="text-sm text-muted-foreground mb-1">Clinical Indication</p>
-                  <p className="text-sm">{request.indication}</p>
+                  <p className="text-sm">{(request as any).clinical_indication || request.indication}</p>
                 </div>
               )}
 
