@@ -28,7 +28,7 @@ export function printCampLabels(items: CampLabelData[], opts: { campName: string
     const bag = `<div class="lbl"><div class="r"><b>${esc(tc("lbl_camp"))}: ${esc(opts.campName)}</b><span class="g">${esc(i.group || tc("lbl_pending"))}</span></div>
       <div class="bc">${barcodeSvg(i.code, 30)}</div>
       <div class="r s"><span>${esc(tc("lbl_donor"))}: ${esc(i.donor || "-")}</span><span>${esc(i.volume ? i.volume + " ml" : "")}</span></div>
-      <div class="r s"><span>${esc(opts.campNumber || "")}${i.bag ? " • " + esc(i.bag) : ""}</span><span>${esc(tc("lbl_collected"))}: ${esc(i.date || "")} ${esc((i.time || "").slice(0, 5))}</span></div></div>`;
+      <div class="r s"><span>${esc(opts.campNumber || "")}${i.bag ? " • " + esc(i.bag) : ""}</span><span>${esc(i.date || "")} ${esc((i.time || "").slice(0, 5))}</span></div></div>`;
     const tube = `<div class="lbl"><div class="r s"><b>${esc(tc("lbl_sample"))}</b><span>${esc(i.group || tc("lbl_pending"))}</span></div><div class="bc">${barcodeSvg(i.code, 34)}</div><div class="r s"><span>${esc(i.date || "")}</span></div></div>`;
     return bag + tube + tube;
   }).join("");
