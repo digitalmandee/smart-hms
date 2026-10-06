@@ -729,14 +729,21 @@ export function useCreateCrossMatch() {
       const { data, error } = await db
         .from("cross_match_tests")
         .insert({
-          ...test,
+          // Only real table columns; the trigger holds/release the bag based on the result
           organization_id: profile!.organization_id!,
-          branch_id: profile!.branch_id!,
+          request_id: test.request_id,
+          unit_id: (test as any).unit_id || (test as any).blood_unit_id,
+          tested_by: profile!.id,
+          major_cross_match: test.major_cross_match,
+          minor_cross_match: test.minor_cross_match,
+          antibody_screen: (test as any).antibody_screen,
+          overall_result: test.overall_result,
+          valid_until: test.valid_until,
+          notes: (test as any).notes ?? null,
         })
-        .select()
-        .single();
+        .select();
       if (error) throw error;
-      return data;
+      return data?.[0];
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["cross-match-tests"] });
