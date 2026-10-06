@@ -457,7 +457,7 @@ export function useBloodInventory(filters?: {
     queryFn: async () => {
       let query = db
         .from("blood_inventory")
-        .select("*")
+        .select("*, camp:blood_camps(name)")
         .eq("organization_id", profile!.organization_id!)
         .order("expiry_date", { ascending: true });
 
