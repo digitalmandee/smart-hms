@@ -1,3 +1,4 @@
+import { isModuleHidden } from "@/lib/facility-type-filter";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { PageHeader } from "@/components/PageHeader";
@@ -145,7 +146,7 @@ export default function BillingDashboard() {
           </Card>
 
           {/* NPHIES Dashboard Widget */}
-          <NphiesDashboardCard />
+          {!isModuleHidden("/app/insurance") && <NphiesDashboardCard />}
         </div>
 
         {/* Recent Invoices */}

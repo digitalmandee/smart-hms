@@ -1,3 +1,4 @@
+import { isModuleHidden } from "@/lib/facility-type-filter";
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { ModernPageHeader } from "@/components/ModernPageHeader";
@@ -329,13 +330,14 @@ export default function IPDDashboard() {
             <p className="text-sm text-muted-foreground">{t("ipd.avgLOS")}</p>
           </CardContent>
         </Card>
+{!isModuleHidden("/app/ot") && (
         <Card>
           <CardContent className="pt-6 text-center">
             <Calendar className="h-8 w-8 mx-auto mb-2 text-primary" />
             <p className="text-2xl font-bold">{enhanced?.todayProcedures || 0}</p>
             <p className="text-sm text-muted-foreground">{t("ipd.todayProcedures")}</p>
           </CardContent>
-        </Card>
+        </Card>)}
         <Card>
           <CardContent className="pt-6 text-center">
             <Beaker className="h-8 w-8 mx-auto mb-2 text-warning" />
